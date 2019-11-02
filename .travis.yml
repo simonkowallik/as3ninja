@@ -1,5 +1,7 @@
-dist: xenial
+dist: bionic
 language: python
+
+sudo: required
 
 matrix:
     include:
@@ -9,6 +11,7 @@ matrix:
           env: TOXENV=py38
 
 install:
+    - sudo apt-get install git
     - travis_retry pip install tox
 
 script:

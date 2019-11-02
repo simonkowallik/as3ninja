@@ -30,6 +30,7 @@ RUN pip3 install --no-cache-dir \
             flake8 \
             pipenv \
             pylint \
+            pytest \
             ;
 RUN addgroup as3ninja; \
         adduser -h /as3ninja -s /sbin/nologin -G as3ninja -S -D -H as3ninja;
@@ -37,7 +38,7 @@ RUN addgroup as3ninja; \
 ADD . /as3ninja
 
 RUN bash -c " \
-            pip3 install --no-cache-dir -r <(pipenv lock --requirements); \
+            pip3 install --no-cache-dir -r <(pipenv --bare lock --requirements); \
             "
 
 RUN apk del .build-deps

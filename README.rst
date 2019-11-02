@@ -69,17 +69,17 @@ the Command Line
 ^^^^^^^^^^^^^^^^
 as3ninja cli:
 
-.. image:: _static/_cli.svg
+.. image:: docs/_static/_cli.svg
 
 the API UI
 ^^^^^^^^^^
 ReDoc and Swagger UI:
 
-.. image:: _static/_api.gif
+.. image:: docs/_static/_api.gif
 
 Swagger UI demo:
 
-.. image:: _static/_api_demo.gif
+.. image:: docs/_static/_api_demo.gif
 
 
 Where to start?
