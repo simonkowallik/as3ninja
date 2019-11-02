@@ -1,0 +1,77 @@
+{
+  "class": "AS3",
+  "action": "deploy",
+  "persist": true,
+  "declaration": {
+    "class": "ADC",
+    "schemaVersion": "3.11.0",
+    "id": "a-unique-id",
+    "label": "AS3 Ninja built AS3 Declaration",
+    "remark": "This is my AS3 Ninja 101 lesson.",
+    "TurtleCorp": {
+      "class": "Tenant",
+      "WebApp": {
+        "class": "Application",
+        "template": "http",
+        "path_hdr": {
+          "class": "iRule",
+          "iRule": "when HTTP_REQUEST priority 500 {\n    set path [string tolower [HTTP::path]]\n    if { {} ne [set value [class match -value -- $path equals /TurtleCorp/WebApp/http_paths]] } {\n        HTTP::header remove X-Path-Header\n        HTTP::header insert X-Path-Header \"${path}:${value}\"\n    }\n}\n"
+        },
+        "http_paths": {
+          "class": "Data_Group",
+          "keyDataType": "string",
+          "records": [
+            {
+              "key": "/start/"
+            },
+            {
+              "key": "/end/"
+            }
+          ]
+        },
+        "sorry_page": {
+          "class": "iRule",
+          "iRule": "when LB_FAILED priority 500 {\n    HTTP::respond 500 content { We are very sorry that we can't serve your request right now. :-( }\n}\n"
+        },
+        "pool_web": {
+          "class": "Pool",
+          "minimumMembersActive": 1,
+          "monitors": [
+            "http",
+            "tcp"
+          ],
+          "members": [
+            {
+              "serverAddresses": [
+                "192.0.2.10",
+                "192.0.2.11"
+              ],
+              "servicePort": 80,
+              "priorityGroup": 1
+            },
+            {
+              "serverAddresses": [
+                "192.0.2.210",
+                "192.0.2.211"
+              ],
+              "servicePort": 10080,
+              "priorityGroup": 2
+            }
+          ]
+        },
+        "serviceMain": {
+          "class": "Service_HTTP",
+          "virtualAddresses": [
+            "10.0.1.10",
+            "10.0.1.11"
+          ],
+          "iRules": [
+            "path_hdr",
+            "sorry_page"
+          ],
+          "pool": "pool_web"
+        }
+      }
+    }
+  }
+}

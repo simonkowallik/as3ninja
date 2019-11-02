@@ -1,0 +1,37 @@
+{
+    "list_of_keyValuePairs": {
+        "key1": "value1",
+        "key2": "value2",
+        "key3": "value3"
+    },
+    "list_of_objects": [
+        {
+            "Obj1_key": "value1"
+        },
+        {
+            "Obj2_key": "value2"
+        },
+        {
+            "Obj3 key": "value 3"
+        }
+    ],
+    "list_of_objects_w_fieldnames": [
+        {
+            "key": "key 1",
+            "value": "value 1"
+        },
+        {
+            "key": "key 2",
+            "value": "value 2"
+        },
+        {
+            "key": "key 3",
+            "value": "value 3"
+        }
+    ],
+    "simplelist": [
+        "10.0.0.1",
+        "10.0.0.2",
+        "10.0.0.3"
+    ]
+}

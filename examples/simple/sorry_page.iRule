@@ -1,0 +1,3 @@
+when LB_FAILED priority 500 {
+    HTTP::respond 500 content { {{ninja.general.sorry_page.message}} }
+}

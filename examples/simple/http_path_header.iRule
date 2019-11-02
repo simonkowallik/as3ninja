@@ -1,0 +1,7 @@
+when HTTP_REQUEST priority 500 {
+    set path [string tolower [HTTP::path]]
+    if { {} ne [set value [class match -value -- $path equals /{{ ninja.tenant.name }}/{{ app.name }}/{{ irule.datagroup.name }}]] } {
+        HTTP::header remove X-Path-Header
+        HTTP::header insert X-Path-Header "${path}:${value}"
+    }
+}

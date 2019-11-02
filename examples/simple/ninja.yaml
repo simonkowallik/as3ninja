@@ -1,0 +1,46 @@
+as3ninja:
+  declaration_template: "examples/simple/template.j2"
+
+declaration:
+  label: "AS3 Ninja built AS3 Declaration"
+  remark: "This is my AS3 Ninja 101 lesson."
+
+general:
+  sorry_page:
+    message: "We are very sorry that we can't serve your request right now. :-("
+
+tenant:
+  name: "TurtleCorp"
+  applications:
+    - name: WebApp
+      template: http
+      irules:
+        - name: path_hdr
+          file: "examples/simple/http_path_header.iRule"
+          datagroup:
+            name: "http_paths"
+            type: string
+            records:
+              - key: "/start/"
+              - key: "/end/"
+        - name: sorry_page
+          file: "examples/simple/sorry_page.iRule"
+      virtual_addresses:
+        - 10.0.1.10
+        - 10.0.1.11
+      default_pool:
+        name: pool_web
+        monitors:
+          - http
+          - tcp
+        members:
+          - serverAddresses:
+              - "192.0.2.10"
+              - "192.0.2.11"
+            servicePort: 80
+            priorityGroup: 1
+          - serverAddresses:
+              - "192.0.2.210"
+              - "192.0.2.211"
+            servicePort: 10080
+            priorityGroup: 2
