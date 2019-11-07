@@ -66,7 +66,7 @@ isort:
 code-format: isort black
 
 test: ## run tests quickly with the default Python
-	py.test
+	py.test --cov=as3ninja --doctest-modules -ra -v
 
 tests: test
 
@@ -82,10 +82,14 @@ coverage: ## check code coverage quickly with the default Python
 docs: ## generate Sphinx HTML documentation, including API docs
 	rm -f docs/as3ninja.rst
 	rm -f docs/modules.rst
+	rm -f README.md
+	pipenv lock -r > docs/requirements.txt
+	pipenv lock -r --dev | tail -n +2 >> docs/requirements.txt
 	sphinx-apidoc -o docs/ as3ninja
 	$(MAKE) -C docs clean
 	$(MAKE) -C docs html
-	$(BROWSER) docs/_build/html/index.html
+	pandoc -f rst -t gfm -o README.md _README.rst
+#	$(BROWSER) docs/_build/html/index.html
 
 release: dist ## package and upload a release
 	twine upload dist/*
@@ -103,3 +107,4 @@ install: clean ## install the package to the active Python's site-packages
 dependencies:
 	pipenv lock
 	pipenv-setup sync
+	pipenv lock -r --dev > docs/requirements.txt

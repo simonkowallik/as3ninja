@@ -6,7 +6,7 @@ from as3ninja import __version__
 
 from setuptools import setup, find_packages
 
-with open("README.rst") as readme_file:
+with open("_README.rst") as readme_file:
     readme = readme_file.read()
 
 with open("HISTORY.rst") as history_file:
@@ -67,7 +67,6 @@ setup(
         "uvloop==0.14.0rc2",
         "websockets==8.1",
         "zipp==0.6.0",
-        "sphinx-autodoc-typehints==1.10.2",
     ],
     license="ISC license",
     long_description=readme + "\n\n" + history,

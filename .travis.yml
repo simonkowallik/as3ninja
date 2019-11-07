@@ -11,8 +11,13 @@ matrix:
           env: TOXENV=py38
 
 install:
-    - sudo apt-get install git
-    - travis_retry pip install tox
+    - sudo apt-get remove python2.7
+    - sudo pip install pipenv
+    - pipenv install --dev
+    - sudo pip install codecov
 
 script:
     - tox
+
+after_success:
+    - codecov -v

@@ -1,6 +1,11 @@
 Welcome to AS3 Ninja's documentation!
 =====================================
 
+.. include:: _heading.rst
+
+
+
+
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
