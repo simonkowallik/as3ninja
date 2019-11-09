@@ -1,15 +1,9 @@
 # AS3 Ninja
 
 [![Travis CI Build
-Status](https://img.shields.io/travis/simonkowallik/as3ninja.svg)](https://travis-ci.com/simonkowallik/as3ninja)
-
-[![Test
-Coverage](https://codecov.io/gh/simonkowallik/as3ninja/branch/master/graph/badge.svg)](https://codecov.io/gh/simonkowallik/as3ninja)
-
-[![Documentation
-Status](https://readthedocs.org/projects/as3ninja/badge/?version=latest)](https://as3ninja.readthedocs.io/en/latest/?badge=latest)
-
-[![Docker Image
+Status](https://img.shields.io/travis/simonkowallik/as3ninja.svg)](https://travis-ci.com/simonkowallik/as3ninja)[![Test
+Coverage](https://codecov.io/gh/simonkowallik/as3ninja/branch/master/graph/badge.svg)](https://codecov.io/gh/simonkowallik/as3ninja)[![Documentation
+Status](https://readthedocs.org/projects/as3ninja/badge/?version=latest)](https://as3ninja.readthedocs.io/en/latest/?badge=latest) [![Docker Image
 Details](https://images.microbadger.com/badges/image/simonkowallik/as3ninja.svg)](https://microbadger.com/images/simonkowallik/as3ninja)
 
   - Free software: ISC license
