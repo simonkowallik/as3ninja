@@ -173,8 +173,8 @@ class Gitget:
             int(self._gitlog["author"]["epoch"])
         )
         if not self._branch:
-            # git branch --show-current
-            result = self._run_command(["branch", "--show-current"])
+            # git rev-parse --abbrev-ref HEAD
+            result = self._run_command(["rev-parse", "--abbrev-ref", "HEAD"])
             self._gitlog["branch"] = result.rstrip()
 
     def _run_command(self, cmd: list) -> str:
