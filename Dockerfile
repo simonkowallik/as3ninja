@@ -6,7 +6,6 @@ LABEL org.label-schema.vendor="Simon Kowallik"
 LABEL org.label-schema.url="https://as3ninja.readthedocs.io/"
 LABEL org.label-schema.vcs-url="https://github.com/simonkowallik/as3ninja"
 LABEL org.label-schema.docker.cmd="docker run --rm -d -p 8000:8000 as3ninja"
-LABEL org.label-schema.version="0.1.0"
 LABEL org.label-schema.schema-version="1.0"
 
 ENV LC_ALL=C.UTF-8
