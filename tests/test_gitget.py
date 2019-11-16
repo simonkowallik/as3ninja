@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-import os
+import sys
 from pathlib import Path
 from unittest.mock import patch
 
@@ -113,8 +113,8 @@ class Test_Gitget_interface:
 
     @staticmethod
     @pytest.mark.skipif(
-        os.environ.get("TRAVIS") == "true" and os.environ.get("TOXENV") == "py37",
-        reason="Skipping this test with python3.7 as it hangs forever. This might be an issue with subprocess.run as a timeout is specified.",
+        sys.version_info < (3, 7, 5),
+        reason="Skipping this test when python version < 3.7.5  as it hangs forever, see: https://bugs.python.org/issue37424",
     )
     @patch.object(NINJASETTINGS, "GITGET_TIMEOUT", 5)
     def test_private_repository():
