@@ -164,6 +164,22 @@ class Test_Gitget_specific_commit_id:
         assert exception_info.type is GitgetException
 
     @staticmethod
+    def test_commit_head_tilde():
+        """Test HEAD~ works"""
+        with Gitget(
+            repository="https://github.com/simonkowallik/as3ninjaDemo", commit="HEAD~"
+        ) as gitrepo:
+            assert isinstance(gitrepo.info, dict)
+
+    @staticmethod
+    def test_commit_head_tilde2():
+        """Test HEAD~<int> syntax works"""
+        with Gitget(
+            repository="https://github.com/simonkowallik/as3ninjaDemo", commit="HEAD~2"
+        ) as gitrepo:
+            assert isinstance(gitrepo.info, dict)
+
+    @staticmethod
     @pytest.mark.skip(reason="as3ninjaDemo needs 20 commits")
     def test_commit_within_depth20():
         """Test that a depth of 20 is used instead of the default depth of 1"""

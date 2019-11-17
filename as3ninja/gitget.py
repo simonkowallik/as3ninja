@@ -116,6 +116,15 @@ class Gitget:
 
             :param arg: Argument to pass to `shlex.quote`
         """
+        try:
+            # prevent quoting HEAD~<integer>
+            if isinstance(arg, str) and arg.startswith("HEAD~"):
+                if not arg == "HEAD~":
+                    int(arg.lstrip("HEAD~"))
+                return str(arg)
+        except (ValueError, TypeError):
+            pass
+
         return shlex.quote(str(arg))
 
     def _clone(self):
