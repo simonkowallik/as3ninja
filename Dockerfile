@@ -11,7 +11,7 @@ LABEL org.label-schema.schema-version="1.0"
 ENV LC_ALL=C.UTF-8
 ENV LANG=C.UTF-8
 
-WORKDIR /as3ninja
+WORKDIR /
 
 RUN apk update --no-cache; \
     apk add --no-cache \
@@ -36,7 +36,7 @@ RUN addgroup as3ninja; \
 
 ADD . /as3ninja
 
-RUN bash -c " \
+RUN bash -c "cd /as3ninja; \
             pip3 install --no-cache-dir -r <(pipenv --bare lock --requirements); \
             "
 
