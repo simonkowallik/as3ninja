@@ -2,7 +2,7 @@
 """API"""
 from typing import List, Optional, Union
 
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import APIRouter, FastAPI, HTTPException, Query
 from pydantic import BaseModel
 from starlette.middleware.cors import CORSMiddleware
 
@@ -45,6 +45,7 @@ class AS3DeclareGit(BaseModel):
     branch: Optional[str]
     commit: Optional[str]
     depth: int = 1
+    template_configuration: Optional[Union[str, List[str]]]
 
 
 class AS3Declare(BaseModel):
@@ -54,12 +55,7 @@ class AS3Declare(BaseModel):
     declaration_template: str
 
 
-app = FastAPI(
-    title=__projectname__,
-    description=__description__,
-    version=__version__,
-    openapi_prefix="/api",
-)
+app = FastAPI(title=__projectname__, description=__description__, version=__version__,)
 
 app.add_middleware(
     CORSMiddleware,
@@ -74,20 +70,22 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+apiroute = APIRouter()
+
 
 @app.on_event("startup")
 def startup():
     # preload AS3Schema Class - assume Schemas are available
-    _AS3SCHEMA = AS3Schema()
+    _ = AS3Schema()
 
 
-@app.get("/schema/latest_version")
+@apiroute.get("/schema/latest_version")
 async def get_schema_latest_version():
     """Returns latest known AS3 Schema version"""
     return LatestVersion(latest_version=AS3Schema().latest_version)
 
 
-@app.get("/schema/schema")
+@apiroute.get("/schema/schema")
 async def get_schema_schema_version(
     version: str = Query("latest", title="AS3 Schema version to get"),
 ):
@@ -99,19 +97,19 @@ async def get_schema_schema_version(
         raise HTTPException(status_code=error.code, detail=error.message)
 
 
-@app.get("/schema/schemas")
+@apiroute.get("/schema/schemas")
 async def get_schema_schemas():
     """Returns all known AS3 Schemas"""
     return AS3Schema().schemas
 
 
-@app.get("/schema/versions")
+@apiroute.get("/schema/versions")
 async def get_schema_versions():
     """Returns array of version numbers for all known AS3 Schemas"""
     return AS3Schema().versions
 
 
-@app.post("/schema/validate", response_model=AS3ValidationResult)
+@apiroute.post("/schema/validate", response_model=AS3ValidationResult)
 async def _schema_validate(
     declaration: dict,
     version: str = Query("latest", title="AS3 Schema version to validation against"),
@@ -128,7 +126,7 @@ async def _schema_validate(
         return AS3ValidationResult(valid=False, error=str(exc))
 
 
-@app.post("/declaration/transform")
+@apiroute.post("/declaration/transform")
 async def post_declaration_transform(as3d: AS3Declare):
     """Transforms an AS3 declaration template, see ``AS3Declare`` for details on the expected input. Returns the AS3 Declaration."""
     error = None
@@ -149,9 +147,9 @@ async def post_declaration_transform(as3d: AS3Declare):
         raise HTTPException(status_code=error.code, detail=error.message)
 
 
-@app.post("/declaration/transform/git")
+@apiroute.post("/declaration/transform/git")
 async def post_declaration_git_transform(as3d: AS3DeclareGit):
-    """Transforms an AS3 declaration template, see ``AS3DeclareFromGit`` for details on the expected input. Returns the AS3 Declaration."""
+    """Transforms an AS3 declaration template, see ``AS3DeclareGit`` for details on the expected input. Returns the AS3 Declaration."""
     error = None
     try:
         template_configuration: list = []
@@ -161,20 +159,34 @@ async def post_declaration_git_transform(as3d: AS3DeclareGit):
             commit=as3d.commit,
             depth=as3d.depth,
         ) as gitrepo:
-            try:
+            if as3d.template_configuration and isinstance(
+                as3d.template_configuration, list
+            ):
+                for config_file in as3d.template_configuration:
+                    template_configuration.append(
+                        deserialize(datasource=f"{gitrepo.repodir}/{config_file}")
+                    )
+            elif as3d.template_configuration:
                 template_configuration.append(
-                    deserialize(datasource=f"{gitrepo.repodir}/ninja.json")
+                    deserialize(
+                        datasource=f"{gitrepo.repodir}/{as3d.template_configuration}"
+                    )
                 )
-            except:
-                # json failed, try yaml, then yml
+            else:
                 try:
                     template_configuration.append(
-                        deserialize(datasource=f"{gitrepo.repodir}/ninja.yaml")
+                        deserialize(datasource=f"{gitrepo.repodir}/ninja.json")
                     )
                 except:
-                    template_configuration.append(
-                        deserialize(datasource=f"{gitrepo.repodir}/ninja.yml")
-                    )
+                    # json failed, try yaml, then yml
+                    try:
+                        template_configuration.append(
+                            deserialize(datasource=f"{gitrepo.repodir}/ninja.yaml")
+                        )
+                    except:
+                        template_configuration.append(
+                            deserialize(datasource=f"{gitrepo.repodir}/ninja.yml")
+                        )
             template_configuration.append({"as3ninja": {"git": gitrepo.info}})
             d = AS3Declaration(
                 template_configuration=template_configuration,
@@ -193,4 +205,4 @@ async def post_declaration_git_transform(as3d: AS3DeclareGit):
 
 
 # prefix app with /api
-app.mount(path="/api", app=app)
+app.include_router(apiroute, prefix="/api")
