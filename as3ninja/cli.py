@@ -3,7 +3,7 @@
 AS3 Ninja CLI module
 """
 import json
-from typing import Union
+from typing import Optional, Union
 
 import click
 from loguru import logger
@@ -34,7 +34,7 @@ def cli() -> None:
 @click.option(
     "-c",
     "--configuration-file",
-    required=True,
+    required=False,
     nargs=0,
     type=click.File("r"),
     help="JSON/YAML configuration file used to parameterize declaration template",
@@ -60,15 +60,25 @@ def cli() -> None:
 @logger.catch
 def transform(
     declaration_template: str,
-    configuration_file: tuple,
+    configuration_file: Optional[tuple],
     output_file: Union[str, None],
     validate: bool,
     pretty: bool,
 ):
     """Transforms a declaration template using the configuration file to an AS3 delcaration which is validated against the JSON schema."""
     template_configuration: list = []
-    for config_file in configuration_file:
-        template_configuration.append(deserialize(datasource=config_file))
+    if configuration_file:
+        for config_file in configuration_file:
+            template_configuration.append(deserialize(datasource=config_file))
+    else:
+        try:
+            template_configuration.append(deserialize(datasource="./ninja.json"))
+        except:
+            # json failed, try yaml, then yml
+            try:
+                template_configuration.append(deserialize(datasource="./ninja.yaml"))
+            except:
+                template_configuration.append(deserialize(datasource="./ninja.yml"))
 
     if declaration_template:
         template = declaration_template.read()
