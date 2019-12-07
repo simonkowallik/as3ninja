@@ -82,13 +82,11 @@ coverage: ## check code coverage quickly with the default Python
 docs: ## generate Sphinx HTML documentation, including API docs
 	rm -f docs/as3ninja.rst
 	rm -f docs/modules.rst
-	rm -f README.md
 	pipenv lock -r > docs/requirements.txt
 	pipenv lock -r --dev | tail -n +2 >> docs/requirements.txt
 	sphinx-apidoc -o docs/ as3ninja
 	$(MAKE) -C docs clean
 	$(MAKE) -C docs html
-	pandoc -f rst -t gfm -o README.md _README.rst
 #	$(BROWSER) docs/_build/html/index.html
 
 release: dist ## package and upload a release

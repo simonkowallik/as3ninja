@@ -1,1 +1,8 @@
-.. include:: ../HISTORY.rst
+=======
+History
+=======
+
+0.1.0 (2019 Q4)
+------------------
+
+* First release.
