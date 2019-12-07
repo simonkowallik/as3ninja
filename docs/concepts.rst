@@ -132,7 +132,10 @@ Vault
 ^^^^^
 `AS3 Declarations` often contain very sensitive data, these are commonly called `secrets` in the DevOps context.
 Hashicorp's Vault is a well established platform to manage any kind of secret and AS3 Ninja uses `hvac`_ to interface with vault.
+
 AS3 Ninja retrieves relevant secrets during the transformation of the `AS3 Declaration`.
 The `Declaration Template` contains functions / filters which communicate to vault based on the settings within the template as well as the `Template Configuration`.
 
 .. _`hvac`: https://github.com/hvac/hvac
+
+See :doc:`Vault Integration <vault>` for further details.

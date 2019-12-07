@@ -10,9 +10,13 @@ from uuid import uuid4
 from jinja2 import Environment, contextfilter, environmentfilter
 from jinja2.runtime import Context
 
+from .vault import VaultSecret, VaultSecretsEngines
+from .vault import vault as _vault
+
 ninjafilters = dict()
 
 
+# additional __all__ entries will be added by registerfilter
 __all__ = ["ninjafilters"]
 
 
@@ -22,6 +26,12 @@ def registerfilter(f, name=None):
     ninjafilters[name or f.__name__] = f
     __all__.append(name or f.__name__)
     return f
+
+
+@registerfilter
+@contextfilter
+def vault(*args, **kwargs):
+    return _vault(*args, **kwargs)
 
 
 @registerfilter
@@ -58,7 +68,7 @@ def readfile(ctx: Context, filepath: str, missing_ok: bool = False) -> str:
     """
     path_prefix: str = ""
     if isinstance(ctx, Context):
-        path_prefix = ctx.parent.get('jinja2_searchpath', "")
+        path_prefix = ctx.parent.get("jinja2_searchpath", "")
     try:
         with open(path_prefix + filepath, "rb") as f:
             content = f.read()

@@ -76,6 +76,14 @@ as3ninja.utils module
    :undoc-members:
    :show-inheritance:
 
+as3ninja.vault module
+---------------------
+
+.. automodule:: as3ninja.vault
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 
 Module contents
 ---------------

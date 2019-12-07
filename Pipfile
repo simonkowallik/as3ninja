@@ -4,12 +4,14 @@ verify_ssl = true
 
 [dev-packages]
 bumpversion = "*"
-wheel = "*"
 tox = "*"
-coverage = "*"
+wheel = "*"
+mock = "*"
 pytest = "*"
 pytest-cov = "*"
+pytest-mock = "*"
 pipenv-setup = "*"
+coverage = "*"
 Sphinx = "*"
 sphinx-autodoc-typehints = "*"
 sphinx_rtd_theme = "*"

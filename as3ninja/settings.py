@@ -82,6 +82,8 @@ class NinjaSettings(BaseSettings):
     SCHEMA_BASE_PATH: str = str(detect_SCHEMA_BASE_PATH())
     SCHEMA_GITHUB_REPO: str = "https://github.com/F5Networks/f5-appsvcs-extension"
 
+    VAULT_SSL_VERIFY: bool = True
+
     class Config:
         env_prefix = "AS3N_"
         case_sensitive = True

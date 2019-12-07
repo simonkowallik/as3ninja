@@ -12,6 +12,7 @@ Welcome to AS3 Ninja's documentation!
    concepts
    usage
    templating
+   vault
    modules
    CONTRIBUTING
    SUPPORT

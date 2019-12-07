@@ -19,6 +19,7 @@ RUN apk update --no-cache; \
             git \
             make \
             openssl \
+            vault \
             vim \
             ;
 RUN apk add --no-cache \
