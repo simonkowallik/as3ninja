@@ -7,6 +7,6 @@
 .. image:: https://readthedocs.org/projects/as3ninja/badge/?version=latest
         :target: https://as3ninja.readthedocs.io/en/latest/?badge=latest
         :alt: Documentation Status
-.. image:: https://images.microbadger.com/badges/image/simonkowallik/as3ninja.svg
-        :target: https://microbadger.com/images/simonkowallik/as3ninja
-        :alt: Docker Image Details
+.. image:: https://img.shields.io/codeclimate/maintainability/simonkowallik/as3ninja
+        :target: https://codeclimate.com/github/simonkowallik/as3ninja
+        :alt: Code Climate maintainability
