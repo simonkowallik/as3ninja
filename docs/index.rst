@@ -4,8 +4,6 @@ Welcome to AS3 Ninja's documentation!
 .. include:: _heading.rst
 
 
-
-
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
@@ -14,8 +12,10 @@ Welcome to AS3 Ninja's documentation!
    concepts
    usage
    templating
+   vault
    modules
-   contributing
+   CONTRIBUTING
+   SUPPORT
    authors
    history
    todos

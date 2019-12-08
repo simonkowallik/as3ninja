@@ -6,10 +6,10 @@ from as3ninja import __version__
 
 from setuptools import setup, find_packages
 
-with open("_README.rst") as readme_file:
+with open("docs/readme.rst") as readme_file:
     readme = readme_file.read()
 
-with open("HISTORY.rst") as history_file:
+with open("docs/history.rst") as history_file:
     history = history_file.read()
 
 setup(
@@ -17,56 +17,25 @@ setup(
     author="Simon Kowallik",
     author_email="github@simonkowallik.com",
     classifiers=[
-        "Development Status :: 3 - Alpha",
-        "Intended Audience :: DevOps",
-        "License :: OSI Approved :: ISC License (ISCL)",
         "Natural Language :: English",
+        "Intended Audience :: DevOps",
+        "Development Status :: 3 - Alpha",
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
+        "License :: OSI Approved :: ISC License (ISCL)",
     ],
-    description="AS3 Ninja contains all the boilerplate you need to create a Python package.",
+    description="AS3 Ninja is a templating and validation engine for your AS3 declarations providing a CLI and Swagger REST API",
     entry_points={"console_scripts": ["as3ninja=as3ninja.cli:cli"]},
     install_requires=[
-        "aiofiles==0.4.0",
-        "aniso8601==7.0.0",
-        "async-exit-stack==1.0.1",
-        "async-generator==1.10",
-        "attrs==19.3.0",
-        "certifi==2019.9.11",
-        "chardet==3.0.4",
         "click==7.0",
-        "dnspython==1.16.0",
-        "email-validator==1.0.5",
-        "fastapi==0.42.0",
-        "graphene==2.1.8",
-        "graphql-core==2.2.1",
-        "graphql-relay==2.0.0",
-        "h11==0.8.1",
-        "httptools==0.0.13",
-        "hvac==0.9.5",
-        "idna==2.8",
-        "importlib-metadata==0.23",
-        "itsdangerous==1.1.0",
+        "fastapi==0.44.0",
+        "hvac==0.9.6",
         "jinja2==2.10.3",
-        "jsonschema==3.1.1",
+        "jsonschema==3.2.0",
         "loguru==0.3.2",
-        "markupsafe==1.1.1",
-        "more-itertools==7.2.0",
-        "promise==2.2.1",
-        "pydantic==0.32.2",
-        "pyrsistent==0.15.5",
-        "python-multipart==0.0.5",
+        "pydantic==1.2",
         "pyyaml==5.1.2",
-        "requests==2.22.0",
-        "rx==1.6.1",
-        "six==1.12.0",
-        "starlette==0.12.9",
-        "ujson==1.35",
-        "urllib3==1.25.6",
-        "uvicorn==0.10.3",
-        "uvloop==0.14.0rc2",
-        "websockets==8.1",
-        "zipp==0.6.0",
+        "uvicorn==0.10.8",
     ],
     license="ISC license",
     long_description=readme + "\n\n" + history,

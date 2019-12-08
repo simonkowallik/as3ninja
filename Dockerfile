@@ -6,13 +6,12 @@ LABEL org.label-schema.vendor="Simon Kowallik"
 LABEL org.label-schema.url="https://as3ninja.readthedocs.io/"
 LABEL org.label-schema.vcs-url="https://github.com/simonkowallik/as3ninja"
 LABEL org.label-schema.docker.cmd="docker run --rm -d -p 8000:8000 as3ninja"
-LABEL org.label-schema.version="0.1.0"
 LABEL org.label-schema.schema-version="1.0"
 
 ENV LC_ALL=C.UTF-8
 ENV LANG=C.UTF-8
 
-WORKDIR /as3ninja
+WORKDIR /
 
 RUN apk update --no-cache; \
     apk add --no-cache \
@@ -20,6 +19,7 @@ RUN apk update --no-cache; \
             git \
             make \
             openssl \
+            vault \
             vim \
             ;
 RUN apk add --no-cache \
@@ -37,7 +37,7 @@ RUN addgroup as3ninja; \
 
 ADD . /as3ninja
 
-RUN bash -c " \
+RUN bash -c "cd /as3ninja; \
             pip3 install --no-cache-dir -r <(pipenv --bare lock --requirements); \
             "
 

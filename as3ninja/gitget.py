@@ -28,9 +28,9 @@ class Gitget:
         A specific commit id in long format can be selected, depth can be used to reach back into the past in case the commit id isn't available through a shallow clone.
 
             :param repository: Git Repository URL.
-            :param depth: Optional. Depth to clone. (Default value = 1)
+            :param depth: Optional. Depth to clone. Specify `depth=0` for a full clone without a depth limit. (Default value = 1)
             :param branch: Optional. Branch or Tag to clone. If None, default remote branch will be cloned. (Default value = None)
-            :param commit: Optional. Commit ID (long format!) (Default value = None)
+            :param commit: Optional. Commit ID or HEAD~ format. Commit ID must be within the last 20 commits orspecified `depth`. (Default value = None)
             :param repodir: Optional. Target directory for repositroy. This directory will persist on disk, Gitget will not remove it for you. (Default value = None)
             :param force: Optional. Forces removal of an existing repodir before cloning (use with care). (Default value = False)
     """
@@ -46,10 +46,6 @@ class Gitget:
     ):
         if depth < 0:
             raise ValueError("depth must be 0 or a positive number.")
-        if commit and len(commit) < 40:
-            raise ValueError(
-                "commit id is too short. full commit id is required, abreviated (7 char) format is not supported."
-            )
         self._depth = depth
         self._branch = branch
         self._commit = commit
@@ -120,6 +116,15 @@ class Gitget:
 
             :param arg: Argument to pass to `shlex.quote`
         """
+        try:
+            # prevent quoting HEAD~<integer>
+            if isinstance(arg, str) and arg.startswith("HEAD~"):
+                if not arg == "HEAD~":
+                    int(arg.lstrip("HEAD~"))
+                return str(arg)
+        except (ValueError, TypeError):
+            pass
+
         return shlex.quote(str(arg))
 
     def _clone(self):
@@ -140,15 +145,13 @@ class Gitget:
         """Private Method: checks out specific commit id
 
         Note: short ID (example: 2b54d17) is not allowed, must be the long commit id
-        Note: when the commit is far back in the past, the remote server might not allow fetching it directly.
-        In that case the depth parameter must be specified and the depth must include the commit id
-        otherwise the following error occurs:
-        error: Server does not allow request for unadvertised object ...comitid...
+        Note: The referenced commit id must be in the cloned repository or within a depth of 20
         """
-        self._run_command(
-            ["fetch", "--depth", "1", "origin", self._sh_quote(self._commit)]
-        )
-        self._run_command(["checkout", self._sh_quote(self._commit)])
+        if self._depth and self._depth == 1:
+            # by default look for commit within the last 20 commits
+            self._run_command(["fetch", "--depth", "20"])
+
+        self._run_command(["reset", "--hard", self._sh_quote(self._commit)])
 
     def _get_gitlog(self) -> None:
         """Private Method: parses the git log to a dict"""
@@ -173,8 +176,8 @@ class Gitget:
             int(self._gitlog["author"]["epoch"])
         )
         if not self._branch:
-            # git branch --show-current
-            result = self._run_command(["branch", "--show-current"])
+            # git rev-parse --abbrev-ref HEAD
+            result = self._run_command(["rev-parse", "--abbrev-ref", "HEAD"])
             self._gitlog["branch"] = result.rstrip()
 
     def _run_command(self, cmd: list) -> str:

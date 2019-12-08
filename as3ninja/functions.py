@@ -6,11 +6,18 @@ import re
 from pathlib import Path
 from uuid import uuid4
 
+from jinja2 import contextfunction
+from jinja2.runtime import Context
+
 from .utils import deserialize
+from .vault import VaultClient as _VaultClient
+from .vault import VaultSecret, VaultSecretsEngines
+from .vault import vault as _vault
 
 ninjafunctions = dict()
 
 
+# additional __all__ entries will be added by registerfunction
 __all__ = ["ninjafunctions"]
 
 
@@ -20,6 +27,17 @@ def registerfunction(f, name=None):
     ninjafunctions[name or f.__name__] = f
     __all__.append(name or f.__name__)
     return f
+
+
+@registerfunction
+@contextfunction
+def vault(*args, **kwargs):
+    return _vault(*args, **kwargs)
+
+
+@registerfunction
+class VaultClient(_VaultClient):
+    pass
 
 
 @registerfunction

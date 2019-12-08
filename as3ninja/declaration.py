@@ -164,7 +164,8 @@ class AS3Declaration:
                     "declaration_template"
                 ]
                 self._declaration_template = deserialize(
-                    datasource=f"{self._jinja2_searchpath}/{declaration_template_file}", return_as=str
+                    datasource=f"{self._jinja2_searchpath}/{declaration_template_file}",
+                    return_as=str,
                 )
             except (KeyError, TypeError) as err:
                 raise KeyError(
@@ -295,7 +296,6 @@ class AS3Declaration:
             lstrip_blocks=False,
             keep_trailing_newline=True,
             undefined=StrictUndefined,
-
         )
         env.globals["jinja2_searchpath"] = self._jinja2_searchpath + "/"
         env.globals["ninja"] = self.configuration

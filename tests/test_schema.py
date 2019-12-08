@@ -363,9 +363,9 @@ class Test_AS3SchemaError:
 
 
 @pytest.mark.usefixtures("fixture_tmpdir")
-class Test_schemaupdate:
+class Test_updateschemas:
     @staticmethod
-    def test_schemaupdate_targetdir(fixture_tmpdir):
+    def test_targetdir(fixture_tmpdir):
         repodir = fixture_tmpdir + "/f5-appsvcs-extension"
         s = AS3Schema()
         s.updateschemas(repodir=repodir)

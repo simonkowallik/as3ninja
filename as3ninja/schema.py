@@ -50,14 +50,13 @@ class AS3Schema:
     _schemas_ref_updated: dict = {}
 
     _SCHEMA_REF_URL_TEMPLATE = (
-        "file://"
-        + NINJASETTINGS.SCHEMA_BASE_PATH
-        + "/schema/__version__/as3-schema.json"
+        NINJASETTINGS.SCHEMA_BASE_PATH
+        + "/schema/{{version}}/as3-schema-{{version}}-*.json"
     )
     _SCHEMA_LOCAL_FSPATH = Path(NINJASETTINGS.SCHEMA_BASE_PATH + "/schema/")
-    _SCHEMA_FILENAME_GLOB = "**/as3-schema.json"
+    _SCHEMA_FILENAME_GLOB = "**/as3-schema-*.json"
 
-    # IDEA: The AS3 Schema versioning uses semantic versioning. The PATCH basically for a given MAJOR + MINOR version the latest PATCH version should be used for validation of the Schema.
+    # IDEA: The AS3 Schema uses semantic versioning. For a given MAJOR + MINOR version the latest available PATCH version should be used for validation of the Schema.
 
     def __init__(self, version: str = "latest"):
         self._validate_schema_version_format(version=version)
@@ -268,6 +267,19 @@ class AS3Schema:
             elif isinstance(schema, dict) and isinstance(schema.get(k), (dict, list)):
                 self._ref_update(schema=schema.get(k), _ref_url=_ref_url)
 
+    def _build_ref_url(self, version: str) -> str:
+        """Private Method: _build_ref_url builds the absolute filesystem url to the AS3 Schema file for specified version.
+
+            :param version: The AS3 Schema version
+        """
+        url = Path(self._SCHEMA_REF_URL_TEMPLATE.replace("{{version}}", version))
+        url = list(Path(url.parent).glob(url.name))
+        if len(url) > 1:
+            raise ValueError(
+                f"Expected to find a single AS3 Schema file, found: {len(url)}, urls:{url}"
+            )
+        return "file://" + str(url[0])
+
     def _schema_ref_updated(self, version: str) -> dict:
         """Private Method: _schema_ref_updated returns the AS3 Schema for specified version with updated references.
 
@@ -279,7 +291,7 @@ class AS3Schema:
             self._schemas_ref_updated[version] = deepcopy(self.schemas[version])
             self._ref_update(
                 schema=self._schemas_ref_updated[version],
-                _ref_url=self._SCHEMA_REF_URL_TEMPLATE.replace("__version__", version),
+                _ref_url=self._build_ref_url(version=version),
             )
 
         return self._schemas_ref_updated[version]

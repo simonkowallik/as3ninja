@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
+import sys
 from pathlib import Path
+from unittest.mock import patch
 
 import pytest
 
-from as3ninja.gitget import Gitget, GitgetException
+from as3ninja.gitget import NINJASETTINGS, Gitget, GitgetException
 from tests.utils import fixture_tmpdir
 
 # TODO: mock actual git interactions to decrease test time + increase predictability
@@ -54,29 +56,34 @@ class Test_Gitget_interface:
     @staticmethod
     def test_Gitget_simple():
         with Gitget(
-            repository="https://github.com/simonkowallik/ihac", branch="master"
+            repository="https://github.com/simonkowallik/as3ninjaDemo", branch="master"
         ) as gitrepo:
             assert isinstance(gitrepo.info, dict)
             assert gitrepo.info["branch"] == "master"
 
     @staticmethod
     def test_Gitget_repo_only():
-        with Gitget(repository="https://github.com/simonkowallik/ihac") as gitrepo:
+        with Gitget(
+            repository="https://github.com/simonkowallik/as3ninjaDemo"
+        ) as gitrepo:
             assert isinstance(gitrepo.info, dict)
             assert gitrepo.info["branch"] == "master"
 
     @staticmethod
     def test_Gitget_tag():
         with Gitget(
-            repository="https://github.com/simonkowallik/ihac", branch="2.0"
+            repository="https://github.com/simonkowallik/as3ninjaDemo",
+            branch="tag_v1.0",
         ) as gitrepo:
             assert isinstance(gitrepo.info, dict)
-            assert gitrepo.info["branch"] == "2.0"
+            assert gitrepo.info["branch"] == "tag_v1.0"
 
     @staticmethod
     def test_Gitget_depth0():
         with Gitget(
-            repository="https://github.com/simonkowallik/ihac", branch="master", depth=0
+            repository="https://github.com/simonkowallik/as3ninjaDemo",
+            branch="master",
+            depth=0,
         ) as gitrepo:
             assert isinstance(gitrepo.info, dict)
             assert gitrepo.info["branch"] == "master"
@@ -85,7 +92,7 @@ class Test_Gitget_interface:
     def test_Gitget_depth_negative():
         with pytest.raises(ValueError) as exception_info:
             with Gitget(
-                repository="https://github.com/simonkowallik/ihac",
+                repository="https://github.com/simonkowallik/as3ninjaDemo",
                 branch="master",
                 depth=-1,
             ) as gitrepo:
@@ -94,37 +101,92 @@ class Test_Gitget_interface:
         assert exception_info.type is ValueError
 
     @staticmethod
+    def test_non_existing_repository():
+        """test a non-existing repository"""
+        with pytest.raises(GitgetException) as exception_info:
+            with Gitget(
+                repository="https://github.com/repository-does-not-exist"
+            ) as gitrepo:
+                print(gitrepo.info)
+
+        assert exception_info.type is GitgetException
+
+    @staticmethod
+    @pytest.mark.skipif(
+        sys.version_info < (3, 7, 5),
+        reason="Skipping this test when python version < 3.7.5  as it hangs forever, see: https://bugs.python.org/issue37424",
+    )
+    @patch.object(NINJASETTINGS, "GITGET_TIMEOUT", 5)
+    def test_private_repository():
+        """test a private repository requiring authentication.
+        This test will prompt for credentials if not authenticated and will run into a timeout.
+        """
+        with pytest.raises(GitgetException) as exception_info:
+            with Gitget(
+                repository="https://github.com/simonkowallik/some-private-repository"
+            ) as gitrepo:
+                print(gitrepo.info)
+
+        assert exception_info.type is GitgetException
+
+
+class Test_Gitget_specific_commit_id:
+    @staticmethod
+    def test_full_clone():
+        with Gitget(
+            repository="https://github.com/simonkowallik/as3ninjaDemo",
+            commit="924f79f8569317d01d1be7d6a77ac8e2b88332ff",
+            depth=0,
+        ) as gitrepo:
+            assert isinstance(gitrepo.info, dict)
+
+    @staticmethod
     def test_non_existing_commit():
         with pytest.raises(GitgetException) as exception_info:
             with Gitget(
-                repository="https://github.com/simonkowallik/ihac", commit=40 * "1"
+                repository="https://github.com/simonkowallik/as3ninjaDemo",
+                commit=40 * "1",
             ) as gitrepo:
                 print(gitrepo.info)
 
         assert exception_info.type is GitgetException
 
     @staticmethod
-    def test_invalid_commit_id():
-        with pytest.raises(ValueError) as exception_info:
-            with Gitget(
-                repository="https://github.com/simonkowallik/ihac", commit="1234567"
-            ) as gitrepo:
-                print(gitrepo.info)
-
-        assert exception_info.type is ValueError
-
-    @staticmethod
-    @pytest.mark.skip(reason="ivenstigate why this is breaking travis tests")
-    def test_non_existing_repository():
-        # TODO: this prompts for user+password. requires credential handling
+    def test_commit_missing_in_clone():
         with pytest.raises(GitgetException) as exception_info:
             with Gitget(
-                repository="https://github.com/simonkowallik/does-not-exist",
-                branch="doesnt-exist",
+                repository="https://github.com/simonkowallik/as3ninjaDemo",
+                commit="924f79f8569317d01d1be7d6a77ac8e2b88332ff",
+                depth=3,
             ) as gitrepo:
                 print(gitrepo.info)
 
         assert exception_info.type is GitgetException
+
+    @staticmethod
+    def test_commit_head_tilde():
+        """Test HEAD~ works"""
+        with Gitget(
+            repository="https://github.com/simonkowallik/as3ninjaDemo", commit="HEAD~"
+        ) as gitrepo:
+            assert isinstance(gitrepo.info, dict)
+
+    @staticmethod
+    def test_commit_head_tilde2():
+        """Test HEAD~<int> syntax works"""
+        with Gitget(
+            repository="https://github.com/simonkowallik/as3ninjaDemo", commit="HEAD~2"
+        ) as gitrepo:
+            assert isinstance(gitrepo.info, dict)
+
+    @staticmethod
+    @pytest.mark.skip(reason="as3ninjaDemo needs 20 commits")
+    def test_commit_within_depth20():
+        """Test that a depth of 20 is used instead of the default depth of 1"""
+        with Gitget(
+            repository="https://github.com/simonkowallik/as3ninjaDemo", commit="HEAD~19"
+        ) as gitrepo:
+            assert isinstance(gitrepo.info, dict)
 
 
 @pytest.mark.usefixtures("fixture_tmpdir")
@@ -133,7 +195,7 @@ class Test_Gitget_advanced_interface:
     def test_custom_repodir(fixture_tmpdir):
         repodir = fixture_tmpdir
         with Gitget(
-            repository="https://github.com/simonkowallik/ihac",
+            repository="https://github.com/simonkowallik/as3ninjaDemo",
             branch="master",
             repodir=repodir,
         ) as gitrepo:
@@ -146,7 +208,7 @@ class Test_Gitget_advanced_interface:
     def test_rmrepodir(fixture_tmpdir):
         repodir = fixture_tmpdir
         with Gitget(
-            repository="https://github.com/simonkowallik/ihac",
+            repository="https://github.com/simonkowallik/as3ninjaDemo",
             branch="master",
             repodir=repodir,
         ) as gitrepo:
@@ -161,7 +223,7 @@ class Test_Gitget_advanced_interface:
         repodir = fixture_tmpdir
         # first clone
         with Gitget(
-            repository="https://github.com/simonkowallik/ihac",
+            repository="https://github.com/simonkowallik/as3ninjaDemo",
             branch="master",
             repodir=repodir,
         ) as gitrepo:
@@ -170,7 +232,7 @@ class Test_Gitget_advanced_interface:
 
         # second clone to existing repo
         with Gitget(
-            repository="https://github.com/simonkowallik/ihac",
+            repository="https://github.com/simonkowallik/as3ninjaDemo",
             branch="master",
             repodir=repodir,
             force=True,
@@ -183,7 +245,7 @@ class Test_Gitget_advanced_interface:
         repodir = fixture_tmpdir
         # first clone
         with Gitget(
-            repository="https://github.com/simonkowallik/ihac",
+            repository="https://github.com/simonkowallik/as3ninjaDemo",
             branch="master",
             repodir=repodir,
         ) as gitrepo:
@@ -193,7 +255,7 @@ class Test_Gitget_advanced_interface:
         # second clone to existing repo without force raises exception
         with pytest.raises(GitgetException) as exception_info:
             with Gitget(
-                repository="https://github.com/simonkowallik/ihac",
+                repository="https://github.com/simonkowallik/as3ninjaDemo",
                 branch="master",
                 repodir=repodir,
             ) as gitrepo:
@@ -205,5 +267,7 @@ class Test_Gitget_advanced_interface:
 class Test_previous_issues:
     @staticmethod
     def test_dir_exists_on_with():
-        with Gitget(repository="https://github.com/simonkowallik/ihac") as gitrepo:
+        with Gitget(
+            repository="https://github.com/simonkowallik/as3ninjaDemo"
+        ) as gitrepo:
             assert Path(gitrepo.repodir + "/.git").exists()
