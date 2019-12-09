@@ -8,12 +8,12 @@ To get started with AS3 Ninja first let's look at the concept.
 The objective is to generate `AS3 Declarations` from templates where the parameterization of the template is done using a configuration.
 
 
-AS3 Ninja uses the following main components to achive this:
+AS3 Ninja uses the following main components to achieve this:
 
 * Templates (Jinja2)
 * Configurations (YAML and/or JSON)
 
-The templates are also refered to as `Declaration Templates`, the configuration is refered to as `Template Configuration`.
+The templates are also referred to as `Declaration Templates`, the configuration is referred to as `Template Configuration`.
 
 
 AS3 Ninja doesn't force you into a declarative or imperative paradigm.
@@ -26,18 +26,18 @@ Workflow
 The workflow to generate a deployable `AS3 Declaration` is a follows:
 
 1. Get the `Declaration Template` and `Template Configuration` from the local filesystem or `Git`
-2. Load, deserialize and merge all `Template Configurations`
+2. Load, de-serialize and merge all `Template Configurations`
 3. Feed the `Declaration Template` and `Template Configuration` to Jinja2
 4. Render the `AS3 Declaration` using jinja2 ("transform the `Declaration Template` using the `Template Configuration`")
 5. Validate the `AS3 Declaration` against the `AS3 Schema` (optional)
 
-This workflow is also refered to as `transformation`.
+This workflow is also referred to as `transformation`.
 
 Components
 ----------
 Let's look at the components at play.
 
-Here is a diagramm.
+Here is a diagram.
 
 
 The AS3 Ninja ecosystem
@@ -85,7 +85,7 @@ It contains all configuration elements needed for AS3 to create the configuratio
 Declaration Templates
 ^^^^^^^^^^^^^^^^^^^^^
 Declaration Templates are Jinja2 templates, which can include further templates for specific `AS3 Declaration` components, e.g. for pools or profiles.
-Jinja2 offers a varity of imperative programming techniques like control structures.
+Jinja2 offers a variety of imperative programming techniques like control structures.
 
 The `Jinja2 Template Designer Documentation`_ is a highly recommended read.
 
@@ -107,10 +107,10 @@ Template Configuration
 ^^^^^^^^^^^^^^^^^^^^^^
 The `Template Configuration` are one or more YAML or JSON files. These define various variables, lists and in general contain data to be used in the `Declaration Template(s)`.
 
-Multiple configration files can be combined, where settings within the previous file are updated by all following files.
-This is quite powerfull, as it allows to overwrite ("overlay") specific configuration parameters, for example for different environments (DEV/QA/PROD).
+Multiple configuration files can be combined, where settings within the previous file are updated by all following files.
+This is quite powerful, as it allows to overwrite ("overlay") specific configuration parameters, for example for different environments (DEV/QA/PROD).
 
-.. Note:: It is recommeded to avoid storing secrets within the Template Configuration.
+.. Note:: It is recommended to avoid storing secrets within the Template Configuration.
 
 AS3 Schema
 ^^^^^^^^^^
