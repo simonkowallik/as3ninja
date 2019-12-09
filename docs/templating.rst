@@ -119,7 +119,7 @@ Here is an overview of the current ``as3ninja`` namespace configuration values.
       declaration_template: /path/to/declaration_template_file.j2
 
 The ``declaration_template`` points to the Declaration Template File on the filesystem.
-It is optional and ignored when a Declaration Template is refrenced explicitly, for example through a CLI parameter.
+It is optional and ignored when a Declaration Template is referenced explicitly, for example through a CLI parameter.
 
 The ``as3ninja`` namespace is accessible under the ``ninja`` namespace, as with any other data from Template Configurations.
 
@@ -159,7 +159,7 @@ It holds the below information which can be used in the Declaration Template.
       git:
         commit:
           id:       commit id (long)
-          id_short: abreviated commit id
+          id_short: abbreviated commit id
           epoch:    unix epoch of commit
           date:     human readable date of commit
           subject:  subject of commit message
@@ -199,9 +199,9 @@ Merging multiple Template Configuration Files
 AS3 Ninja supports multiple Template Configuration Files.
 This provides great flexibility to override and extend Template Configurations.
 
-Template Configuration Files are loaded, deserialized and merged in the order specified.
+Template Configuration Files are loaded, de-serialized and merged in the order specified.
 Starting from the first configuration every following configuration is merged into the Template Configuration.
-As the deserialization takes place before merging, JSON and YAML can be combined.
+As the de-serialization takes place before merging, JSON and YAML can be combined.
 
 
 Let's use our previous example, and add two additional Template Configuration Files.
@@ -259,7 +259,7 @@ When AS3 Ninja is instructed to use the Template Configurations Files in the ord
 
   2. ``internal_service.yaml``
 
-AS3 Ninja loads, deserializes and then merges the configuration. This results in the below python dict.
+AS3 Ninja loads, de-serializes and then merges the configuration. This results in the below python dict.
 
 .. code-block:: python
     :linenos:

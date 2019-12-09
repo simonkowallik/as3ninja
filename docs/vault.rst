@@ -16,7 +16,7 @@ The term `secrets` describes secret information, like private cryptographic keys
 As secrets are often used to guarantee confidentiality and integrity, it is crucial to prevent compromise.
 As configuration management and version control systems, like git(hub), are not well suited nor meant to hold secret information Vault provides a solution to manage secrets for AS3 Ninja.
 
-Different types of secrets exist, therefore Vault provides a varity of `Secrets Engines` to fullfil the specific needs of these secret types.
+Different types of secrets exist, therefore Vault provides a variety of `Secrets Engines` to fullfil the specific needs of these secret types.
 Two `Secrets Engines` are useful particular for AS3 Ninja:
 
 * KV1
@@ -56,14 +56,14 @@ There are multiple ways to specify these parameters depending on how you use the
 Vault can be accessed with :py:mod:`as3ninja.vault.vault`, which is available as Jinja2 filter as well as a Jinja2 function.
 
 A specific `client` can be created using the Jinja2 function :py:mod:`as3ninja.vault.VaultClient`.
-This `client` is tied to the Vault instance defined by the paramters passed to `VaultClient`.
+This `client` is tied to the Vault instance defined by the parameters passed to `VaultClient`.
 The `vault` filter/function optionally accepts this `client` as a parameter.
 
 This is helpful in case a specific Vault instance must be contacted or multiple Vault instances are needed.
 
 The usage of `vault` and `VaultClient` is explained later.
 
-When using `vault` and not passing a specifc `client`, AS3 Ninja will use the :py:meth:`as3ninja.vault.VaultClient.defaultClient` to initiate communication with Vault.
+When using `vault` and not passing a specific `client`, AS3 Ninja will use the :py:meth:`as3ninja.vault.VaultClient.defaultClient` to initiate communication with Vault.
 The `defaultClient` connection logic is as follows:
 
 1. It will first check if an authenticated vault connection exists already.
@@ -72,7 +72,7 @@ The `defaultClient` connection logic is as follows:
 
 2. If 1. isn't successful It will then check the Jinja2 Context for the namespace ``ninja.as3ninja.vault`` and use ``addr``, ``token`` and ``ssl_verify`` for connection establishment
 
-    This provides great flexibility as the Vault connection can be paramerized by the Temaplate Configuration.
+    This provides great flexibility as the Vault connection can be parametrized by the Template Configuration.
 
 3. For any namespace variable in 2., it will check the environment variables ``VAULT_ADDR``, ``VAULT_TOKEN`` and ``VAULT_SKIP_VERIFY``.
 
@@ -108,11 +108,11 @@ To retrieve a secret from Vault a couple of parameters are required:
 mount_point
 ***********
 If the `mount_point` is part of the `path` and is configured during setup of the Secrets `engine` in Vault.
-If the `mount_point` is just one level, for example `/mySecretEngineKV2`, it can be ommited if it is part of `path`.
+If the `mount_point` is just one level, for example `/mySecretEngineKV2`, it can be omitted if it is part of `path`.
 
 path
 ****
-The `path` defines which secret to retrieve. If `mount_point` is ommited is must include the `mount_point`, see paragraph above.
+The `path` defines which secret to retrieve. If `mount_point` is omitted is must include the `mount_point`, see paragraph above.
 
 engine
 ******
@@ -150,7 +150,7 @@ The simplest definition of a secret just contains the path.
         path: /secretOne/myAPI/sharedKey
         engine: kv1
 
-When using KV1, the `engine` must be explictly specified.
+When using KV1, the `engine` must be explicitly specified.
 
 .. code-block:: yaml
 
@@ -202,7 +202,7 @@ Declaration Template:
       "myAPI": {{ ninja.secrets.myAPI | vault | jsonify }}
     }
 
-We use `vault` as a filter and the vaule of ``ninja.secrets.myAPI`` is passed as the first parameter automatically by jinja2.
+We use `vault` as a filter and the value of ``ninja.secrets.myAPI`` is passed as the first parameter automatically by jinja2.
 ``vault`` will read all keys in the passed parameter and try to retrieve the relevant secret from Vault.
 
 Run as3ninja:
@@ -348,7 +348,7 @@ This allows us to implement more generic queries and re-use the secret informati
     }
 
 The above Declaration Template creates a jinja2 variable namespace for better reusability.
-`vault` is involked passing ``ninja.secrets.latestService`` to the `secret` parameter manually. When using `vault` as a jinja2 filter, this isn't necessary as the "piped" variable name is passed to the `secret` parameter automatically.
+`vault` is invoked passing ``ninja.secrets.latestService`` to the `secret` parameter manually. When using `vault` as a jinja2 filter, this isn't necessary as the "piped" variable name is passed to the `secret` parameter automatically.
 
 ``secrets.latestService`` now contains all the data we saw in the previous example and we create two more variables to store and later use the specific secret information we are interested in.
 
@@ -408,7 +408,7 @@ No explicit `token` was specified in this example. If no `token` is specified `V
 
 An explicit `token` can be specified via the `VaultClient` ``token`` parameter.
 
-Here is a fully paramerized example.
+Here is a fully parametrized example.
 
 Template Configuration:
 
@@ -424,7 +424,7 @@ Template Configuration:
         path: /secretOne/myAPI/sharedKey
         engine: kv1
 
-Declaration Temaplate:
+Declaration Template:
 
 .. code-block:: jinja
     :linenos:
