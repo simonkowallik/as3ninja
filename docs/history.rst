@@ -31,7 +31,7 @@ History
 
 * Gitget improvements
 
-  * `#2 Gitget support for specific commits from github / better compatiblity <https://github.com/simonkowallik/as3ninja/issues/2>`_
+  * `#2 Gitget support for specific commits from github / better compatibility <https://github.com/simonkowallik/as3ninja/issues/2>`_
 
   * `de21fe2 <https://github.com/simonkowallik/as3ninja/commit/de21fe2>`_
 

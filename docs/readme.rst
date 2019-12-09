@@ -41,7 +41,7 @@ Features
 
 * Use Git(hub) to pull template configurations and declaration templates
 
-* Vault by Hashicorp is (going to be) supported to retrieve secrets
+* Vault by HashiCorp is (going to be) supported to retrieve secrets
 
 * AS3 Ninja provides a simple CLI..
 
@@ -83,11 +83,11 @@ AS3 Ninja is not a commercial product and :doc:`is not covered by any technical 
 Please read, understand and adhere to the license before use.
 
 
-AS3 Ninja's focus is flexibilty in templating and features, it is not harded to run in untrusted environments.
+AS3 Ninja's focus is flexibility in templating and features, it is not hardened to run in un-trusted environments.
 
 * It comes with a large set of dependencies, all of them might introduce security issues
 
-* Jinja2 is not using a Sandboxed Environment and the `readfile` filter allows arbitary file includes.
+* Jinja2 is not using a Sandboxed Environment and the `readfile` filter allows arbitrary file includes.
 
 * The API is unauthenticated
 

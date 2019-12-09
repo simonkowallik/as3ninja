@@ -14,8 +14,8 @@ Welcome to AS3 Ninja's documentation!
    templating
    vault
    modules
-   CONTRIBUTING
-   SUPPORT
+   contributing
+   support
    authors
    history
    todos
