@@ -1,9 +1,11 @@
-# AS3 Ninja
+![AS3 Ninja](https://raw.githubusercontent.com/simonkowallik/as3ninja/master/docs/_static/logo.png)
+
+_AS3 Ninja is a templating and validation engine for your AS3 declarations. No matter if you prefer a CLI or Swagger REST API, AS3 Ninja has you covered!_
 
 [![Travis CI Build
-Status](https://img.shields.io/travis/com/simonkowallik/as3ninja/master)](https://travis-ci.com/simonkowallik/as3ninja)[![Test
-Coverage](https://codecov.io/gh/simonkowallik/as3ninja/branch/master/graph/badge.svg)](https://codecov.io/gh/simonkowallik/as3ninja)[![Documentation
-Status](https://readthedocs.org/projects/as3ninja/badge/?version=latest)](https://as3ninja.readthedocs.io/en/latest/?badge=latest)[![Code Climate maintainability](https://img.shields.io/codeclimate/maintainability/simonkowallik/as3ninja)](https://codeclimate.com/github/simonkowallik/as3ninja)
+Status](https://img.shields.io/travis/com/simonkowallik/as3ninja/master?style=flat-square)](https://travis-ci.com/simonkowallik/as3ninja)[![Documentation
+Status](https://img.shields.io/readthedocs/as3ninja/latest?style=flat-square)](https://as3ninja.readthedocs.io/en/latest/?badge=latest)[![Code Climate maintainability](https://img.shields.io/codeclimate/maintainability/simonkowallik/as3ninja?style=flat-square)](https://codeclimate.com/github/simonkowallik/as3ninja)[![Test
+Coverage](https://img.shields.io/codecov/c/github/simonkowallik/as3ninja?style=flat-square)](https://codecov.io/gh/simonkowallik/as3ninja)
 
 - Free software: ISC license
 - Documentation: <https://as3ninja.readthedocs.io>
@@ -60,12 +62,12 @@ Swagger UI demo:
 
 ## Disclaimer and Security Note
 
-AS3 Ninja is not a commercial product and [is not covered by any technical support or SLAs](./docs/SUPPORT.rst). Please read, understand and adhere to the license before use.
+AS3 Ninja is not a commercial product and [is not covered by any technical support or SLAs](./docs/support.rst). Please read, understand and adhere to the license before use.
 
-AS3 Ninja's focus is flexibilty in templating and features, it is not harded to run in untrusted environments.
+AS3 Ninja's focus is flexibility in templating and features, it is not hardened to run in un-trusted environments.
 
 - It comes with a large set of dependencies, all of them might introduce security issues
-- Jinja2 is not using a Sandboxed Environment and the `readfile` filter allows arbitary file includes.
+- Jinja2 is not using a Sandboxed Environment and the `readfile` filter allows arbitrary file includes.
 - The API is unauthenticated
 
 > **_WARNING:_**  Only use AS3 Ninja in a trusted environment with restricted access and trusted input.
