@@ -1,4 +1,6 @@
-# AS3 Ninja
+![AS3 Ninja](https://raw.githubusercontent.com/simonkowallik/as3ninja/master/docs/_static/logo.png)
+
+_AS3 Ninja is a templating and validation engine for your AS3 declarations. No matter if you prefer a CLI or Swagger REST API, AS3 Ninja has you covered!_
 
 [![Travis CI Build
 Status](https://img.shields.io/travis/com/simonkowallik/as3ninja/master?style=flat-square)](https://travis-ci.com/simonkowallik/as3ninja)[![Documentation
@@ -60,7 +62,7 @@ Swagger UI demo:
 
 ## Disclaimer and Security Note
 
-AS3 Ninja is not a commercial product and [is not covered by any technical support or SLAs](./docs/SUPPORT.rst). Please read, understand and adhere to the license before use.
+AS3 Ninja is not a commercial product and [is not covered by any technical support or SLAs](./docs/support.rst). Please read, understand and adhere to the license before use.
 
 AS3 Ninja's focus is flexibility in templating and features, it is not hardened to run in un-trusted environments.
 

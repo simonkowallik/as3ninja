@@ -12,6 +12,6 @@ By using AS3 Ninja you confirm to understand, agree with and adhere to the licen
 .. Important:: There is no commercial or technical support available, no SLA or any form of warranty.
 
 
-You are welcome to :doc:`contribute <CONTRIBUTING>`, for example by opening a `GitHub issue`_ to report a problem.
+You are welcome to :doc:`contribute <contributing>`, for example by opening a `GitHub issue`_ to report a problem.
 
 .. _`GitHub issue`: https://github.com/simonkowallik/as3ninja

@@ -1,3 +1,6 @@
+.. image:: _static/logo.png
+        :alt: AS3 Ninja
+
 .. image:: https://img.shields.io/travis/com/simonkowallik/as3ninja/master?style=flat-square
         :target: https://travis-ci.com/simonkowallik/as3ninja
         :alt: Travis CI Build Status
