@@ -124,7 +124,7 @@ Navigate to `http://localhost:8000/docs`_ and `http://localhost:8000/redoc`_ to 
 Python Package
 --------------
 
-To use AS3 Ninja in your project:
+To use AS3 Ninja in your python project:
 
 .. code-block:: python
    :linenos:
@@ -158,6 +158,7 @@ To use AS3 Ninja in your project:
        )
 
    from pprint import pprint
+   # the transformed AS3 Declaration is available via the declaration attribute
    pprint(as3declaration.declaration)
    {'class': 'AS3',
     'declaration': {'MyTenant': {'class': 'Tenant'},
@@ -165,14 +166,12 @@ To use AS3 Ninja in your project:
                     'id': 'urn:uuid:f3850951-4a63-43ec-b2a3-28ab2c315479',
                     'schemaVersion': '3.11.0'}}
 
-   # a AS3 schema instance
+   # create an AS3 schema instance
    as3schema = schema.AS3Schema()
 
    # Validate the AS3 Declaration against the AS3 Schema (latest version)
    try:
        as3schema.validate(declaration=as3declaration.declaration)
    except schema.AS3ValidationError:
+       # an AS3ValidationError exception is raised when the validation fails
        raise
-
-
-.. todo:: Improve documentation for usage as python package

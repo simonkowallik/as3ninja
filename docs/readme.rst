@@ -27,6 +27,11 @@ It separates Configuration from Code (Templates) as far as YOU wish.
 AS3 Ninja let's you decide to scale between declarative and imperative
 paradigms to fit your needs.
 
+What AS3 Ninja doesn't do:
+
+* It does not provide you with a UI to create configurations
+
+* It does not deploy AS3 configurations
 
 Features
 --------
@@ -48,13 +53,6 @@ Features
 * ..and a REST API including a Swagger/OpenAPI interface at `/docs` and `/redoc` (openapi.json @ `/openapi.json`)
 
 
-What AS3 Ninja doesn't do for you:
-
-* It does not provide you with a UI to create configurations
-
-* It does not deploy AS3 configurations
-
-
 AS3 Ninja Interface
 -------------------
 
@@ -63,23 +61,23 @@ Some impressions from the AS3 Ninja interfaces:
 the Command Line
 ^^^^^^^^^^^^^^^^
 
-.. image:: docs/_static/_cli.svg
+.. image:: _static/_cli.svg
 
 the API UI
 ^^^^^^^^^^
 ReDoc and Swagger UI:
 
-.. image:: docs/_static/_api.gif
+.. image:: _static/_api.gif
 
 Swagger UI demo:
 
-.. image:: docs/_static/_api_demo.gif
+.. image:: _static/_api_demo.gif
 
 
 Disclaimer and Security Note
 ----------------------------
 
-AS3 Ninja is not a commercial product and :doc:`is not covered by any technical support or SLAs <SUPPORT>`.
+AS3 Ninja is not a commercial product and :doc:`is not covered by any form of support, there is no contract nor SLA! <support>`.
 Please read, understand and adhere to the license before use.
 
 

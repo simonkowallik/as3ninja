@@ -355,7 +355,7 @@ A quick overview of Imperative vs. Declarative Programming, which can help under
 AS3 Ninja the declarative way
 *****************************
 
-Let's look at a declarative way to specify an AS3 Declaration.
+Let's look at a declarative way to render an AS3 Declaration.
 
 .. code-block:: jinja
     :linenos:
@@ -396,7 +396,7 @@ Let's look at a declarative way to specify an AS3 Declaration.
 The above Declaration Template uses Jinja2 to fill specific values using variables.
 No logic, no control structures nor commands are used.
 
-.. code-block:: jinja
+.. code-block:: yaml
     :linenos:
     :emphasize-lines: 7
 
@@ -410,18 +410,419 @@ No logic, no control structures nor commands are used.
 
 Above is an example Template Configuration for our Declaration Template.
 As our backends are expected to be a JSON array, the value of ``backends`` isn't very pretty.
-Adding additional services, tenants or service specific configurations will require changes in the Template Configuration as well as the Declaration Template.
+
+
+Adding additional services, tenants or service specific configurations will require changes
+in the Template Configuration as well as the Declaration Template.
 
 AS3 Ninja the imperative way
 ****************************
 
-.. todo:: imperative example
+Now let's find an imperative way to render a similar AS3 Declaration.
 
+.. code-block:: jinja
+    :linenos:
+    :emphasize-lines: 8,11,18,20,22,31,32,34,35
+
+    {# Declaration Template #}
+    {
+      "class": "AS3",
+      "declaration": {
+        "class": "ADC",
+        "schemaVersion": "3.11.0",
+        "id": "urn:uuid:{{ uuid() }}",
+        {% for tenant in ninja.tenants %}
+        "{{ tenant.name }}": {
+          "class": "Tenant",
+          {% for app in tenant.apps %}
+          "{{ app.name }}": {
+            "class": "Application",
+            "template": "{{ app.type }}",
+            "backends": {
+              "class": "Pool",
+                "monitors":
+                {% if app.monitors is defined %}
+                    {{ app.monitors | jsonify }},
+                {% else %}
+                    {{ ninja.mappings.monitor[app.type] | jsonify }},
+                {% endif %}
+                "members": {{ app.backends | jsonify }}
+            },
+            "serviceMain": {
+              "class": "{{ ninja.mappings.service[app.type] }}",
+              "virtualAddresses": {{ app.address | jsonify }},
+              "pool": "backends"
+            }
+          }
+        {% if not loop.last %},{% endif %}
+        {% endfor %}
+        }
+      {% if not loop.last %},{% endif %}
+      {% endfor %}
+      }
+    }
+
+This Declaration Template not only uses Jinja2 to fill specific values using variables but also
+uses control structures, mainly loops and conditions (highlighted), to render the AS3 Declaration.
+
+You can already see that this Declaration Template iterates over a list of tenants and a list of apps for each tenant.
+This clearly shows this example is probably easy to extend with additional tenants and apps.
+
+As this Declaration Template contains a lot more details we will take a closer look at each step,
+but first let's have a look at the Template Configuration:
+
+.. code-block:: yaml
+    :linenos:
+    :emphasize-lines: 9-13
+
+    # Template Configuration
+    tenants:
+    - name: MyTenant
+      apps:
+      - name: MyApp
+        type: http
+        address:
+        - 198.18.0.1
+        backends:
+        - servicePort: 80
+          serverAddresses:
+          - 192.168.0.1
+          - 192.168.0.2
+    mappings:
+      service:
+        http: Service_HTTP
+      monitor:
+        http:
+        - http
+
+The Template Configuration is longer than the previous *declarative* example, but it is also more flexible.
+The non-pretty representation of the backends has been replaced with a more flexible ``backends`` definition (highlighted).
+
+As this Configuration Template works hand in hand with the Declaration Template we will take a closer look at both in the next section.
 
 Building a Declaration Template
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. todo:: outline a Declaration Template for the previous Template Configuration example
+A *declarative* Declaration Template and the corresponding Template Configuration is pretty straightforward as you saw earlier.
+
+So instead we will look at the *imperative* example above and walk through each step.
+For conciseness we will remove parts from the Declaration Template and Template Configuration and focus on the subject.
+
+Looping Tenants and their Apps
+******************************
+
+.. code-block:: yaml
+    :linenos:
+    :emphasize-lines: 2-3,5-6
+
+    # Template Configuration
+    tenants:
+    - name: MyTenant
+      # ... tenant specific configuration
+      apps:
+      - name: MyApp
+        type: http
+        # ... app specific configuration
+
+The above Template Configuration excerpt contains a list of Tenants (line 2) with the first list entry having ``name`` key with value ``MyTenant`` (line 3).
+Within this Tenant a list of Applications (Apps) is defined (line 5), with the first list entry having a ``name`` key with value ``MyApp`` (line 6).
+
+.. code-block:: jinja
+    :linenos:
+    :emphasize-lines: 5,6,8,9,12,13,15,16
+
+    {# Declaration Template #}
+    {
+      "class": "AS3",
+      {# ... more code ... #}
+        {% for tenant in ninja.tenants %}
+        "{{ tenant.name }}": {
+          "class": "Tenant",
+          {% for app in tenant.apps %}
+          "{{ app.name }}": {
+          {# ... app specific code ... #}
+          }
+        {% if not loop.last %},{% endif %}
+        {% endfor %}
+        }
+      {% if not loop.last %},{% endif %}
+      {% endfor %}
+      }
+    }
+
+The Declaration Template is built to iterate over a list of Tenants (line 5).
+The Template Configuration list of Tenants is accessible via ``ninja.tenants`` and each Tenant is assigned to ``tenant``, which is now available within the for loop.
+On line 6 the Tenant name is read from ``tenant.name``.
+
+Furthermore on line 8 the Declaration Template will iterate the list of Applications defined for this Tenant.
+The list of Applications for this particular Tenant is available via ``tenant.apps``. ``apps`` refers to the definition in the Template Configuration (on line 5).
+The Application specific configuration starts on line 9, where ``app.name`` is used to declarative the Application class of the AS3 Declaration.
+
+Line 12 is checking for the last iteration of the inner "Application loop" and makes sure the comma (``,``) is included when there are further elements in the Application list.
+This is important as `JSON does not tolerate a trailing comma <https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Trailing_commas#Trailing_commas_in_JSON>`_.
+Line 13 defines the end of the loop.
+
+The same is done on line 15 and 16 for the outer "Tenants loop".
+
+.. Note:: More details on control structures in Jinja2 can be found at `List of Control Structures <https://jinja.palletsprojects.com/en/2.10.x/templates/#list-of-control-structures>`_ in the Jinja2 Template Designer Documentation.
+
+
+Application specific settings
+*****************************
+
+Now let's look at the Application specific settings.
+
+.. code-block:: yaml
+    :linenos:
+    :emphasize-lines: 5-19
+
+    # Template Configuration
+    tenants:
+    - name: Tenant1
+      apps:
+      - name: MyApp
+        type: http
+        address:
+        - 198.18.0.1
+        backends:
+        - servicePort: 80
+          serverAddresses:
+          - 192.168.0.1
+          - 192.168.0.2
+    mappings:
+      service:
+        http: Service_HTTP
+      monitor:
+        http:
+        - http
+
+The YAML is more structured to not only fit the Declaration Template but also the AS3 data structures.
+A ``mappings`` data structure was added to assist with default values / mappings to Application types.
+
+.. code-block:: jinja
+    :linenos:
+    :emphasize-lines: 5,9-14,17,18
+
+    {# Declaration Template #}
+      {# ... more code ... #}
+      "{{ app.name }}": {
+        "class": "Application",
+        "template": "{{ app.type }}",
+        "backends": {
+          "class": "Pool",
+            "monitors":
+            {% if app.monitors is defined %}
+                {{ app.monitors | jsonify }},
+            {% else %}
+                {{ ninja.mappings.monitor[app.type] | jsonify }},
+            {% endif %}
+            "members": {{ app.backends | jsonify }}
+        },
+        "serviceMain": {
+          "class": "{{ ninja.mappings.service[app.type] }}",
+          "virtualAddresses": {{ app.address | jsonify }},
+          "pool": "backends"
+        {# ... more code ... #}
+
+The ``app.type`` is used on line 5 to map to the ``http`` AS3 template,
+on line 12 ``app.type`` is used again as a key for ``mappings.service``.
+This allows us to create multiple `App type` to `Service_<type>` mappings.
+In this case ``http`` maps to the AS3 service class ``Service_HTTP``.
+
+Line 9-13 deals with monitors, if ``app.monitors`` is defined it is used,
+otherwise ``app.type`` is used again to lookup the default monitor to use, based on the Template Configuration (line 17-19).
+Note that ``"monitors"`` is expected to be a JSON array of monitors, this is why the Template Configuration YAML uses a list for ``monitor.http``.
+``jsonify`` is an AS3 Ninja Filter (see :py:func:`as3ninja.filters.jsonify`) which will convert any "piped" data to a valid JSON format.
+A python list (which the YAML de-serializes to) is converted to a JSON array.
+
+The ``"members"`` key for a `AS3 Pool class` is expected to be a list, each list entry is an object with several key:value pairs.
+``serverAddresses`` are again expected to be a list of IP addresses.
+
+Looking at the ``backends`` part of the Template Configuration again:
+
+.. code-block:: yaml
+    :linenos:
+    :emphasize-lines: 2,4,5
+
+        backends:
+        - servicePort: 80
+          serverAddresses:
+          - 192.168.0.1
+          - 192.168.0.2
+
+``app.backends`` and it's YAML exactly represents this structure, making it easy for the Declaration Template to just convert it to JSON (using the ``jsonify`` filter).
+Sometimes it is easier to look at the resulting JSON, as it is used by AS3 as well.
+Here is how the above YAML for ``backends`` looks like:
+
+.. code-block:: json
+    :linenos:
+    :emphasize-lines: 2,5,7
+
+    {
+      "backends": [
+        {
+          "servicePort": 80,
+          "serverAddresses": ["192.168.0.1", "192.168.0.2"]
+        }
+      ]
+    }
+
+
+``"virtualAddresses"``, on line 18 Declaration Template, is also expected to be a JSON array, which is what the Template Configuration perfectly represents and ``jsonify`` converts to.
+
+
+Adding more Tenants
+*******************
+
+Based on the above *imperative* example, it is easy to add further Tenants.
+
+Here is an example adding one more Tenant:
+
+.. code-block:: yaml
+    :linenos:
+
+    # Template Configuration
+    tenants:
+    - name: Tenant1
+      apps:
+      - name: MyApp
+        type: http
+        address:
+        - 198.18.0.1
+        backends:
+        - servicePort: 80
+          serverAddresses:
+          - 192.168.0.1
+          - 192.168.0.2
+    - name: Tenant2
+      apps:
+      - name: TheirApp
+        type: http
+        address:
+        - 198.18.100.1
+        monitors:
+        - http
+        - icmp
+        backends:
+        - servicePort: 80
+          serverAddresses:
+          - 192.168.100.1
+    mappings:
+      service:
+        http: Service_HTTP
+      monitor:
+        http:
+        - http
+
+Adding an additional App type
+*****************************
+
+What if we want to add an additional type of Application?
+Let's assume we want to add a SSH server, using AS3's `Service_TCP`.
+
+As this service class doesn't come with a default value for
+``virtualPort`` we will need to modify our Declaration Template.
+
+.. code-block:: jinja
+    :linenos:
+    :emphasize-lines: 26-28
+
+    {# Declaration Template #}
+    {
+      "class": "AS3",
+      "declaration": {
+        "class": "ADC",
+        "schemaVersion": "3.11.0",
+        "id": "urn:uuid:{{ uuid() }}",
+        {% for tenant in ninja.tenants %}
+        "{{ tenant.name }}": {
+          "class": "Tenant",
+          {% for app in tenant.apps %}
+          "{{ app.name }}": {
+            "class": "Application",
+            "template": "{{ app.type }}",
+            "backends": {
+              "class": "Pool",
+                "monitors":
+                {% if app.monitors is defined %}
+                    {{ app.monitors | jsonify }},
+                {% else %}
+                    {{ ninja.mappings.monitor[app.type] | jsonify }},
+                {% endif %}
+                "members": {{ app.backends | jsonify }}
+            },
+            "serviceMain": {
+              {% if app.port is defined %}
+              "virtualPort": {{ app.port }},
+              {% endif %}
+              "class": "{{ ninja.mappings.service[app.type] }}",
+              "virtualAddresses": {{ app.address | jsonify }},
+              "pool": "backends"
+            }
+          }
+        {% if not loop.last %},{% endif %}
+        {% endfor %}
+        }
+      {% if not loop.last %},{% endif %}
+      {% endfor %}
+      }
+    }
+
+We added a conditional check for ``app.port`` (line 26-28).
+If it is set, ``"virtualPort"`` will be added to the AS3 Declaration with the value of ``app.port``.
+Of course this ``app.port`` can be used by other service types as well.
+
+.. code-block:: yaml
+    :linenos:
+    :emphasize-lines: 27-35,39,43,44
+
+    # Template Configuration
+    tenants:
+    - name: Tenant1
+      apps:
+      - name: MyApp
+        type: http
+        address:
+        - 198.18.0.1
+        backends:
+        - servicePort: 80
+          serverAddresses:
+          - 192.168.0.1
+          - 192.168.0.2
+    - name: Tenant2
+      apps:
+      - name: TheirApp
+        type: http
+        address:
+        - 198.18.100.1
+        monitors:
+        - http
+        - icmp
+        backends:
+        - servicePort: 80
+          serverAddresses:
+          - 192.168.100.1
+      - name: TcpApp
+        type: tcp
+        port: 22
+        address:
+        - 198.18.100.1
+        backends:
+        - servicePort: 22
+          serverAddresses:
+          - 192.168.100.1
+    mappings:
+      service:
+        http: Service_HTTP
+        tcp: Service_TCP
+      monitor:
+        http:
+        - http
+        tcp:
+        - tcp
+
+Line 29 has the new ``port`` key, which is used in the Declaration Template.
+Along with the TCP based service we also updated the mappings.
 
 
 .. Hint:: If you use Visual Studio Code, the `jinja-json-syntax`_ Syntax Highlighter is very helpful.

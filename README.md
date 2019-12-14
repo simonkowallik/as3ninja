@@ -26,6 +26,11 @@ It separates Configuration from Code (Templates) as far as YOU wish.
 AS3 Ninja let's you decide to scale between declarative and imperative
 paradigms to fit your needs.
 
+What AS3 Ninja doesn't do:
+
+- It does not provide you with a UI to create configurations
+- It does not deploy AS3 configurations
+
 ## Features
 
 - Validate your AS3 Declarations against the AS3 Schema (via API, eg. for CI/CD)
@@ -36,11 +41,6 @@ paradigms to fit your needs.
 - HashiCorp Vault integration to retrieve secrets
 - AS3 Ninja provides a simple CLI..
 - ..and a REST API including a Swagger/OpenAPI interface at `/docs` and `/redoc` (openapi.json @ `/openapi.json`)
-
-What AS3 Ninja doesn't do for you:
-
-- It does not provide you with a UI to create configurations
-- It does not deploy AS3 configurations
 
 ## AS3 Ninja Interface
 
@@ -62,7 +62,7 @@ Swagger UI demo:
 
 ## Disclaimer and Security Note
 
-AS3 Ninja is not a commercial product and [is not covered by any technical support or SLAs](./docs/support.rst). Please read, understand and adhere to the license before use.
+AS3 Ninja is not a commercial product and [is not covered by any form of support, there is no contract nor SLA!](./docs/support.rst). Please read, understand and adhere to the license before use.
 
 AS3 Ninja's focus is flexibility in templating and features, it is not hardened to run in un-trusted environments.
 
