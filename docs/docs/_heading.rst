@@ -1,1 +1,0 @@
-../_heading.rst

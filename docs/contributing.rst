@@ -72,7 +72,7 @@ Ready to contribute? Here's how to set up `as3ninja` for local development.
 
 4. Create a branch for local development::
 
-    $ git checkout -b (bugfix|feature)/name-of-your-bugfix-or-feature
+    $ git checkout -b (bugfix|feature|enhancement)/name-of-your-bugfix-or-feature
 
    Now you can make your changes locally.
 
@@ -88,7 +88,7 @@ Ready to contribute? Here's how to set up `as3ninja` for local development.
 
     $ git add .
     $ git commit
-    $ git push origin (bugfix|feature)/name-of-your-bugfix-or-feature
+    $ git push origin (bugfix|feature|enhancement)/name-of-your-bugfix-or-feature
 
 7. Submit a pull request through GitHub.
 
@@ -104,18 +104,3 @@ Before you submit a pull request, check that it meets these guidelines:
 3. The pull request should work for Python 3.7 and 3.8. Check
    https://travis-ci.com/simonkowallik/as3ninja/pull_requests
    and make sure that the tests pass for all supported Python versions.
-
-
-
-.. Deploying
-.. ---------
-..
-.. A reminder for the maintainers on how to deploy.
-.. Make sure all your changes are committed (including an entry in docs/history.rst).
-.. Then run::
-..
-.. $ bumpversion patch # possible: major / minor / patch
-.. $ git push
-.. $ git push --tags
-..
-.. Travis will then deploy to PyPI if tests pass.

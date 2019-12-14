@@ -81,19 +81,21 @@ def readfile(ctx: Context, filepath: str, missing_ok: bool = False) -> str:
 
 @registerfilter
 def jsonify(data: str, quote: bool = True) -> str:
-    """JSON-formats a string.
-    `quote=False` allows to avoid surounding quotes,
-    eg. use:
+    """serializes data to JSON format.
 
-    .. code-block:: javascript
+    ``quote=False`` avoids surrounding quotes,
+    For example:
 
-        "key": "{{ninja.somevariable|jsonify(quote=False)}}"
+    .. code-block:: jinja
+
+        "key": "{{ ninja.somevariable | jsonify(quote=False) }}"
 
     Instead of:
 
-    .. code-block:: javascript
+    .. code-block:: jinja
 
-        "key": {{ninja.somevariable|jsonify}}
+        "key": {{ ninja.somevariable | jsonify }}
+
     """
 
     if quote:

@@ -179,13 +179,13 @@ Let's look at using `vault` as a filter and function as well as using `VaultClie
 
 .. Note:: To keep the examples concise, none of the below produce a valid AS3 declaration. Therefore the `--no-validate` flag is required.
 
-A simple example first (Secrets Engine: KV1)
-********************************************
-
-Template Configuration:
+A simple example (Secrets Engine: KV1)
+**************************************
 
 .. code-block:: yaml
+    :linenos:
 
+    # Template Configuration
     secrets:
       myAPI:
         path: /secretOne/myAPI/sharedKey
@@ -194,10 +194,10 @@ Template Configuration:
 Our secret will be accessible during transformation of the Declaration Template as ``ninja.secrets.myAPI``.
 ``ninja.secrets.myAPI.path`` will refer to the value ``/secretOne/myAPI/sharedKey`` and ``ninja.secrets.myAPI.engine`` will refer to ``kv1``.
 
-Declaration Template:
-
 .. code-block:: jinja
+    :linenos:
 
+    {# Declaration Template #}
     {
       "myAPI": {{ ninja.secrets.myAPI | vault | jsonify }}
     }
@@ -236,6 +236,7 @@ The value of ``"myAPI"`` contains details about the fetched Vault secret, probab
 Modifying the Declaration Template like below would just extract this specific value:
 
 .. code-block:: jinja
+    :linenos:
 
     {
       "myAPI": {{ (ninja.secrets.myAPI | vault)['data']['secretKey'] | jsonify }}
@@ -244,6 +245,7 @@ Modifying the Declaration Template like below would just extract this specific v
 The resulting JSON now only contains the secret:
 
 .. code-block:: json
+    :linenos:
 
     {
       "myAPI": "AES 128 4d3642df883756b0d5746f32463f6005"
@@ -253,21 +255,22 @@ The resulting JSON now only contains the secret:
 Example using Secrets Engine KV2
 ********************************
 
-Template Configuration:
-
 .. code-block:: yaml
+    :linenos:
 
+      # Template Configuration
       latestService:
         path: /otherService/privateKey
         mount_point: /SecEnginePath/myKV2
 
-Declaration Template:
 
 .. code-block:: jinja
+    :linenos:
 
-  {
-    "latestService": {{ ninja.secrets.latestService | vault | jsonify }}
-  }
+    {# Declaration Template #}
+    {
+      "latestService": {{ ninja.secrets.latestService | vault | jsonify }}
+    }
 
 Run as3ninja:
 
@@ -310,6 +313,7 @@ The secret we are looking for is found at `data -> data -> privateKey`. Within t
 As we already learnt we can "filter" for the specific data we want to extract by updating the Declaration Template:
 
 .. code-block:: jinja
+    :linenos:
 
     {
       "latestService": {{
@@ -355,6 +359,7 @@ The above Declaration Template creates a jinja2 variable namespace for better re
 The resulting JSON looks like this:
 
 .. code-block:: json
+    :linenos:
 
     {
       "latestService_privateKey": "-----BEGIN RSA PRIVATE KEY-----\nMIHzAgEAAjEAvAI1w37cQcrflizN6Qa6GYVO26Sup5J0WWirYDS1aoxXCjQDcN4Q\nf7cCQ82kSzcjAgMBAAECMFS5sjzdiKjlogjtPAYNkAQ8PSNifYrqxlpT4D5+TpWj\nM1ODUjTVZBPQXuUIJYo6gQIZAOBcs33j5C6k7sisCVAvJTCTmdMx037zYQIZANaF\nLSMLGaEhYz1da3OR6IHyM9Anx/h9AwIZAL4vlq+GeKzZfth4jMR90malF+Yg/IlG\nwQIZAJKgRqDMRoFfK9DW2MoOsgiX/xhJCKLs9wIYPHBqLjhfB5Ycuk+WyxHj2uNQ\nNpf7zbsE\n-----END RSA PRIVATE KEY-----",
@@ -370,11 +375,13 @@ If we modify the `vault` call from the previous example like below, version 1 of
 The ``version`` parameter is optional and overrules any version configuration. It is valid regardless if `vault` is used as a filter or function.
 
 .. code-block:: jinja
+    :linenos:
     :emphasize-lines: 1
 
     {% set secrets.latestService = vault(secret=ninja.secrets.latestService,version=1) %}
 
 .. code-block:: json
+    :linenos:
 
     {
       "latestService_privateKey": "-----BEGIN RSA PRIVATE KEY-----\nMIGrAgEAAiEAyKNcibrMfVxuEwtifphGvEH1eP5Gjb3jbq8o0NfjjAMCAwEAAQIg\nRp5RJN0NupX83FEmgr5gLqSYKeiIFCF4/vEcLrvVhOkCEQD5WC8HQPmQLFU//171\n92OVAhEAzf5bxQk73WWXG6Wzcy7LNwIRANUDlQmpZIralOnbjJCtDBECECmOR6sf\nKsGGLg64xdPVu88CEQDrfrKtfD5cSVENuhJ1LLie\n-----END RSA PRIVATE KEY-----",
@@ -410,10 +417,10 @@ An explicit `token` can be specified via the `VaultClient` ``token`` parameter.
 
 Here is a fully parametrized example.
 
-Template Configuration:
-
 .. code-block:: yaml
+    :linenos:
 
+    # Template Configuration
     dev:
       vault:
         token: s.iorspPP7f7EFpyudye6DB6Jn
@@ -424,12 +431,11 @@ Template Configuration:
         path: /secretOne/myAPI/sharedKey
         engine: kv1
 
-Declaration Template:
-
 .. code-block:: jinja
     :linenos:
     :emphasize-lines: 3
 
+    {# Declaration Template #}
     {
     {% set vc = namespace() %}
     {% set vc.client = VaultClient(

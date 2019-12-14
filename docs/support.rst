@@ -6,10 +6,10 @@ AS3 Ninja is an open source project started by a single individual and released 
 
 .. _`ISC license`: https://github.com/simonkowallik/as3ninja/blob/master/LICENSE
 
-By using AS3 Ninja you confirm to understand, agree with and adhere to the license.
+By using AS3 Ninja you confirm to understand, agree and adhere to the license.
 
 
-.. Important:: There is no commercial or technical support available, no SLA or any form of warranty.
+.. Warning:: **There is no commercial/technical support nor any other form of support for AS3 Ninja. It comes without SLAs or any form of warranty.**
 
 
 You are welcome to :doc:`contribute <contributing>`, for example by opening a `GitHub issue`_ to report a problem.
