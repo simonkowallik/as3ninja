@@ -289,8 +289,22 @@ class Test_implicit_transform:
 
 
 class Test_transform_method:
-    pass
     # TODO: test the transform method
+    @staticmethod
+    def test_multi_template_syntax_error():
+        """https://github.com/simonkowallik/as3ninja/issues/4"""
+        template = """{
+            "include": {% include './include.jinja2' %}
+            }"""
+
+        with pytest.raises(AS3TemplateSyntaxError) as exc:
+            _ = AS3Declaration(
+                declaration_template=template,
+                template_configuration={},
+                jinja2_searchpath="tests/testdata/declaration/syntax_error/",
+            )
+        assert "{% This line raises a Syntax Error %}<---- Error line:2" in str(exc.value)
+
 
 
 class Test_invalid_declarations:
