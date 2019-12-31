@@ -2,9 +2,10 @@
 """API"""
 from typing import List, Optional, Union
 
-from fastapi import APIRouter, FastAPI, HTTPException, Query
+from fastapi import FastAPI, HTTPException, Query
 from pydantic import BaseModel
 from starlette.middleware.cors import CORSMiddleware
+from starlette.responses import RedirectResponse
 
 from . import __description__, __projectname__, __version__
 from .declaration import (
@@ -16,6 +17,18 @@ from .declaration import (
 from .gitget import Gitget, GitgetException
 from .schema import AS3Schema, AS3SchemaVersionError, AS3ValidationError
 from .utils import deserialize
+
+CORS_SETTINGS = {
+    "allow_origins": [
+        "http://localhost",
+        "http://localhost:8000",
+        "https://localhost",
+        "https://localhost:8000",
+    ],
+    "allow_credentials": True,
+    "allow_methods": ["*"],
+    "allow_headers": ["*"],
+}
 
 
 class AS3ValidationResult(BaseModel):
@@ -55,22 +68,9 @@ class AS3Declare(BaseModel):
     declaration_template: str
 
 
-app = FastAPI(title=__projectname__, description=__description__, version=__version__,)
+app = FastAPI(docs_url=None, redoc_url=None, openapi_url=None)
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=[
-        "http://localhost",
-        "http://localhost:8000",
-        "https://localhost",
-        "https://localhost:8000",
-    ],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-apiroute = APIRouter()
+app.add_middleware(CORSMiddleware, **CORS_SETTINGS)
 
 
 @app.on_event("startup")
@@ -79,13 +79,47 @@ def startup():
     _ = AS3Schema()
 
 
-@apiroute.get("/schema/latest_version")
+@app.get("/")
+async def default_redirect():
+    """redirect / to /api/docs"""
+    return RedirectResponse(url="/api/docs")
+
+
+@app.get("/docs")
+async def docs_redirect():
+    """redirect /docs to /api/docs"""
+    return RedirectResponse(url="/api/docs")
+
+
+@app.get("/redoc")
+async def redoc_redirect():
+    """redirect /redoc to /api/redoc"""
+    return RedirectResponse(url="/api/redoc")
+
+
+@app.get("/openapi.json")
+async def openapi_redirect():
+    """redirect /openapi.json to /api/openapi.json"""
+    return RedirectResponse(url="/api/openapi.json")
+
+
+api = FastAPI(
+    openapi_prefix="/api",
+    title=__projectname__,
+    description=__description__,
+    version=__version__,
+)
+
+api.add_middleware(CORSMiddleware, **CORS_SETTINGS)
+
+
+@api.get("/schema/latest_version")
 async def get_schema_latest_version():
     """Returns latest known AS3 Schema version"""
     return LatestVersion(latest_version=AS3Schema().latest_version)
 
 
-@apiroute.get("/schema/schema")
+@api.get("/schema/schema")
 async def get_schema_schema_version(
     version: str = Query("latest", title="AS3 Schema version to get"),
 ):
@@ -97,19 +131,19 @@ async def get_schema_schema_version(
         raise HTTPException(status_code=error.code, detail=error.message)
 
 
-@apiroute.get("/schema/schemas")
+@api.get("/schema/schemas")
 async def get_schema_schemas():
     """Returns all known AS3 Schemas"""
     return AS3Schema().schemas
 
 
-@apiroute.get("/schema/versions")
+@api.get("/schema/versions")
 async def get_schema_versions():
     """Returns array of version numbers for all known AS3 Schemas"""
     return AS3Schema().versions
 
 
-@apiroute.post("/schema/validate", response_model=AS3ValidationResult)
+@api.post("/schema/validate", response_model=AS3ValidationResult)
 async def _schema_validate(
     declaration: dict,
     version: str = Query("latest", title="AS3 Schema version to validation against"),
@@ -126,7 +160,7 @@ async def _schema_validate(
         return AS3ValidationResult(valid=False, error=str(exc))
 
 
-@apiroute.post("/declaration/transform")
+@api.post("/declaration/transform")
 async def post_declaration_transform(as3d: AS3Declare):
     """Transforms an AS3 declaration template, see ``AS3Declare`` for details on the expected input. Returns the AS3 Declaration."""
     error = None
@@ -147,7 +181,7 @@ async def post_declaration_transform(as3d: AS3Declare):
         raise HTTPException(status_code=error.code, detail=error.message)
 
 
-@apiroute.post("/declaration/transform/git")
+@api.post("/declaration/transform/git")
 async def post_declaration_git_transform(as3d: AS3DeclareGit):
     """Transforms an AS3 declaration template, see ``AS3DeclareGit`` for details on the expected input. Returns the AS3 Declaration."""
     error = None
@@ -204,5 +238,5 @@ async def post_declaration_git_transform(as3d: AS3DeclareGit):
         raise HTTPException(status_code=error.code, detail=error.message)
 
 
-# prefix app with /api
-app.include_router(apiroute, prefix="/api")
+# mount api
+app.mount("/api", api)

@@ -12,12 +12,14 @@ class Test_OpenAPI_UI:
     @staticmethod
     def test_ReDoc():
         response = api_client.get("/redoc")
+        assert response.url.endswith("/api/redoc") is True
         assert response.status_code == 200
         assert "text/html" in response.headers["content-type"]
 
     @staticmethod
     def test_Swagger():
         response = api_client.get("/docs")
+        assert response.url.endswith("/api/docs") is True
         assert response.status_code == 200
         assert "text/html" in response.headers["content-type"]
 
@@ -26,6 +28,18 @@ class Test_OpenAPI_UI:
         response = api_client.get("/openapi.json")
         assert response.status_code == 200
         assert "application/json" in response.headers["content-type"]
+
+    @staticmethod
+    def test_openapi_equals():
+        _openapi_json = api_client.get("/openapi.json")
+        _api_openapi_json = api_client.get("/api/openapi.json")
+        assert _openapi_json.json() == _api_openapi_json.json()
+
+    @staticmethod
+    def test_default_redirect():
+        response = api_client.get("/")
+        assert response.url.endswith("/api/docs") is True
+        assert "text/html" in response.headers["content-type"]
 
 
 class Test_Schema:
