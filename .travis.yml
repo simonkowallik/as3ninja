@@ -11,6 +11,11 @@ matrix:
           env: TOXENV=py37
         - python: 3.8
           env: TOXENV=py38
+        - python: nightly
+          env: TOXENV=nightly
+    allow_failures:
+        - python: nightly
+          env: TOXENV=nightly
 
 install:
     - sudo apt-get remove python2.7
