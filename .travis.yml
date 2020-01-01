@@ -10,7 +10,11 @@ matrix:
         - python: 3.7.5
           env: TOXENV=py37
         - python: 3.8
-          env: TOXENV=py38
+          env:
+            - TOXENV=py38
+            - REPORT=true
+            #https://docs.codeclimate.com/docs/finding-your-test-coverage-token#section-should-i-keep-my-test-reporter-id-secret
+            - CC_TEST_REPORTER_ID=f0a35d3528924432827ea03c9ff210828bb983b459a4f592d7b4f8329f8250b4
         - python: nightly
           env: TOXENV=nightly
     allow_failures:
@@ -22,9 +26,13 @@ install:
     - sudo pip install pipenv
     - pipenv install --dev
     - sudo pip install codecov
+    - test $REPORT && curl -L -o ./cc-test-reporter https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64; true
+    - test $REPORT && chmod +x ./cc-test-reporter; true
 
 script:
+    - test $REPORT && ./cc-test-reporter before-build; true
     - tox
 
 after_success:
-    - codecov -v
+    - test $REPORT && codecov -v; true
+    - test $REPORT && ./cc-test-reporter after-build --exit-code $TRAVIS_TEST_RESULT; true

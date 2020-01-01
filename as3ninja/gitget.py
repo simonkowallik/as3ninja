@@ -183,14 +183,15 @@ class Gitget:
     def _run_command(self, cmd: list) -> str:
         """Private Method: runs a shell command and handles/raises exceptions based on the command return code
 
-            :param cmd: list of command + argmunets
+            :param cmd: list of command + arguments
         """
         result = None
         try:
             # exclude None types from command
             cmd = [command for command in cmd if command]
-            result = run(
+            result = run( # nosec (bandit: disable subprocess.run check)
                 self._gitcmd + cmd,
+                shell=False,
                 cwd=self._repodir,
                 capture_output=True,
                 timeout=NINJASETTINGS.GITGET_TIMEOUT,

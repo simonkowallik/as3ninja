@@ -289,7 +289,7 @@ class AS3Declaration:
         """
         Private Method: Transforms the declaration_template using the template_configuration to an AS3 declaration.
         """
-        env = Environment(
+        env = Environment(  # nosec (bandit: autoescaping is not helpful for as3ninja's use-case)
             loader=ChoiceLoader(
                 [
                     DictLoader({"template": self.declaration_template}),
@@ -300,6 +300,7 @@ class AS3Declaration:
             lstrip_blocks=False,
             keep_trailing_newline=True,
             undefined=StrictUndefined,
+            autoescape=False,
         )
         env.globals["jinja2_searchpath"] = self._jinja2_searchpath + "/"
         env.globals["ninja"] = self.configuration

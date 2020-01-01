@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 import sys
 from pathlib import Path
-from unittest.mock import patch
 
+import mock
 import pytest
 
 from as3ninja.gitget import NINJASETTINGS, Gitget, GitgetException
@@ -50,6 +50,16 @@ class Test_Gitget_staticmethods:
         teststring = "'; ls /; echo"
         result = Gitget._sh_quote(teststring)
         assert result == "''\"'\"'; ls /; echo'"
+
+
+class Test_Gitget_subprocess_security:
+    @staticmethod
+    def test_shell_false(mocker):
+        """test that subprocess.run is using shell=False"""
+        mocked_run = mocker.patch("as3ninja.gitget.run")
+        Gitget._run_command(mock.MagicMock(), "ls")
+        print(mocked_run.call_args)
+        assert "shell=False" in str(mocked_run.call_args)
 
 
 class Test_Gitget_interface:
@@ -116,7 +126,7 @@ class Test_Gitget_interface:
         sys.version_info < (3, 7, 5),
         reason="Skipping this test when python version < 3.7.5  as it hangs forever, see: https://bugs.python.org/issue37424",
     )
-    @patch.object(NINJASETTINGS, "GITGET_TIMEOUT", 5)
+    @mock.patch.object(NINJASETTINGS, "GITGET_TIMEOUT", 5)
     def test_private_repository():
         """test a private repository requiring authentication.
         This test will prompt for credentials if not authenticated and will run into a timeout.
