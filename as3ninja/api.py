@@ -152,11 +152,10 @@ async def _schema_validate(
     try:
         AS3Schema(version=version).validate(declaration=declaration)
         return AS3ValidationResult(valid=True)
-    except (AS3SchemaVersionError, AS3ValidationError) as exc:
-        if isinstance(exc, AS3SchemaVersionError):
-            error = Error(code=404, message=str(exc))
-            raise HTTPException(status_code=404, detail=error.message)
-
+    except AS3SchemaVersionError as exc:
+        error = Error(code=400, message=str(exc))
+        raise HTTPException(status_code=400, detail=error.message)
+    except AS3ValidationError as exc:
         return AS3ValidationResult(valid=False, error=str(exc))
 
 

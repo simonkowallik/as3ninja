@@ -6,15 +6,16 @@ import pytest
 import requests
 from starlette.testclient import TestClient
 
-from as3ninja.api import app
+from as3ninja.api import app, startup
 
 # ENV: DOCKER_TESTING=true to test docker
 
-class RequestsApiTestClient():
+class RequestsApiTestClient:
     """RequestsApiTestClient wraps requests and prepends a base_url.
 
     :param base_url: base URL to prepend (eg. http://localhost:8000)
     """
+
     def __init__(self, base_url):
         self._session = requests.Session()
         if base_url.endswith("/"):
@@ -37,6 +38,7 @@ class RequestsApiTestClient():
 
 class ApiClient:
     """generates the api_client based on module name"""
+
     def __init__(self):
         if getenv("DOCKER_TESTING") == "true":
             # testing actual docker container
@@ -48,7 +50,9 @@ class ApiClient:
     def __getattr__(self, name):
         return getattr(self._api_client, name)
 
+
 api_client = ApiClient()
+
 
 class Test_OpenAPI_UI:
     @staticmethod
@@ -124,9 +128,21 @@ class Test_Schema:
     def test_schema_validate_success():
         declaration_v390__json: str = r'{"class": "AS3","action": "deploy","persist": true,"logLevel": "debug","declaration": {"class": "ADC","schemaVersion": "3.9.0","id": "C3DFeatures","label": "C3D Test","remark": "test","Sample_C3D": {"class": "Tenant","appC3D": {"class": "Application","template": "generic","webtls": {"class": "TLS_Server","certificates": [{"matchToSNI": "www.test.domain.com","certificate": "webcert1"},{"certificate": "webcert2"}],"authenticationMode": "request","authenticationTrustCA": {"bigip": "/Common/dev_chain.crt"},"crlFile": {"bigip": "/Common/dev_crl.crl"},"allowExpiredCRL": true,"c3dOCSPUnknownStatusAction": "ignore","c3dOCSP": {"use": "ocsp"},"c3dEnabled": true},"webcert1": {"class": "Certificate","remark": "test","certificate": "-----BEGIN CERTIFICATE-----\n...\n-----END CERTIFICATE-----","privateKey": "-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----"},"webcert2": {"class": "Certificate","remark": "test","certificate": "-----BEGIN CERTIFICATE-----\n...\n-----END CERTIFICATE-----","privateKey": "-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----"},"ocsp": {"class": "Certificate_Validator_OCSP","dnsResolver": {"bigip": "/Common/10.10.10.10"},"responderUrl": "http://oscp.responder.test.com","timeout": 299},"clienttls": {"class": "TLS_Client","clientCertificate": "defaultCert","crlFile": {"bigip": "/Common/c3d_crl.crl"},"allowExpiredCRL": true,"c3dEnabled": true,"c3dCertificateAuthority": "c3dCA","c3dCertificateLifespan": 360,"c3dCertificateExtensions": ["subject-alternative-name"],"trustCA": {"bigip": "/Common/c3d_chain.crt"}},"c3dCA": {"class": "Certificate","certificate": "-----BEGIN CERTIFICATE-----\n...\n-----END CERTIFICATE-----","privateKey": "-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----"},"defaultCert": {"class": "Certificate","certificate": {"bigip": "/Common/default.crt"},"privateKey": {"bigip": "/Common/default.key"}}}}}}'
         declaration_v390__dict: dict = json.loads(declaration_v390__json)
-        response = api_client.post("/api/schema/validate", json=declaration_v390__dict,)
+        response = api_client.post("/api/schema/validate", json=declaration_v390__dict)
         assert response.status_code == 200
         assert response.json()["valid"] == True
+
+    @staticmethod
+    def test_schema_validate_invalid_schema_version():
+        ver = "3.99.99"
+        declaration_v390__json: str = r'{"class": "AS3","action": "deploy","persist": true,"logLevel": "debug","declaration": {"class": "ADC","schemaVersion": "3.9.0","id": "C3DFeatures","label": "C3D Test","remark": "test","Sample_C3D": {"class": "Tenant","appC3D": {"class": "Application","template": "generic","webtls": {"class": "TLS_Server","certificates": [{"matchToSNI": "www.test.domain.com","certificate": "webcert1"},{"certificate": "webcert2"}],"authenticationMode": "request","authenticationTrustCA": {"bigip": "/Common/dev_chain.crt"},"crlFile": {"bigip": "/Common/dev_crl.crl"},"allowExpiredCRL": true,"c3dOCSPUnknownStatusAction": "ignore","c3dOCSP": {"use": "ocsp"},"c3dEnabled": true},"webcert1": {"class": "Certificate","remark": "test","certificate": "-----BEGIN CERTIFICATE-----\n...\n-----END CERTIFICATE-----","privateKey": "-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----"},"webcert2": {"class": "Certificate","remark": "test","certificate": "-----BEGIN CERTIFICATE-----\n...\n-----END CERTIFICATE-----","privateKey": "-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----"},"ocsp": {"class": "Certificate_Validator_OCSP","dnsResolver": {"bigip": "/Common/10.10.10.10"},"responderUrl": "http://oscp.responder.test.com","timeout": 299},"clienttls": {"class": "TLS_Client","clientCertificate": "defaultCert","crlFile": {"bigip": "/Common/c3d_crl.crl"},"allowExpiredCRL": true,"c3dEnabled": true,"c3dCertificateAuthority": "c3dCA","c3dCertificateLifespan": 360,"c3dCertificateExtensions": ["subject-alternative-name"],"trustCA": {"bigip": "/Common/c3d_chain.crt"}},"c3dCA": {"class": "Certificate","certificate": "-----BEGIN CERTIFICATE-----\n...\n-----END CERTIFICATE-----","privateKey": "-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----"},"defaultCert": {"class": "Certificate","certificate": {"bigip": "/Common/default.crt"},"privateKey": {"bigip": "/Common/default.key"}}}}}}'
+        declaration_v390__dict: dict = json.loads(declaration_v390__json)
+        response = api_client.post(
+            f"/api/schema/validate?version={ver}", json=declaration_v390__dict
+        )
+        assert response.status_code == 400
+        print(response.json())
+        assert response.json()["detail"] == f"schema version:{ver} is unknown"
 
     @staticmethod
     def test_schema_validate_fail():
@@ -135,7 +151,7 @@ class Test_Schema:
             invalid_declaration_v390__json
         )
         response = api_client.post(
-            "/api/schema/validate", json=invalid_declaration_v390__dict,
+            "/api/schema/validate", json=invalid_declaration_v390__dict
         )
         assert response.status_code == 200
         assert response.json()["valid"] == False
@@ -183,5 +199,15 @@ class Test_declaration:
         )
         print(response.json())
         assert response.status_code == 400
-        assert "AS3 declaration template tried to operate on an Undefined variable" in response.json()["detail"]
+        assert (
+            "AS3 declaration template tried to operate on an Undefined variable"
+            in response.json()["detail"]
+        )
         assert "has no attribute 'Tenantname'" in response.json()["detail"]
+
+class Test_API_Startup_event:
+    @staticmethod
+    def test_startup(mocker):
+        mocked_AS3Schema = mocker.patch("as3ninja.api.AS3Schema")
+        startup()
+        assert mocked_AS3Schema.called
