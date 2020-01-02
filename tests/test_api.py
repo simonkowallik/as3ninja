@@ -35,29 +35,10 @@ class RequestsApiTestClient():
         return self._session.request(verb, url, **kwargs)
 
 
-def docker_test():
-    """checks if docker should be tested"""
-    if __name__.endswith("tests.test_api_docker"):
-        # tests/test_api_docker.py is executed
-        return True
-    return False
-
-def skip_tests():
-    """check if testing should be skipped"""
-    if docker_test() and getenv("DOCKER_TESTING", False):
-        # DOCKER_TESTING env var not empty
-        return False
-    elif not docker_test():
-        # not testing docker, we do not want to skip in this case
-        return False
-    # skip tests in any other case
-    return True
-
-
 class ApiClient:
     """generates the api_client based on module name"""
     def __init__(self):
-        if docker_test():
+        if getenv("DOCKER_TESTING") == "true":
             # testing actual docker container
             self._api_client = RequestsApiTestClient("http://localhost:8000")
         else:
@@ -69,7 +50,6 @@ class ApiClient:
 
 api_client = ApiClient()
 
-@pytest.mark.skipif(skip_tests(), reason="docker testing is disabled, DOCKER_TESTING empty or unset")
 class Test_OpenAPI_UI:
     @staticmethod
     def test_ReDoc():
@@ -104,7 +84,6 @@ class Test_OpenAPI_UI:
         assert "text/html" in response.headers["content-type"]
 
 
-@pytest.mark.skipif(skip_tests(), reason="docker testing is disabled, DOCKER_TESTING empty or unset")
 class Test_Schema:
     SCHEMA_VERSION = "3.8.1"
 
@@ -124,6 +103,12 @@ class Test_Schema:
         response = api_client.get(f"/api/schema/schema?version={self.SCHEMA_VERSION}")
         assert response.status_code == 200
         assert response.json()["$schema"]
+
+    def test_schema_non_existing_version(self):
+        ver = "3.999999.999999"
+        response = api_client.get(f"/api/schema/schema?version={ver}")
+        assert response.status_code == 400
+        assert response.json()["detail"] == f"schema version:{ver} is unknown"
 
     def test_schema_versions(self):
         response = api_client.get(f"/api/schema/versions")
@@ -157,7 +142,6 @@ class Test_Schema:
         assert response.json()["error"]
 
 
-@pytest.mark.skipif(skip_tests(), reason="docker testing is disabled, DOCKER_TESTING empty or unset")
 class Test_declaration:
     declaration_template = """
         {

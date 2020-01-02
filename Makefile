@@ -45,7 +45,6 @@ clean-pyc: ## remove Python file artifacts
 	find . -name '__pycache__' -exec rm -fr {} +
 
 clean-test: ## remove test and coverage artifacts
-	rm -fr .tox/
 	rm -f .coverage
 	rm -fr htmlcov/
 	rm -fr .pytest_cache
@@ -65,16 +64,13 @@ isort:
 
 code-format: isort black
 
-test: ## run tests quickly with the default Python
-	py.test --cov=as3ninja --doctest-modules -ra -v
+test:
+	tests/run_tests.sh
 
 tests: test
 
-test-all: ## run tests on every Python version with tox
-	tox
-
-coverage: ## check code coverage quickly with the default Python
-	coverage run --source as3ninja -m pytest
+coverage:
+	REPORT=true tests/run_tests.sh
 	coverage report -m
 	coverage html
 	$(BROWSER) htmlcov/index.html
@@ -87,12 +83,12 @@ docs: ## generate Sphinx HTML documentation, including API docs
 	sphinx-apidoc -o docs/ as3ninja
 	$(MAKE) -C docs clean
 	$(MAKE) -C docs html
-#	$(BROWSER) docs/_build/html/index.html
+	$(BROWSER) docs/_build/html/index.html
 
-release: dist ## package and upload a release
-	twine upload dist/*
-executable:
-	pyinstaller --name as3ninja as3ninja/cli.py
+#release: dist ## package and upload a release
+#	twine upload dist/*
+#executable:
+#	pyinstaller --name as3ninja as3ninja/cli.py
 
 dist: clean ## builds source and wheel package
 	python setup.py sdist
