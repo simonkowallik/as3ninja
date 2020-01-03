@@ -61,7 +61,7 @@ class VaultSecret(BaseModel):
 
     @validator("path", "mount_point")
     def validate_pathlike(cls, value):
-        """Basic secerts path validation using pathlib.Path.
+        """Basic secrets path validation using pathlib.Path.
         This should work for most vault secrets paths.
         """
         if value:
@@ -124,7 +124,7 @@ class VaultClient:
         use ``addr``, ``token`` and ``ssl_verify`` to establish a Vault connection.
         For any of the above variables that doesn't exist the respective environment variable will be used as a fallback:
         ``addr`` = ``VAULT_ADDR``
-        ``token`` = `VAULT_T`OKEN`
+        ``token`` = `VAULT_TOKEN`
         ``ssl_verify`` = ``VAULT_SKIP_VERIFY``
 
         If ``VAULT_SKIP_VERIFY`` does not exist ``VAULT_SSL_VERIFY`` from the AS3 Ninja configuration file (`as3ninja.settings.json`) is used.
