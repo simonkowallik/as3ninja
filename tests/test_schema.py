@@ -124,6 +124,12 @@ class Test__check_version_format:
         )
 
     @staticmethod
+    def test_valid_3_1_0(fixture_as3schema):
+        version = "3.1.0"
+        with pytest.raises(AS3SchemaVersionError):
+            fixture_as3schema._validate_schema_version_format(version=version)
+
+    @staticmethod
     def test_valid_latest(fixture_as3schema):
         version = "latest"
         assert None is fixture_as3schema._validate_schema_version_format(
@@ -141,9 +147,7 @@ class Test__check_version_format:
     def test_invalid_str(fixture_as3schema):
         version = "invalid_str"
         with pytest.raises(AS3SchemaVersionError):
-            assert None is fixture_as3schema._validate_schema_version_format(
-                version=version
-            )
+            fixture_as3schema._validate_schema_version_format(version=version)
 
 
 @pytest.mark.usefixtures("fixture_as3schema")
@@ -251,7 +255,7 @@ class Test_versions:
 
 class Test_specific_schema_versions:
     @staticmethod
-    def test_instanciate_older_version():
+    def test_instantiate_older_version():
         s = AS3Schema(version="3.8.1")
         assert s.schema == s.schemas["3.8.1"]
 
@@ -291,6 +295,11 @@ class Test_validate_declaration:
     def test_validate_390_against_390(self, fixture_as3schema):
         fixture_as3schema.validate(
             declaration=self.declaration_v390__dict, version="3.9.0"
+        )
+
+    def test_validate_390_version_auto(self, fixture_as3schema):
+        fixture_as3schema.validate(
+            declaration=self.declaration_v390__dict, version="auto"
         )
 
     def test_validate_371_against_latest(self, fixture_as3schema):
@@ -335,7 +344,7 @@ class Test_validate_declaration:
             )
 
     def test_validate_does_not_mutate_AS3Schema(self, fixture_as3schema):
-        """Make sure the .schema attribute is not mutated due to updating the # references, which are supposed to be stored in a seperate dict"""
+        """Make sure the .schema attribute is not mutated due to updating the # references, which are supposed to be stored in a separate dict"""
         fixture_as3schema.validate(declaration=self.declaration_v371__json)
         assert (
             fixture_as3schema.schema["properties"]["declaration"]["properties"][
@@ -350,7 +359,7 @@ class Test_AS3SchemaError:
     declaration_v390__json: str = r'{"class": "AS3","action": "deploy","persist": true,"logLevel": "debug","declaration": {"class": "ADC","schemaVersion": "3.9.0","id": "C3DFeatures","label": "C3D Test","remark": "test","Sample_C3D": {"class": "Tenant","appC3D": {"class": "Application","template": "generic","webtls": {"class": "TLS_Server","certificates": [{"matchToSNI": "www.test.domain.com","certificate": "webcert1"},{"certificate": "webcert2"}],"authenticationMode": "request","authenticationTrustCA": {"bigip": "/Common/dev_chain.crt"},"crlFile": {"bigip": "/Common/dev_crl.crl"},"allowExpiredCRL": true,"c3dOCSPUnknownStatusAction": "ignore","c3dOCSP": {"use": "ocsp"},"c3dEnabled": true},"webcert1": {"class": "Certificate","remark": "test","certificate": "-----BEGIN CERTIFICATE-----\n...\n-----END CERTIFICATE-----","privateKey": "-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----"},"webcert2": {"class": "Certificate","remark": "test","certificate": "-----BEGIN CERTIFICATE-----\n...\n-----END CERTIFICATE-----","privateKey": "-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----"},"ocsp": {"class": "Certificate_Validator_OCSP","dnsResolver": {"bigip": "/Common/10.10.10.10"},"responderUrl": "http://oscp.responder.test.com","timeout": 299},"clienttls": {"class": "TLS_Client","clientCertificate": "defaultCert","crlFile": {"bigip": "/Common/c3d_crl.crl"},"allowExpiredCRL": true,"c3dEnabled": true,"c3dCertificateAuthority": "c3dCA","c3dCertificateLifespan": 360,"c3dCertificateExtensions": ["subject-alternative-name"],"trustCA": {"bigip": "/Common/c3d_chain.crt"}},"c3dCA": {"class": "Certificate","certificate": "-----BEGIN CERTIFICATE-----\n...\n-----END CERTIFICATE-----","privateKey": "-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----"},"defaultCert": {"class": "Certificate","certificate": {"bigip": "/Common/default.crt"},"privateKey": {"bigip": "/Common/default.key"}}}}}}'
     declaration_v390__dict: dict = json.loads(declaration_v390__json)
 
-    def test_incorrect_type(self, fixture_as3schema):
+    def test_SchemaError(self, fixture_as3schema):
         """Test AS3SchemaError is raised when the JSON schema is broken"""
         s = fixture_as3schema
         # set AS3 type to false (which doesn't make sense and isn't valid) to provoke a jsonschema.exceptions.SchemaError
@@ -358,8 +367,21 @@ class Test_AS3SchemaError:
         s._schemas[latest_schema]["definitions"]["AS3"]["properties"]["class"][
             "type"
         ] = False
-        with pytest.raises(AS3SchemaError):
+        with pytest.raises(AS3SchemaError) as excinfo:
             s.validate(declaration=self.declaration_v390__dict)
+        assert "JSON Schema Error" in str(excinfo.value)
+
+    def test_RefResolutionError(self, fixture_as3schema):
+        """Test AS3SchemaError is raised when JSON Schema references cannot be resolved"""
+        s = fixture_as3schema
+        # set an invalid JSON Schema reference to provoke jsonschema.exceptions.RefResolutionError
+        version = "3.10.0"
+        _ = s.schemas[version] # load schema
+        s._schemas[version]["properties"]["declaration"]["additionalProperties"]["$ref"] = "#/definitions/InvalidReference"
+
+        with pytest.raises(AS3SchemaError) as excinfo:
+            s.validate(declaration=self.declaration_v390__dict, version=version)
+        assert "definitions/InvalidReference" in str(excinfo.value)
 
 
 @pytest.mark.usefixtures("fixture_tmpdir")

@@ -133,7 +133,7 @@ class AS3Schema:
         try:
             versions.pop(versions.index("latest"))
         except ValueError:
-            # pass exception if 'latest' doesnt exist
+            # pass exception if 'latest' doesn't exist
             pass
         versions.sort(key=self.__version_sort_helper, reverse=True)
         self._versions = tuple(versions)
@@ -199,9 +199,9 @@ class AS3Schema:
                     raise AS3SchemaVersionError(
                         f"Minimum AS3 Schema version is 3.8.0, requested version:{version}"
                     )
-            except Exception as err:
+            except Exception as exc:
                 raise AS3SchemaVersionError(
-                    f"version:{version} is not a valid version string, exception occured:{err}"
+                    f"version:{version} is not a valid version string, exception occurred:{exc}"
                 )
 
     @staticmethod
@@ -216,7 +216,7 @@ class AS3Schema:
         try:
             return int(value)
         except ValueError:
-            # extracted value isn't covertible to int, for example for 'latest'
+            # extracted value isn't convertible to int, for example for 'latest'
             return 0
 
     @property
@@ -302,7 +302,7 @@ class AS3Schema:
         """Method: Validates a declaration against the AS3 Schema. Raises a AS3ValidationError on failure.
 
             :param declaration: The declaration to be validated against the AS3 Schema.
-            :param version: Allows to validate the declaration agaisnt the specified version
+            :param version: Allows to validate the declaration against the specified version
                     instead of this AS3 Schema instance version. If set to "auto", the version of the declaration is used.
         """
         if isinstance(declaration, str):
@@ -319,8 +319,7 @@ class AS3Schema:
             jsonschema_validate(
                 declaration, schema=self._schema_ref_updated(version=version)
             )
-        except (SchemaError, ValidationError, RefResolutionError) as exc:
-            if isinstance(exc, ValidationError):
-                raise AS3ValidationError("AS3 Validation Error", exc)
-            if isinstance(exc, SchemaError):
-                raise AS3SchemaError("JSON Schema Error", exc)
+        except ValidationError as exc:
+            raise AS3ValidationError("AS3 Validation Error", exc)
+        except (SchemaError, RefResolutionError) as exc:
+            raise AS3SchemaError("JSON Schema Error", exc)
