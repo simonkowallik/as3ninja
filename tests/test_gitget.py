@@ -27,26 +27,52 @@ class Test_Gitget_staticmethods:
         result = Gitget._datetime_format(1234567890)
         assert result == "2009-02-13T23:31:30Z"
 
+
+class Test_Gitget_sh_quote:
     @staticmethod
-    def test_sh_quote__no_quote():
+    def test_no_quote():
         teststring = "abc"
         result = Gitget._sh_quote(teststring)
-        assert result == f"{teststring}"
+        assert result == teststring
 
     @staticmethod
-    def test_sh_quote__integer():
+    def test_integer():
         teststring = 1234
         result = Gitget._sh_quote(teststring)
-        assert result == f"{teststring}"
+        assert result == str(teststring)
 
     @staticmethod
-    def test_sh_quote__simple_quote():
+    def test_HEAD():
+        teststring = "HEAD~"
+        result = Gitget._sh_quote(teststring)
+        assert result == teststring
+
+    @staticmethod
+    def test_HEAD_int():
+        teststring = "HEAD~10"
+        result = Gitget._sh_quote(teststring)
+        assert result == teststring
+
+    @staticmethod
+    def test_HEAD_no_int():
+        teststring = "HEAD~no_int"
+        result = Gitget._sh_quote(teststring)
+        assert result == f"'{teststring}'"
+
+    @staticmethod
+    def test_HEAD_invalid():
+        teststring = "HEAD~ invalid"
+        result = Gitget._sh_quote(teststring)
+        assert result == f"'{teststring}'"
+
+    @staticmethod
+    def test_simple_quote():
         teststring = "a b c"
         result = Gitget._sh_quote(teststring)
         assert result == f"'{teststring}'"
 
     @staticmethod
-    def test_sh_quote__command_injection():
+    def test_command_injection():
         teststring = "'; ls /; echo"
         result = Gitget._sh_quote(teststring)
         assert result == "''\"'\"'; ls /; echo'"
@@ -138,7 +164,24 @@ class Test_Gitget_interface:
                 print(gitrepo.info)
 
         assert exception_info.type is GitgetException
+        assert "CalledProcessError" in str(exception_info.value)
 
+    @staticmethod
+    @pytest.mark.skipif(
+        sys.version_info < (3, 7, 5),
+        reason="Skipping this test when python version < 3.7.5  as it hangs forever, see: https://bugs.python.org/issue37424",
+    )
+    @mock.patch.object(NINJASETTINGS, "GITGET_TIMEOUT", 0.01)
+    def test_TimeoutExpired():
+        """test TimeoutExpired is raised when an operation takes too long."""
+        with pytest.raises(GitgetException) as exception_info:
+            with Gitget(
+                repository="https://github.com/python/cpython"
+            ) as gitrepo:
+                print(gitrepo.info)
+
+        assert exception_info.type is GitgetException
+        assert "TimeoutExpired" in str(exception_info.value)
 
 class Test_Gitget_specific_commit_id:
     @staticmethod
