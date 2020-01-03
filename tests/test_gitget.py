@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 import sys
 from pathlib import Path
-from unittest.mock import patch
 
+import mock
 import pytest
 
 from as3ninja.gitget import NINJASETTINGS, Gitget, GitgetException
@@ -27,29 +27,65 @@ class Test_Gitget_staticmethods:
         result = Gitget._datetime_format(1234567890)
         assert result == "2009-02-13T23:31:30Z"
 
+
+class Test_Gitget_sh_quote:
     @staticmethod
-    def test_sh_quote__no_quote():
+    def test_no_quote():
         teststring = "abc"
         result = Gitget._sh_quote(teststring)
-        assert result == f"{teststring}"
+        assert result == teststring
 
     @staticmethod
-    def test_sh_quote__integer():
+    def test_integer():
         teststring = 1234
         result = Gitget._sh_quote(teststring)
-        assert result == f"{teststring}"
+        assert result == str(teststring)
 
     @staticmethod
-    def test_sh_quote__simple_quote():
+    def test_HEAD():
+        teststring = "HEAD~"
+        result = Gitget._sh_quote(teststring)
+        assert result == teststring
+
+    @staticmethod
+    def test_HEAD_int():
+        teststring = "HEAD~10"
+        result = Gitget._sh_quote(teststring)
+        assert result == teststring
+
+    @staticmethod
+    def test_HEAD_no_int():
+        teststring = "HEAD~no_int"
+        result = Gitget._sh_quote(teststring)
+        assert result == f"'{teststring}'"
+
+    @staticmethod
+    def test_HEAD_invalid():
+        teststring = "HEAD~ invalid"
+        result = Gitget._sh_quote(teststring)
+        assert result == f"'{teststring}'"
+
+    @staticmethod
+    def test_simple_quote():
         teststring = "a b c"
         result = Gitget._sh_quote(teststring)
         assert result == f"'{teststring}'"
 
     @staticmethod
-    def test_sh_quote__command_injection():
+    def test_command_injection():
         teststring = "'; ls /; echo"
         result = Gitget._sh_quote(teststring)
         assert result == "''\"'\"'; ls /; echo'"
+
+
+class Test_Gitget_subprocess_security:
+    @staticmethod
+    def test_shell_false(mocker):
+        """test that subprocess.run is using shell=False"""
+        mocked_run = mocker.patch("as3ninja.gitget.run")
+        Gitget._run_command(mock.MagicMock(), "ls")
+        print(mocked_run.call_args)
+        assert "shell=False" in str(mocked_run.call_args)
 
 
 class Test_Gitget_interface:
@@ -116,7 +152,7 @@ class Test_Gitget_interface:
         sys.version_info < (3, 7, 5),
         reason="Skipping this test when python version < 3.7.5  as it hangs forever, see: https://bugs.python.org/issue37424",
     )
-    @patch.object(NINJASETTINGS, "GITGET_TIMEOUT", 5)
+    @mock.patch.object(NINJASETTINGS, "GITGET_TIMEOUT", 5)
     def test_private_repository():
         """test a private repository requiring authentication.
         This test will prompt for credentials if not authenticated and will run into a timeout.
@@ -128,7 +164,24 @@ class Test_Gitget_interface:
                 print(gitrepo.info)
 
         assert exception_info.type is GitgetException
+        assert "CalledProcessError" in str(exception_info.value)
 
+    @staticmethod
+    @pytest.mark.skipif(
+        sys.version_info < (3, 7, 5),
+        reason="Skipping this test when python version < 3.7.5  as it hangs forever, see: https://bugs.python.org/issue37424",
+    )
+    @mock.patch.object(NINJASETTINGS, "GITGET_TIMEOUT", 0.01)
+    def test_TimeoutExpired():
+        """test TimeoutExpired is raised when an operation takes too long."""
+        with pytest.raises(GitgetException) as exception_info:
+            with Gitget(
+                repository="https://github.com/python/cpython"
+            ) as gitrepo:
+                print(gitrepo.info)
+
+        assert exception_info.type is GitgetException
+        assert "TimeoutExpired" in str(exception_info.value)
 
 class Test_Gitget_specific_commit_id:
     @staticmethod

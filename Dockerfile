@@ -1,9 +1,18 @@
-FROM alpine:3.10 AS base
+FROM alpine:3.11 AS base
 
-FROM base as build
+LABEL org.label-schema.name="AS3 Ninja"
+LABEL org.label-schema.vendor="Simon Kowallik"
+LABEL org.label-schema.description="AS3 Ninja is a templating and validation engine for your AS3 declarations."
+LABEL org.label-schema.url="https://as3ninja.readthedocs.io/"
+LABEL org.label-schema.vcs-url="https://github.com/simonkowallik/as3ninja"
+LABEL org.label-schema.docker.cmd="docker run --rm -d -p 8000:8000 as3ninja"
+LABEL org.label-schema.schema-version="1.0"
 
 ENV LC_ALL=C.UTF-8
 ENV LANG=C.UTF-8
+
+# build stage
+FROM base as build
 
 RUN apk update --no-cache; \
     apk add --no-cache \
@@ -26,7 +35,7 @@ ADD . /as3ninja
 
 WORKDIR /as3ninja
 
-RUN bash -c "export PYTHONPATH=/build/lib/python3.7/site-packages; \
+RUN bash -c "export PYTHONPATH=/build/lib/python3.8/site-packages; \
              export PATH=\"$PATH:/build/bin\"; \
              pip3 install \
                 --no-cache-dir \
@@ -40,18 +49,8 @@ RUN bash -c "rm -rf .[a-z]*; \
              mv /as3ninja /build/as3ninja; \
             "
 
+# final image
 FROM base
-
-LABEL org.label-schema.name="AS3 Ninja"
-LABEL org.label-schema.description="AS3 Ninja is a templating and validation engine for your AS3 declarations."
-LABEL org.label-schema.vendor="Simon Kowallik"
-LABEL org.label-schema.url="https://as3ninja.readthedocs.io/"
-LABEL org.label-schema.vcs-url="https://github.com/simonkowallik/as3ninja"
-LABEL org.label-schema.docker.cmd="docker run --rm -d -p 8000:8000 as3ninja"
-LABEL org.label-schema.schema-version="1.0"
-
-ENV LC_ALL=C.UTF-8
-ENV LANG=C.UTF-8
 
 WORKDIR /
 

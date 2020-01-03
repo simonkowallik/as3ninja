@@ -75,13 +75,19 @@ class NinjaSettings(BaseSettings):
 
     """
 
+    # Timeout for a Gitget operation
     GITGET_TIMEOUT: int = 120
+    # SSL/TLS certificate verification (True -> verify)
     GITGET_SSL_VERIFY: bool = True
+    # Proxy Server
     GITGET_PROXY: str = ""
 
+    # Base path for Schema files
     SCHEMA_BASE_PATH: str = str(detect_SCHEMA_BASE_PATH())
+    # Github repository to fetch schema files
     SCHEMA_GITHUB_REPO: str = "https://github.com/F5Networks/f5-appsvcs-extension"
 
+    # SSL/TLS certificate verification (True -> verify)
     VAULT_SSL_VERIFY: bool = True
 
     class Config:

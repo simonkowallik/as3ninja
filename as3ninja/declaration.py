@@ -43,7 +43,7 @@ class AS3JSONDecodeError(ValueError):
 
         :param doc: (invalid) JSON document
         :param err_lineno: Erroneous line number
-        :param err_colno: exact error position on errorneous line
+        :param err_colno: exact error position on erroneous line
         """
         doc_list: list = []
         lineno = 1
@@ -89,11 +89,15 @@ class AS3TemplateSyntaxError(Exception):
     def __init__(
         self, message: str, declaration_template: str, original_exception=None
     ):
+        if original_exception.filename:
+            with open(original_exception.filename, "r") as templatefile:
+                declaration_template = templatefile.read()
+
         doc_highlighted = self._highlight_error(
             declaration_template, original_exception.lineno
         )
         super(AS3TemplateSyntaxError, self).__init__(
-            f"{message}: {original_exception.message}. Error on line:{original_exception.lineno}.\nJinja2 template:\n{doc_highlighted}"
+            f"{message}: {original_exception.message}\nDeclaration Template file: {original_exception.filename}\nError on line: {original_exception.lineno}\nJinja2 template code:\n{doc_highlighted}"
         )
 
     @staticmethod
@@ -133,7 +137,7 @@ class AS3TemplateSyntaxError(Exception):
 class AS3Declaration:
     """Creates an AS3Declaration instance representing the AS3 declaration.
 
-        The AS3 declaration is created unsing the given template configuration, which can be either a dict or list of dicts.
+        The AS3 declaration is created using the given template configuration, which can be either a dict or list of dicts.
         If a list is provided, the member dicts will be merged using :py:meth:`_dict_deep_update`.
 
         Optionally a jinja2 declaration_template can be provided, otherwise it is read from the configuration.
@@ -221,7 +225,7 @@ class AS3Declaration:
     @_configuration.setter
     def _configuration(self, template_configuration: Union[dict, list]) -> None:
         """
-        Private Property: Merges a list of template_configuration elements in case a list is specfied.
+        Private Property: Merges a list of template_configuration elements in case a list is specified.
 
             :param template_configuration: Union[dict, list]:
 
@@ -285,7 +289,7 @@ class AS3Declaration:
         """
         Private Method: Transforms the declaration_template using the template_configuration to an AS3 declaration.
         """
-        env = Environment(
+        env = Environment(  # nosec (bandit: autoescaping is not helpful for as3ninja's use-case)
             loader=ChoiceLoader(
                 [
                     DictLoader({"template": self.declaration_template}),
@@ -296,6 +300,7 @@ class AS3Declaration:
             lstrip_blocks=False,
             keep_trailing_newline=True,
             undefined=StrictUndefined,
+            autoescape=False,
         )
         env.globals["jinja2_searchpath"] = self._jinja2_searchpath + "/"
         env.globals["ninja"] = self.configuration

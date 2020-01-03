@@ -72,6 +72,7 @@ todo_include_todos = True
 autodoc_default_options = {
     'private-members': True,
     'undoc-members': True,
+    'ignore-module-all': True
 }
 
 # Add any paths that contain custom static files (such as style sheets) here,

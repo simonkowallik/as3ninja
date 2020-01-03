@@ -18,7 +18,7 @@ class GitgetException(SubprocessError):
 
 
 class Gitget:
-    """Gitget context manager clones a git repoistory. Raises GitgetException on failure.
+    """Gitget context manager clones a git repository. Raises GitgetException on failure.
         Exports:
         `info` dict property with information about the cloned repository
         `repodir` str property with the filesystem path to the temporary directory
@@ -30,7 +30,7 @@ class Gitget:
             :param repository: Git Repository URL.
             :param depth: Optional. Depth to clone. Specify `depth=0` for a full clone without a depth limit. (Default value = 1)
             :param branch: Optional. Branch or Tag to clone. If None, default remote branch will be cloned. (Default value = None)
-            :param commit: Optional. Commit ID or HEAD~ format. Commit ID must be within the last 20 commits orspecified `depth`. (Default value = None)
+            :param commit: Optional. Commit ID or HEAD~ format. Commit ID must either be within the last 20 commits or within the specified `depth`. (Default value = None)
             :param repodir: Optional. Target directory for repositroy. This directory will persist on disk, Gitget will not remove it for you. (Default value = None)
             :param force: Optional. Forces removal of an existing repodir before cloning (use with care). (Default value = False)
     """
@@ -52,10 +52,10 @@ class Gitget:
         self._repo = repository
         self._repodir = repodir
         if repodir:
-            self._repodir_perist = True
+            self._repodir_persist = True
         else:
             self._repodir = str(mkdtemp(suffix=".ninja.git"))
-            self._repodir_perist = False
+            self._repodir_persist = False
         self._force = force
         self._gitlog: dict = {"branch": self._branch, "commit": {}, "author": {}}
         self._gitcmd = [
@@ -81,7 +81,7 @@ class Gitget:
         return self
 
     def __exit__(self, exc_type, exc_value, exc_traceback):
-        if not self._repodir_perist:
+        if not self._repodir_persist:
             shutil.rmtree(path=self._repodir)
 
     def rmrepodir(self) -> None:
@@ -106,7 +106,7 @@ class Gitget:
     def _datetime_format(epoch: Union[int, str]) -> str:
         """Private Method: returns a human readable UTC format (%Y-%m-%dT%H:%M:%SZ) of the unix epoch
 
-        :param epoch: Unixt epoch
+        :param epoch: Unix epoch
         """
         return datetime.utcfromtimestamp(int(epoch)).strftime("%Y-%m-%dT%H:%M:%SZ")
 
@@ -183,29 +183,29 @@ class Gitget:
     def _run_command(self, cmd: list) -> str:
         """Private Method: runs a shell command and handles/raises exceptions based on the command return code
 
-            :param cmd: list of command + argmunets
+            :param cmd: list of command + arguments
         """
         result = None
         try:
             # exclude None types from command
             cmd = [command for command in cmd if command]
-            result = run(
+            result = run(  # nosec (bandit: disable subprocess.run check)
                 self._gitcmd + cmd,
+                shell=False,
                 cwd=self._repodir,
                 capture_output=True,
                 timeout=NINJASETTINGS.GITGET_TIMEOUT,
             )
             result.check_returncode()
-        except (TimeoutExpired, CalledProcessError) as exc:
-            if isinstance(exc, CalledProcessError):
-                _exception = "CalledProcessError"
-                _stderr = result.stderr.decode("utf8")
-                _stderr = _stderr.replace("\n", "\\n")
-            elif isinstance(exc, TimeoutExpired):
-                _exception = "TimeoutExpired"
-                _stderr = str(exc.stderr.decode("utf8"))
-
+        except CalledProcessError as exc:
+            _stderr = result.stderr.decode("utf8")
+            _stderr = _stderr.replace("\n", "\\n")
             raise GitgetException(
-                f"Gitget failed due to exception:{_exception}, STDERR: {_stderr}"
+                f"Gitget failed due to exception:CalledProcessError, STDERR: {_stderr}"
             )
+        except TimeoutExpired as exc:
+            raise GitgetException(
+                f"Gitget failed due to exception:TimeoutExpired, STDERR: {str(exc.stderr.decode('utf8'))}"
+            )
+
         return result.stdout.decode("utf8")

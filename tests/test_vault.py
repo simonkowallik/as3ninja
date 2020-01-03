@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 from functools import partial
 from typing import Callable, Optional, Union
-from unittest.mock import call
 
 import hvac
 import pydantic
 import pytest
+from mock import call
 
 from as3ninja.settings import NINJASETTINGS
 from as3ninja.vault import VaultClient, VaultSecret, VaultSecretsEngines, vault
@@ -39,7 +39,7 @@ def fixture_hvacClient(mocker, monkeypatch):
     """
 
     def _func(mocker, monkeypatch, v_ctx):
-        mocker.patch("as3ninja.vault.hvac.Client", autosepc=True)
+        mocker.patch("as3ninja.vault.hvac.Client", autospec=True)
         hvac.Client.return_value = Mock_hvacClient()
         monkeypatch.setattr(VaultClient, "_defaultClient", False)
         return VaultClient.defaultClient(ctx=MockContext(v_ctx))
@@ -53,7 +53,7 @@ class Test_VaultSecretsEngines:
     @staticmethod
     @pytest.mark.parametrize(
         ("test_input", "expected"),
-        [("kv1", "kv1"), ("kv2", "kv2"), ("default", "kv2"), ("kv", "kv1"),],
+        [("kv1", "kv1"), ("kv2", "kv2"), ("default", "kv2"), ("kv", "kv1")],
     )
     def test_valid_engines(test_input, expected):
         assert VaultSecretsEngines[test_input].name == expected
@@ -153,7 +153,7 @@ class Test_VaultSecret:
     @staticmethod
     @pytest.mark.parametrize(
         "test_input",
-        [{"path": "/a/b", "version": -1}, {"path": "/a/b", "version": "abc"},],
+        [{"path": "/a/b", "version": -1}, {"path": "/a/b", "version": "abc"}],
     )
     def test_invalid_versions(test_input):
         with pytest.raises(ValueError):
@@ -193,12 +193,10 @@ class Test_VaultClient_Client:
 
     @staticmethod
     def test_is_authenticated(mocker):
-        mocker.patch("as3ninja.vault.hvac.Client")
+        mocked_Client = mocker.patch("as3ninja.vault.hvac.Client")
         assert VaultClient(addr="http://localhost:18200", token="123")
 
-        assert None is hvac.Client.assert_called_with(
-            url="http://localhost:18200", verify=True,
-        )
+        mocked_Client.assert_called_with(url="http://localhost:18200", verify=True)
 
     @staticmethod
     def test_not_authenticated(monkeypatch):
@@ -208,13 +206,23 @@ class Test_VaultClient_Client:
 
     @staticmethod
     def test_interface(mocker):
-        mocker.patch("as3ninja.vault.hvac.Client")
+        mocked_Client = mocker.patch("as3ninja.vault.hvac.Client")
         vc = VaultClient(addr="http://localhost:18200", token="123", verify=False)
 
-        hvac.Client.assert_called_with(
-            url="http://localhost:18200", verify=False,
-        )
+        mocked_Client.assert_called_with(url="http://localhost:18200", verify=False)
         assert vc._client.token == "123"
+
+    @staticmethod
+    def test_Client_return_value(mocker):
+        """test Client() returns self._client"""
+        mocked_Client = mocker.patch("as3ninja.vault.hvac.Client")
+        vc = VaultClient(addr="http://localhost:18200", token="123", verify=False)
+
+        mocked_vc__client = mocker.patch.object(vc, "_client")
+        mocked_Client.assert_called_with(
+            url="http://localhost:18200", verify=False
+        )
+        assert vc.Client() == mocked_vc__client
 
 
 class Test_VaultClient_DefaultClient:
@@ -229,10 +237,7 @@ class Test_VaultClient_DefaultClient:
     @staticmethod
     def test_no_token(fixture_hvacClient):
         """Test explicit settings via ninja.as3ninja.vault. namespace"""
-        vault_config = {
-            "addr": "http://localhost:18123",
-            "ssl_verify": False,
-        }
+        vault_config = {"addr": "http://localhost:18123", "ssl_verify": False}
         expected_call_signatures = [
             (),
             ({"url": vault_config["addr"], "verify": vault_config["ssl_verify"]},),
@@ -288,7 +293,7 @@ class Test_VaultClient_DefaultClient:
         vault_config = {
             "addr": "http://localhost:18123",
             "token": "123",
-            "__ssl_verify__": "ssl_verify is not set, vaule is read from NINJASETTIGNS",
+            "__ssl_verify__": "ssl_verify is not set, value is read from NINJASETTIGNS",
         }
         expected_call_signatures = [
             (),
@@ -379,7 +384,7 @@ class Test_vault:
 
     @staticmethod
     @pytest.mark.parametrize(
-        ("test_input", "exepected_call"),
+        ("test_input", "expected_call"),
         [
             (
                 {
@@ -428,18 +433,16 @@ class Test_vault:
             ),
         ],
     )
-    def test_expected_defaultClient_calls(mocker, test_input, exepected_call):
+    def test_expected_defaultClient_calls(mocker, test_input, expected_call):
         """check for expected calls to defaultClient"""
         mocker.patch.object(VaultClient, "defaultClient", autospec=True)
-        vault(
-            ctx=MockContext(), secret=test_input,
-        )
+        vault(ctx=MockContext(), secret=test_input)
         # print(VaultClient.defaultClient.mock_calls)
-        VaultClient.defaultClient.assert_has_calls(exepected_call)
+        VaultClient.defaultClient.assert_has_calls(expected_call)
 
     @staticmethod
     @pytest.mark.parametrize(
-        ("test_input", "exepected_call"),
+        ("test_input", "expected_call"),
         [
             (
                 {
@@ -491,14 +494,12 @@ class Test_vault:
             ),
         ],
     )
-    def test_expected_client_calls(mocker, test_input, exepected_call):
+    def test_expected_client_calls(mocker, test_input, expected_call):
         """check for expected calls to defaultClient"""
         mocker.patch.object(VaultClient, "Client")
-        vault(
-            ctx=MockContext(), secret=test_input, client=VaultClient,
-        )
+        vault(ctx=MockContext(), secret=test_input, client=VaultClient)
         # print(VaultClient.Client.mock_calls)
-        VaultClient.Client.assert_has_calls(exepected_call)
+        VaultClient.Client.assert_has_calls(expected_call)
 
     @staticmethod
     @pytest.mark.parametrize(

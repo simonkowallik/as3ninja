@@ -4,22 +4,29 @@ language: python
 sudo: required
 
 matrix:
-    include:
-        - python: 3.7
-          env: TOXENV=py37
-        - python: 3.7.5
-          env: TOXENV=py37
-        - python: 3.8
-          env: TOXENV=py38
+  include:
+    - python: 3.7
+    - python: 3.7.5
+    - python: 3.8
+      env:
+        - REPORT=true
+        - CC_TEST_REPORTER_ID=f0a35d3528924432827ea03c9ff210828bb983b459a4f592d7b4f8329f8250b4
+        #https://docs.codeclimate.com/docs/finding-your-test-coverage-token#section-should-i-keep-my-test-reporter-id-secret
+    - python: nightly
+    - python: 3.8
+      env: DOCKER_TESTING=true
+  allow_failures:
+    - python: nightly
 
 install:
-    - sudo apt-get remove python2.7
-    - sudo pip install pipenv
-    - pipenv install --dev
-    - sudo pip install codecov
+- tests/install.sh
+- tests/reporting.sh install
+
+before_script:
+- tests/reporting.sh prepare
 
 script:
-    - tox
+- tests/run_tests.sh
 
 after_success:
-    - codecov -v
+- tests/reporting.sh report
