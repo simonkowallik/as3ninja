@@ -14,6 +14,7 @@ Welcome to AS3 Ninja's documentation!
    templating
    vault
    modules
+   as3ninja_settings
    contributing
    support
    authors
