@@ -1,6 +1,7 @@
 import json
 from functools import partial
 from os import getenv
+from pathlib import Path
 
 import pytest
 import requests
@@ -9,6 +10,7 @@ from starlette.testclient import TestClient
 from as3ninja.api import app, startup
 
 # ENV: DOCKER_TESTING=true to test docker
+
 
 class RequestsApiTestClient:
     """RequestsApiTestClient wraps requests and prepends a base_url.
@@ -158,7 +160,32 @@ class Test_Schema:
         assert response.json()["error"]
 
 
-class Test_declaration:
+class Test_declaration_transform_git:
+    def test_successful(self, mocker):
+        mocked_Gitget = mocker.patch("as3ninja.api.Gitget")
+        mocked_Gitget.return_value.__enter__.return_value.repodir = str(Path.cwd())
+        mocked_Gitget.return_value.__enter__.return_value.info = {"key": "value"}
+        response = api_client.post(
+            "/api/declaration/transform/git",
+            json={
+                "repository": "https://github.com/simonkowallik/as3ninjaDemo",
+                "template_configuration": "tests/testdata/api/transform_git/config.yaml",
+                "declaration_template": "tests/testdata/api/transform_git/template.jinja2",
+            },
+        )
+        assert response.status_code == 200
+        assert response.json()["config"] == "yes!"
+        assert response.json()["gitrepo.info"] == "value"
+
+    def test_failure(self):
+        response = api_client.post(
+            "/api/declaration/transform/git", json={"repository": "none",},
+        )
+        assert response.status_code == 400
+        assert "repository 'none' does not exist" in response.json()["detail"]
+
+
+class Test_declaration_transform:
     declaration_template = """
         {
             "class": "AS3",
@@ -173,7 +200,7 @@ class Test_declaration:
         }
     """
 
-    def test_transform_successful(self):
+    def test_successful(self):
         template_configuration = {"Tenantname": "TestTenantName"}
         declaration_template = self.declaration_template
         response = api_client.post(
@@ -187,7 +214,7 @@ class Test_declaration:
         assert response.json()["declaration"]["TestTenantName"]
         assert len(response.json()["declaration"]["id"]) == 45
 
-    def test_transform_failure(self):
+    def test_failure(self):
         template_configuration = {}
         declaration_template = self.declaration_template
         response = api_client.post(
@@ -197,13 +224,13 @@ class Test_declaration:
                 "declaration_template": declaration_template,
             },
         )
-        print(response.json())
         assert response.status_code == 400
         assert (
             "AS3 declaration template tried to operate on an Undefined variable"
             in response.json()["detail"]
         )
         assert "has no attribute 'Tenantname'" in response.json()["detail"]
+
 
 class Test_API_Startup_event:
     @staticmethod

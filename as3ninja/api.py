@@ -3,7 +3,7 @@
 from typing import List, Optional, Union
 
 from fastapi import FastAPI, HTTPException, Query
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from starlette.middleware.cors import CORSMiddleware
 from starlette.responses import RedirectResponse
 
@@ -16,7 +16,10 @@ from .declaration import (
 )
 from .gitget import Gitget, GitgetException
 from .schema import AS3Schema, AS3SchemaVersionError, AS3ValidationError
-from .templateconfiguration import AS3TemplateConfiguration, AS3TemplateConfigurationError
+from .templateconfiguration import (
+    AS3TemplateConfiguration,
+    AS3TemplateConfigurationError,
+)
 from .utils import deserialize
 
 CORS_SETTINGS = {
@@ -55,18 +58,27 @@ class Error(BaseModel):
 class AS3DeclareGit(BaseModel):
     """Model for an AS3 Declaration from a Git repository"""
 
-    repository: str
-    branch: Optional[str]
-    commit: Optional[str]
-    depth: int = 1
-    template_configuration: Optional[Union[List[Union[dict, str]], dict, str]]
+    repository: str = Field(..., description="Git repository to clone")
+    branch: Optional[str] = Field(None, description="Branch of git repository")
+    commit: Optional[str] = Field(
+        None, description="Git commit id or HEAD~<int> syntax"
+    )
+    depth: int = Field(1, description="git --depth: Number of commits to clone")
+    template_configuration: Optional[Union[List[Union[dict, str]], dict, str]] = Field(
+        None, description="Template Configuration to use"
+    )
+    declaration_template: Optional[str] = Field(
+        None, description="File to use as the Declaration Template"
+    )
 
 
 class AS3Declare(BaseModel):
     """Model for an inline AS3 Declaration"""
 
-    template_configuration: Union[List[dict], dict]
-    declaration_template: str
+    template_configuration: Union[List[dict], dict] = Field(
+        ..., description="Template Configuration to use"
+    )
+    declaration_template: str = Field(..., description="Declaration Template")
 
 
 app = FastAPI(docs_url=None, redoc_url=None, openapi_url=None)
@@ -163,7 +175,6 @@ async def _schema_validate(
 @api.post("/declaration/transform")
 async def post_declaration_transform(as3d: AS3Declare):
     """Transforms an AS3 declaration template, see ``AS3Declare`` for details on the expected input. Returns the AS3 Declaration."""
-    error = None
     try:
         as3tc = AS3TemplateConfiguration(as3d.template_configuration)
 
@@ -187,7 +198,6 @@ async def post_declaration_transform(as3d: AS3Declare):
 @api.post("/declaration/transform/git")
 async def post_declaration_git_transform(as3d: AS3DeclareGit):
     """Transforms an AS3 declaration template, see ``AS3DeclareGit`` for details on the expected input. Returns the AS3 Declaration."""
-    error = None
     try:
         with Gitget(
             repository=as3d.repository,
@@ -201,8 +211,15 @@ async def post_declaration_git_transform(as3d: AS3DeclareGit):
                 overlay={"as3ninja": {"git": gitrepo.info}},
             )
 
+            if as3d.declaration_template is not None:
+                with open(
+                    f"{gitrepo.repodir}/{as3d.declaration_template}", "r"
+                ) as template:
+                    as3d.declaration_template = template.read()
+
             as3declaration = AS3Declaration(
                 template_configuration=as3tc.dict(),
+                declaration_template=as3d.declaration_template,
                 jinja2_searchpath=gitrepo.repodir,
             )
             return as3declaration.dict()
