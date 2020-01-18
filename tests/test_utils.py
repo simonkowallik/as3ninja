@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
+from copy import deepcopy
+
 import pytest
 
-from as3ninja.utils import deserialize
+from as3ninja.utils import DictLike, deserialize
 
 json_str = """
 {
@@ -138,3 +140,60 @@ class Test_deserialize:
         """
         with pytest.raises(ValueError):
             deserialize(datasource=not_yaml)
+
+
+class Test_DictLike:
+    class DLTest(DictLike):
+        def __init__(self, configuration: dict):
+            self._dict = deepcopy(configuration)
+
+    dltest_data = {"key1": {"dict": True, "numbers": [1, 2, 3]}, "key2": "string"}
+    dltest_instance = DLTest(dltest_data)
+
+    def test_dict_items(self):
+        assert self.dltest_instance.items() == self.dltest_data.items()
+
+    def test_dict_values(self):
+        assert str(self.dltest_instance.values()) == str(self.dltest_data.values())
+
+    def test_dict_keys(self):
+        assert self.dltest_instance.keys() == self.dltest_data.keys()
+
+    def test_dict_get(self):
+        assert self.dltest_instance.get("key1") == self.dltest_data.get("key1")
+
+    def test_dict_get_missing(self):
+        assert self.dltest_instance.get("MissingKey") == self.dltest_data.get(
+            "MissingKey"
+        )
+
+    def test_dunder_str(self):
+        assert str(self.dltest_instance) == str(self.dltest_data)
+
+    def test_dunder_repr(self):
+        DLTest = self.DLTest
+        assert eval(repr(self.dltest_instance)) == DLTest(self.dltest_data)
+
+    def test_dunder_getitem(self):
+        assert self.dltest_instance.__getitem__("key1") == self.dltest_data.__getitem__(
+            "key1"
+        )
+
+    def test_dunder_eq(self):
+        assert dict(self.dltest_instance) == self.dltest_data
+
+    def test_dunder_contains(self):
+        assert "key1" in self.dltest_instance
+        assert "key2" in self.dltest_instance
+        assert not "MissingKey" in self.dltest_instance
+
+    def test_dunder_len(self):
+        assert len(self.dltest_instance) == 2
+
+    def test_dunder_iter(self):
+
+        keylist = list(self.dltest_instance.keys())
+
+        for key in self.dltest_instance:
+            assert key == keylist.pop(keylist.index(key))
+        assert len(keylist) == 0

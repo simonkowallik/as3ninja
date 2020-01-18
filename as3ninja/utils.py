@@ -1,9 +1,7 @@
 # -*- coding: utf-8 -*-
-"""
-utils holds various helper functions used in as3ninja.
-"""
+"""Various utils and helpes used by AS3 Ninja"""
 import json
-from typing import Union
+from typing import Any, ItemsView, Iterator, KeysView, List, Tuple, Union, ValuesView
 
 import yaml
 
@@ -45,3 +43,46 @@ def deserialize(
         )
 
     return _data
+
+
+class DictLike:
+    """Makes objects `feel` like a dict.
+
+    Implements required dunder methods and common methods used to access dict data.
+    """
+
+    _dict: dict = {}
+
+    def __iter__(self) -> Iterator[str]:
+        for key in self._dict:
+            yield key
+
+    def __len__(self) -> int:
+        return len(self._dict)
+
+    def __contains__(self, item: Any) -> bool:
+        return item in self._dict
+
+    def __eq__(self, other: Any) -> bool:
+        return self._dict.items() == other.items()
+
+    def __getitem__(self, key: str) -> Any:
+        return self._dict.__getitem__(key)
+
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}({self._dict})"
+
+    def __str__(self) -> str:
+        return str(self._dict)
+
+    def get(self, key: Any, default: Any = None) -> Any:
+        return self._dict.get(key, default)
+
+    def keys(self) -> KeysView[Any]:
+        return self._dict.keys()
+
+    def values(self) -> ValuesView[Any]:
+        return self._dict.values()
+
+    def items(self) -> ItemsView[Any, Any]:
+        return self._dict.items()

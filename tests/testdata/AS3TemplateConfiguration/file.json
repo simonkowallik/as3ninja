@@ -1,0 +1,6 @@
+{
+    "file.json": true,
+    "content": {
+        "jsonList": ["A", "B", "C"]
+    }
+}

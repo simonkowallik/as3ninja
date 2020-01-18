@@ -16,6 +16,7 @@ from six import iteritems
 
 from .filters import ninjafilters
 from .functions import ninjafunctions
+from .templateconfiguration import AS3TemplateConfiguration
 from .utils import deserialize
 
 __all__ = [
@@ -144,150 +145,52 @@ class AS3Declaration:
         The template file reference is expected to be at `as3ninja.declaration_template` within the configuration.
         An explicitly specified declaration_template takes precedence over any included template.
 
-        :param template_configuration: Template configuration as ``dict`` or ``list``
+        :param template_configuration: AS3 Template Configuration as ``dict`` or ``list``
         :param declaration_template: Optional Declaration Template as ``str`` (Default value = ``None``)
         :param jinja2_searchpath: The jinja2 search path for the FileSystemLoader. Important for jinja2 includes. (Default value = ``"."``)
     """
 
     def __init__(
         self,
-        template_configuration: Union[dict, List[dict]],
+        template_configuration: dict,
         declaration_template: str = None,
         jinja2_searchpath: str = ".",
     ):
-        self.__configuration: dict = {}
-
         self._template_configuration = template_configuration
         self._declaration_template = declaration_template
-        self._configuration = template_configuration
         self._jinja2_searchpath = jinja2_searchpath
 
         if not self._declaration_template:
             try:
-                declaration_template_file = self.configuration["as3ninja"][
+                declaration_template_file = self._template_configuration["as3ninja"][
                     "declaration_template"
                 ]
                 self._declaration_template = deserialize(
                     datasource=f"{self._jinja2_searchpath}/{declaration_template_file}",
                     return_as=str,
                 )
-            except (KeyError, TypeError) as err:
+            except (KeyError, TypeError) as exc:
                 raise KeyError(
-                    f"as3ninja.declaration_template not valid or missing in template_configuration: {err}"
+                    f"as3ninja.declaration_template not valid or missing in template_configuration: {exc}"
                 )
         self._transform()
 
-    @property
-    def declaration(self) -> dict:
-        """Read-Only Property returns the tranformed AS3 declaration as ``dict``"""
+    def dict(self) -> dict:
+        """Returns the AS3 Declaration."""
         return self._declaration
 
-    @property
-    def declaration_asjson(self) -> Union[str, None]:
-        """Read-Only Property returns the tranformed AS3 declaration as ``str`` (contains JSON)"""
-        if not self._declaration_asjson:
-            self._declaration_asjson = json.dumps(self._declaration)
-        return self._declaration_asjson
-
-    @property
-    def _declaration(self) -> dict:
-        """Private Property: Returns the declaration as dict"""
-        return self.__declaration
-
-    @_declaration.setter
-    def _declaration(self, declaration: str) -> None:
-        """Private Property: sets __declaration and _declaration_asjson variables
-
-            :param declaration: AS3 declaration
-        """
-        try:
-            self.__declaration = json.loads(declaration)
-            # this properly formats the json
-            self._declaration_asjson = json.dumps(json.loads(declaration))
-        except json.decoder.JSONDecodeError as exc:
-            raise AS3JSONDecodeError("JSONDecodeError", exc)
-
-    @property
-    def configuration(self) -> dict:
-        """Read-Only Property returns the template configuration as dict.
-        This is the merged configuration in case template_configuration was a list of configurations.
-        """
-        return self.__configuration
-
-    @property
-    def _configuration(self) -> dict:
-        """
-        Private Property: Returns the template configuration as dict.
-        This is the merged configuration in case template_configuration was a list of configurations.
-        """
-        return self.__configuration
-
-    @_configuration.setter
-    def _configuration(self, template_configuration: Union[dict, list]) -> None:
-        """
-        Private Property: Merges a list of template_configuration elements in case a list is specified.
-
-            :param template_configuration: Union[dict, list]:
-
-        """
-        if isinstance(template_configuration, list):
-            for entry in template_configuration:
-                self.__configuration = self._dict_deep_update(
-                    self.__configuration, entry
-                )
-        elif isinstance(template_configuration, dict):
-            self.__configuration = template_configuration
-        else:
-            raise TypeError(
-                f"template_configuration has wrong type:{type(template_configuration)}"
-            )
-
-    def _dict_deep_update(self, dict_to_update: dict, update: dict) -> dict:
-        """
-        Private Method: similar to dict.update() but with full depth.
-
-            :param dict_to_update: dict:
-            :param update: dict:
-
-        Example:
-
-        .. code:: python
-
-            dict.update:
-            { 'a': {'b':1, 'c':2} }.update({'a': {'d':3} })
-            -> { 'a': {'d':3} }
-
-            _dict_deep_update:
-            { 'a': {'b':1, 'c':2} } with _dict_deep_update({'a': {'d':3} })
-            -> { 'a': {'b':1, 'c':2, 'd':3} }
-
-        """
-        for k, v in iteritems(update):
-            dv = dict_to_update.get(k, {})
-            if not isinstance(dv, abc.Mapping):
-                dict_to_update[k] = v
-            elif isinstance(v, abc.Mapping):
-                dict_to_update[k] = self._dict_deep_update(dv, v)
-            else:
-                dict_to_update[k] = v
-        return dict_to_update
+    def json(self) -> str:
+        """Returns the AS3 Declaration as JSON."""
+        return self._declaration_json
 
     @property
     def declaration_template(self) -> Union[str, None]:
-        """Read-Only Property returns the declaration template as dict or None (if non-existend)."""
+        """Property contains the declaration template loaded or provided during instantiation"""
         return self._declaration_template
 
-    @property
-    def template_configuration(self) -> Union[dict, list, None]:
-        """
-        Read-Only Property returns the template configuration(s) as specified during class initialization.
-        It returns either a dict or list of dicts.
-        """
-        return self._template_configuration
-
-    def _transform(self) -> None:
-        """
-        Private Method: Transforms the declaration_template using the template_configuration to an AS3 declaration.
+    def _jinja2_render(self) -> str:
+        """Renders the declaration using jinja2.
+        Raises relevant exceptions which need to be handled by the caller.
         """
         env = Environment(  # nosec (bandit: autoescaping is not helpful for as3ninja's use-case)
             loader=ChoiceLoader(
@@ -303,21 +206,38 @@ class AS3Declaration:
             autoescape=False,
         )
         env.globals["jinja2_searchpath"] = self._jinja2_searchpath + "/"
-        env.globals["ninja"] = self.configuration
+        env.globals["ninja"] = self._template_configuration
         env.globals.update(ninjafunctions)
         env.filters.update(ninjafilters)
 
+        return env.get_template("template").render()
+
+    def _transform(self) -> None:
+        """Transforms the declaration_template using the template_configuration to an AS3 declaration.
+        On error raises:
+
+        - AS3TemplateSyntaxError on jinja2 template syntax errors
+        - AS3UndefinedError for undefined variables in the declaration template
+        - AS3JSONDecodeError in case the rendered declaration is not valid JSON
+        """
         try:
-            self._declaration = env.get_template("template").render()
-        except (TemplateSyntaxError, UndefinedError) as exc:
-            if isinstance(exc, TemplateSyntaxError):
-                raise AS3TemplateSyntaxError(
-                    "AS3 declaration template caused jinja2 syntax error",
-                    self.declaration_template,
-                    exc,
-                )
-            elif isinstance(exc, UndefinedError):
-                raise AS3UndefinedError(
-                    "AS3 declaration template tried to operate on an Undefined variable, attribute or type",
-                    exc,
-                )
+            declaration = self._jinja2_render()
+
+            self._declaration = json.loads(declaration)
+            self._declaration_json = json.dumps(
+                self._declaration
+            )  # properly formats JSON
+
+        except TemplateSyntaxError as exc:
+            raise AS3TemplateSyntaxError(
+                "AS3 declaration template caused jinja2 syntax error",
+                self.declaration_template,
+                exc,
+            )
+        except UndefinedError as exc:
+            raise AS3UndefinedError(
+                "AS3 declaration template tried to operate on an Undefined variable, attribute or type",
+                exc,
+            )
+        except json.decoder.JSONDecodeError as exc:
+            raise AS3JSONDecodeError("JSONDecodeError", exc)
