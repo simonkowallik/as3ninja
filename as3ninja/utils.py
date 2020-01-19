@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 """Various utils and helpes used by AS3 Ninja"""
 import json
+import sys
+from functools import wraps
 from typing import Any, ItemsView, Iterator, KeysView, List, Tuple, Union, ValuesView
 
 import yaml
@@ -86,3 +88,14 @@ class DictLike:
 
     def items(self) -> ItemsView[Any, Any]:
         return self._dict.items()
+
+
+def failOnException(wrapped_function):
+    """sys.exit(1) on any exception"""
+    @wraps(wrapped_function)
+    def failOnException_wrapper(*args, **kwargs):
+        try:
+            return wrapped_function(*args, **kwargs)
+        except Exception:
+            sys.exit(1)
+    return failOnException_wrapper

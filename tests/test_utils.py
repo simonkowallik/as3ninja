@@ -3,7 +3,7 @@ from copy import deepcopy
 
 import pytest
 
-from as3ninja.utils import DictLike, deserialize
+from as3ninja.utils import DictLike, deserialize, failOnException
 
 json_str = """
 {
@@ -197,3 +197,16 @@ class Test_DictLike:
         for key in self.dltest_instance:
             assert key == keylist.pop(keylist.index(key))
         assert len(keylist) == 0
+
+
+class Test_failOnException:
+    @staticmethod
+    def test_fail():
+        @failOnException
+        def throw_exception():
+            raise ValueError("raises ValueError")
+
+        with pytest.raises(SystemExit) as exc_info:
+            throw_exception()
+        assert exc_info.type == SystemExit
+        assert exc_info.value.code == 1
