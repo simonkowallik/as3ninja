@@ -11,6 +11,9 @@ from as3ninja.api import app, startup
 
 # ENV: DOCKER_TESTING=true to test docker
 
+DOCKER_TESTING = False
+if getenv("DOCKER_TESTING") == "true":
+    DOCKER_TESTING = True
 
 class RequestsApiTestClient:
     """RequestsApiTestClient wraps requests and prepends a base_url.
@@ -42,7 +45,7 @@ class ApiClient:
     """generates the api_client based on module name"""
 
     def __init__(self):
-        if getenv("DOCKER_TESTING") == "true":
+        if DOCKER_TESTING:
             # testing actual docker container
             self._api_client = RequestsApiTestClient("http://localhost:8000")
         else:
@@ -162,20 +165,23 @@ class Test_Schema:
 
 class Test_declaration_transform_git:
     def test_successful(self, mocker):
-        mocked_Gitget = mocker.patch("as3ninja.api.Gitget")
-        mocked_Gitget.return_value.__enter__.return_value.repodir = str(Path.cwd())
-        mocked_Gitget.return_value.__enter__.return_value.info = {"key": "value"}
+        if not DOCKER_TESTING:
+            mocked_Gitget = mocker.patch("as3ninja.api.Gitget")
+            mocked_Gitget.return_value.__enter__.return_value.repodir = str(Path.cwd())
+            mocked_Gitget.return_value.__enter__.return_value.info = {"commit":{"id": "1234"}}
+
         response = api_client.post(
             "/api/declaration/transform/git",
             json={
-                "repository": "https://github.com/simonkowallik/as3ninjaDemo",
+                "repository": "https://github.com/simonkowallik/as3ninja",
+                "branch": "edge",
                 "template_configuration": "tests/testdata/api/transform_git/config.yaml",
                 "declaration_template": "tests/testdata/api/transform_git/template.jinja2",
             },
         )
         assert response.status_code == 200
         assert response.json()["config"] == "yes!"
-        assert response.json()["gitrepo.info"] == "value"
+        assert response.json()["gitrepo.info"] != ""
 
     def test_failure(self):
         response = api_client.post(

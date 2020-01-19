@@ -1,21 +1,20 @@
 #!/usr/bin/env bash
 
+set -v -e
+
 COVERAGE=""
 if [[ "$REPORT" == "true" ]]
 then
     COVERAGE="--cov=as3ninja --cov-report=xml"
 fi
 
-set -v
 function docker_pytest() {
     py.test $COVERAGE \
         tests/test_api.py
 }
-set +v
 
 if [[ "$DOCKER_TESTING" == "true" ]]
 then
-    set -v
     # docker build & run
     docker build -t as3ninja:buildtest .
     docker run -d --rm \
