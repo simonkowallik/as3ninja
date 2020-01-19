@@ -3,7 +3,7 @@
 
 __author__ = """Simon Kowallik"""
 __email__ = "github@simonkowallik.com"
-__version__ = "0.3.0"
+__version__ = "edge"
 __projectname__ = "AS3 Ninja"
 __description__ = (
     "AS3 Ninja is a templating and validation engine for your AS3 declarations."
