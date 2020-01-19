@@ -70,7 +70,8 @@ RUN apk update --no-cache; \
     mv /usr/as3ninja /as3ninja; \
     addgroup as3ninja; \
     adduser -h /as3ninja -s /sbin/nologin -G as3ninja -S -D -H as3ninja; \
-    chown -R as3ninja.as3ninja /as3ninja;
+    chown -R as3ninja.as3ninja /as3ninja; \
+    chown -R as3ninja.as3ninja /home;
 
 USER as3ninja
 
