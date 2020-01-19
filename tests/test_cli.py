@@ -31,6 +31,7 @@ class Test_transform:
             ],
         )
         assert result.exit_code == 0
+        print(f"\n\nresult.output:{result.output}\n\n")
         assert format_json(result.output) == format_json(
             load_file("examples/yaml_datatypes/output.json")
         )

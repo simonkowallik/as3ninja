@@ -1,0 +1,9 @@
+included3.yaml: true
+data: included3.yaml
+
+# recursive or circular includes are unsupported
+as3ninja:
+  include:
+    - tests/testdata/AS3TemplateConfiguration/include1.yaml
+    - tests/testdata/AS3TemplateConfiguration/include2.yaml
+    - tests/testdata/AS3TemplateConfiguration/included3.yaml

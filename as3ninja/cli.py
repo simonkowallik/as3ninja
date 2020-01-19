@@ -12,6 +12,7 @@ from . import __version__
 from .declaration import AS3Declaration
 from .gitget import Gitget
 from .schema import AS3Schema
+from .templateconfiguration import AS3TemplateConfiguration, AS3TemplateConfigurationError
 from .utils import deserialize
 
 # TODO: figure out how click can raise an non-zero exit code on AS3ValidationError
@@ -66,40 +67,27 @@ def transform(
     pretty: bool,
 ):
     """Transforms a declaration template using the configuration file to an AS3 delcaration which is validated against the JSON schema."""
-    template_configuration: list = []
-    if configuration_file:
-        for config_file in configuration_file:
-            template_configuration.append(deserialize(datasource=config_file))
-    else:
-        try:
-            template_configuration.append(deserialize(datasource="./ninja.json"))
-        except:
-            # json failed, try yaml, then yml
-            try:
-                template_configuration.append(deserialize(datasource="./ninja.yaml"))
-            except:
-                template_configuration.append(deserialize(datasource="./ninja.yml"))
-
     if declaration_template:
         template = declaration_template.read()
     else:
         template = None
 
-    as3d = AS3Declaration(
-        declaration_template=template, template_configuration=template_configuration
+    as3tc = AS3TemplateConfiguration(template_configuration=configuration_file)
+    as3declaration = AS3Declaration(
+        declaration_template=template, template_configuration=as3tc.dict()
     )
 
     if validate:
         as3s = AS3Schema()
-        as3s.validate(declaration=as3d.declaration)
+        as3s.validate(declaration=as3declaration.dict())
 
     if output_file:
-        output_file.write(as3d.declaration_asjson)
+        output_file.write(as3declaration.json())
     else:
         if pretty:
-            print(json.dumps(as3d.declaration, indent=4, sort_keys=True))
+            print(json.dumps(as3declaration.dict(), indent=4, sort_keys=True))
         else:
-            print(as3d.declaration_asjson)
+            print(as3declaration.json())
 
 
 @cli.command()
@@ -120,12 +108,22 @@ def transform(
 @click.option(
     "--pretty", required=False, default=False, is_flag=True, help="Pretty print JSON"
 )
+@click.option(
+    "-c",
+    "--configuration-file",
+    required=False,
+    nargs=0,
+    type=str,
+    help="JSON/YAML configuration file used to parameterize declaration template",
+)
+@click.argument("configuration-file", nargs=-1)
 @click.option("--repository", required=True, default=False, help="Git repository")
 @click.option("--branch", required=False, default=False, help="Git branch to use")
 @click.option("--commit", required=False, default=False, help="Git commit id (long)")
 @click.option("--depth", required=False, default=False, help="Git clone depth")
 @logger.catch
 def git_transform(
+    configuration_file: Optional[tuple],
     repository: str,
     branch: Union[str, None],
     commit: Union[str, None],
@@ -137,37 +135,27 @@ def git_transform(
     """Transforms a declaration from a git repository using either the default configuration files (ninja.json/yaml/yml) or the configuration file specified through the command line.
     The AS3 delcaration which is validated against the JSON schema.
     """
-    template_configuration: list = []
     with Gitget(
         repository=repository, branch=branch, commit=commit, depth=depth
     ) as gitrepo:
-        try:
-            template_configuration.append(
-                deserialize(datasource=f"{gitrepo.repodir}/ninja.json")
-            )
-        except:
-            # json failed, try yaml, then yml
-            try:
-                template_configuration.append(
-                    deserialize(datasource=f"{gitrepo.repodir}/ninja.yaml")
-                )
-            except:
-                template_configuration.append(
-                    deserialize(datasource=f"{gitrepo.repodir}/ninja.yml")
-                )
-        template_configuration.append({"as3ninja": {"git": gitrepo.info}})
-        as3d = AS3Declaration(
-            template_configuration=template_configuration,
+        as3tc = AS3TemplateConfiguration(
+            template_configuration=configuration_file,
+            base_path=f"{gitrepo.repodir}/",
+            overlay={"as3ninja": {"git": gitrepo.info}},
+        )
+
+        as3declaration = AS3Declaration(
+            template_configuration=as3tc.dict(),
             jinja2_searchpath=gitrepo.repodir,
         )
         if validate:
             as3s = AS3Schema()
-            as3s.validate(declaration=as3d.declaration)
+            as3s.validate(declaration=as3declaration.dict())
 
         if output_file:
-            output_file.write(as3d.declaration_asjson)
+            output_file.write(as3declaration.json())
         else:
             if pretty:
-                print(json.dumps(as3d.declaration, indent=4, sort_keys=True))
+                print(json.dumps(as3declaration.dict(), indent=4, sort_keys=True))
             else:
-                print(as3d.declaration_asjson)
+                print(as3declaration.json())
