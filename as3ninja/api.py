@@ -230,6 +230,7 @@ async def post_declaration_git_transform(as3d: AS3DeclareGit):
         AS3TemplateSyntaxError,
         AS3UndefinedError,
         AS3TemplateConfigurationError,
+        KeyError,  # missing declaration_template (explicit and within as3ninja.)
     ) as exc:
         error = Error(code=400, message=str(exc))
         raise HTTPException(status_code=error.code, detail=error.message)
