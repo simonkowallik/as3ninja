@@ -3,7 +3,7 @@
 import json
 from collections import abc
 from pathlib import Path
-from typing import List, Optional, Union, Generator
+from typing import Generator, List, Optional, Union
 
 from pydantic import BaseModel, ValidationError, validator
 from six import iteritems
@@ -72,11 +72,12 @@ class AS3TemplateConfiguration(DictLike):
 
     def __init__(
         self,
-        template_configuration: Optional[Union[List[Union[dict, str]], dict, str]] = None,
+        template_configuration: Optional[
+            Union[List[Union[dict, str]], dict, str]
+        ] = None,
         base_path: Optional[str] = "",
-        overlay: Optional[dict] = None
+        overlay: Optional[dict] = None,
     ):
-        #print(f"AS3TemplateConfiguration __init__: template_configuration:{template_configuration}")
         self._includes: list = []
         self._configuration: dict = {}
         self._configuration_json: str = ""
@@ -101,12 +102,10 @@ class AS3TemplateConfiguration(DictLike):
         else:
             self._template_configurations = template_configuration
 
-        #print(    f"AS3TemplateConfiguration __init__: self._template_configurations:{self._template_configurations}")
         if overlay:
             self._template_configurations.append(overlay)
 
         self._deserialize_files()
-        #print(    f"AS3TemplateConfiguration __init__: self._template_configurations:{self._template_configurations}")
         self._import_includes()  # import as3ninja.include includes
 
         self._merge_configuration()
@@ -115,7 +114,6 @@ class AS3TemplateConfiguration(DictLike):
         self._tidy_as3ninja_namespace()
 
         self._dict = self._configuration  # enable DictLike
-        #print(    f"AS3TemplateConfiguration __init__: self._configuration:{self._configuration}")
 
     def _deserialize_files(self):
         """De-serialize configuration files in self._template_configurations"""
@@ -183,7 +181,6 @@ class AS3TemplateConfiguration(DictLike):
 
         for current_config in self._template_configurations:
             _expanded_template_configurations.append(current_config)
-            #print(f"_import_includes: current_config:{current_config}, type:{type(current_config)}")
             if defferred:
                 register = False
                 includes = current_config.get("as3ninja", {}).get(

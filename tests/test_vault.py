@@ -221,9 +221,7 @@ class Test_VaultClient_Client:
         vc = VaultClient(addr="http://localhost:18200", token="123", verify=False)
 
         mocked_vc__client = mocker.patch.object(vc, "_client")
-        mocked_Client.assert_called_with(
-            url="http://localhost:18200", verify=False
-        )
+        mocked_Client.assert_called_with(url="http://localhost:18200", verify=False)
         assert vc.Client() == mocked_vc__client
 
 
@@ -542,7 +540,6 @@ class Test_vault:
         vault(ctx=MockContext(), secret=test_input, version=version_override)
         assert mocked_VaultSecret.version == version_override
 
-
     @staticmethod
     @pytest.mark.parametrize(
         ("test_secret", "expected_filter"),
@@ -555,16 +552,16 @@ class Test_vault:
                     "engine": "kv2",
                     "filter": "data.key",
                 },
-                "data.data.key"  # kv2 prepends 'data.' automatically
+                "data.data.key",  # kv2 prepends 'data.' automatically
             ),
             (
                 {
                     "path": "/secret/path",
                     "mount_point": "/mount_point",
                     "engine": "kv1",
-                    "filter": "data.key"
+                    "filter": "data.key",
                 },
-                "data.key"
+                "data.key",
             ),
         ],
     )
@@ -608,7 +605,7 @@ class Test_vault:
                     "path": "/secret/path",
                     "mount_point": "/mount_point",
                     "engine": "kv1",
-                    "filter": "data.key"
+                    "filter": "data.key",
                 },
                 "data.OtherKey",
                 "data.OtherKey",
@@ -628,6 +625,11 @@ class Test_vault:
         """test that a manually specified filter overrides the filter in the secret definition"""
         mocker.patch.object(VaultClient, "Client")
         mocked_dict_filter = mocker.patch("as3ninja.vault.dict_filter")
-        vault(ctx=MockContext(), secret=test_secret, client=VaultClient, filter=filter_overridden)
+        vault(
+            ctx=MockContext(),
+            secret=test_secret,
+            client=VaultClient,
+            filter=filter_overridden,
+        )
 
         assert mocked_dict_filter.call_args.kwargs == {"filter": expected_filter}

@@ -1,6 +1,6 @@
 import json
-
 from pathlib import Path
+
 import pytest
 from pydantic import ValidationError
 
@@ -200,10 +200,22 @@ class Test_AS3TemplateConfiguration_interface:
 
         as3tc = AS3TemplateConfiguration(**data)
 
-        assert (
-            as3tc.dict() == {'inline_json': True, 'as3ninja': {'include': ['tests/testdata/AS3TemplateConfiguration/include2.yaml', 'tests/testdata/AS3TemplateConfiguration/included1.yaml']}, 'file.json': True, 'content': {'jsonList': ['A', 'B', 'C'], 'yamlList': ['a', 'b', 'c']}, 'file.yaml': True, 'include2.yaml': True, 'data': 'included1.yaml', 'include1_relativePath.yaml': True, 'included1.yaml': True}
-        )
-
+        assert as3tc.dict() == {
+            "inline_json": True,
+            "as3ninja": {
+                "include": [
+                    "tests/testdata/AS3TemplateConfiguration/include2.yaml",
+                    "tests/testdata/AS3TemplateConfiguration/included1.yaml",
+                ]
+            },
+            "file.json": True,
+            "content": {"jsonList": ["A", "B", "C"], "yamlList": ["a", "b", "c"]},
+            "file.yaml": True,
+            "include2.yaml": True,
+            "data": "included1.yaml",
+            "include1_relativePath.yaml": True,
+            "included1.yaml": True,
+        }
 
     @staticmethod
     def test_repr_not_supported():
@@ -227,35 +239,34 @@ class Test_AS3TemplateConfiguration_interface:
 
         assert as3tc != eval(repr(as3tc))
 
-
     @staticmethod
     def test_absolute_file_glob():
         """Test that absolute file paths work"""
         data = {
             "template_configuration": [
-                    f"{Path.cwd()}/tests/testdata/AS3TemplateConfiguration/include1.*",
-                ]
+                f"{Path.cwd()}/tests/testdata/AS3TemplateConfiguration/include1.*",
+            ]
         }
 
         as3tc = AS3TemplateConfiguration(**data)
 
         assert "included1.yaml" in as3tc.dict()
 
-
     @staticmethod
     def test_overlay():
         """Test """
         data = [
-                "tests/testdata/AS3TemplateConfiguration/include1.yaml",
-                {"inline": True, "overlay": False}
-            ]
+            "tests/testdata/AS3TemplateConfiguration/include1.yaml",
+            {"inline": True, "overlay": False},
+        ]
 
-        as3tc = AS3TemplateConfiguration(template_configuration=data, overlay={"overlay": True})
+        as3tc = AS3TemplateConfiguration(
+            template_configuration=data, overlay={"overlay": True}
+        )
 
         assert "included1.yaml" in as3tc.dict()
         assert as3tc.dict()["inline"] is True
         assert as3tc.dict()["overlay"] is True
-
 
 
 class Test_AS3TemplateConfiguration_include:

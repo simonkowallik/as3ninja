@@ -15,6 +15,7 @@ DOCKER_TESTING = False
 if getenv("DOCKER_TESTING") == "true":
     DOCKER_TESTING = True
 
+
 class RequestsApiTestClient:
     """RequestsApiTestClient wraps requests and prepends a base_url.
 
@@ -168,7 +169,9 @@ class Test_declaration_transform_git:
         if not DOCKER_TESTING:
             mocked_Gitget = mocker.patch("as3ninja.api.Gitget")
             mocked_Gitget.return_value.__enter__.return_value.repodir = str(Path.cwd())
-            mocked_Gitget.return_value.__enter__.return_value.info = {"commit":{"id": "1234"}}
+            mocked_Gitget.return_value.__enter__.return_value.info = {
+                "commit": {"id": "1234"}
+            }
 
         response = api_client.post(
             "/api/declaration/transform/git",

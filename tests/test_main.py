@@ -1,5 +1,6 @@
-import pytest
 import runpy
+
+import pytest
 
 
 def test_main(mocker):
