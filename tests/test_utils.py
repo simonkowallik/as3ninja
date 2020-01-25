@@ -3,7 +3,7 @@ from copy import deepcopy
 
 import pytest
 
-from as3ninja.utils import DictLike, deserialize, failOnException
+from as3ninja.utils import DictLike, deserialize, failOnException, escape_split, dict_filter, PathAccessError
 
 json_str = """
 {
@@ -210,3 +210,79 @@ class Test_failOnException:
             throw_exception()
         assert exc_info.type == SystemExit
         assert exc_info.value.code == 1
+
+
+class Test_escape_split:
+
+    @staticmethod
+    def test_simple():
+        test_string = "foo.bar.baz"
+        result = escape_split(test_string)
+        assert isinstance(result, tuple)
+        assert result == ('foo', 'bar', 'baz')
+
+    @pytest.mark.parametrize("test_string,expected_result",
+        [
+            (r"foo\.bar.baz", ('foo.bar', 'baz')),
+            (r"foo\\.bar.baz", ('foo\\', 'bar', 'baz')),
+            (r"foo\\\.bar.baz", ('foo\\.bar', 'baz')),
+        ]
+    )
+    def test_escaped(self, test_string, expected_result):
+        result = escape_split(test_string)
+        assert isinstance(result, tuple)
+
+
+class Test_dict_filter:
+
+    test_dict = {
+        "data": {
+            "key": "value",
+            "k.e.y": "v.a.l.u.e",
+            "data": {
+                "key1": "value1",
+                "list": [1, 2, 3, "one", "two", "three"],
+            },
+        }
+    }
+
+    @pytest.mark.parametrize("test_filter,expected_result",
+        [
+            ("data.key", "value"),
+            (r"data.k\.e\.y", "v.a.l.u.e"),
+            ("data.data.key1", "value1"),
+            ("data.data.list", [1, 2, 3, "one", "two", "three"]),
+        ]
+    )
+    def test_str_tuple(self, test_filter, expected_result):
+        assert dict_filter(self.test_dict, filter=test_filter) == expected_result
+        # test with a tuple as filter
+        assert dict_filter(self.test_dict, filter=escape_split(test_filter)) == expected_result
+
+    def test_empty_filter(self):
+        assert dict_filter(self.test_dict, filter="") == self.test_dict
+
+    def test_none_filter(self):
+        assert dict_filter(self.test_dict, filter=None) == self.test_dict
+
+    def test_list_position(self):
+        assert dict_filter({'data': [0, "one"]}, filter="data.1") == "one"
+
+    def test_fail_incorrect_filter(self):
+        with pytest.raises(PathAccessError):
+            dict_filter(self.test_dict, filter="data.DOESNOTEXIST")
+
+    def test_fail_incorrect_type(self):
+        with pytest.raises(PathAccessError):
+            dict_filter({'data': 1}, filter="data.key")
+
+class Test_PathAccessError:
+
+    @staticmethod
+    def test_raise_PathAccessError():
+        with pytest.raises(PathAccessError):
+            exc = PathAccessError(TypeError("type error"), "segment", "filter")
+            assert repr(exc) == 'PathAccessError(type error, segment, filter)'
+            assert isinstance(str(exc), str)
+            assert str(exc) == "could not access segment from path filter, got error: type error"
+            raise exc

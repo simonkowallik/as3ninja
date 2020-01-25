@@ -70,12 +70,14 @@ class Test_VaultSecret:
                 "path": "/secret/path",
                 "mount_point": "/mount_point",
                 "version": 1,
+                "filter": None,
                 "engine": "kv2",
             },
             {
                 "path": "/secret/path",
                 "mount_point": "/mount_point",
                 "version": 2,
+                "filter": None,
                 "engine": "kv1",
             },
         ],
@@ -533,9 +535,99 @@ class Test_vault:
         ],
     )
     def test_explicit_version(mocker, test_input, version_override):
-        """check that the secret version is overridden when explicit version is provided to filter"""
+        """check that the secret version is overridden when explicit version is provided to vault jinja2 filter"""
         mocker.patch.object(VaultClient, "defaultClient")
         mocked_VaultSecret = mocker.MagicMock()
         mocker.patch("as3ninja.vault.VaultSecret", return_value=mocked_VaultSecret)
         vault(ctx=MockContext(), secret=test_input, version=version_override)
         assert mocked_VaultSecret.version == version_override
+
+
+    @staticmethod
+    @pytest.mark.parametrize(
+        ("test_secret", "expected_filter"),
+        [
+            (
+                {
+                    "path": "/secret/path",
+                    "mount_point": "/mount_point",
+                    "version": 1,
+                    "engine": "kv2",
+                    "filter": "data.key",
+                },
+                "data.data.key"  # kv2 prepends 'data.' automatically
+            ),
+            (
+                {
+                    "path": "/secret/path",
+                    "mount_point": "/mount_point",
+                    "engine": "kv1",
+                    "filter": "data.key"
+                },
+                "data.key"
+            ),
+        ],
+    )
+    def test_expected_filters(mocker, test_secret, expected_filter):
+        """check that the filter for kv1 and kv2 are applied correctly.
+        kv2 should have data.data.key as a result as data. is prepended automatically."""
+        mocker.patch.object(VaultClient, "Client")
+        mocked_dict_filter = mocker.patch("as3ninja.vault.dict_filter")
+        vault(ctx=MockContext(), secret=test_secret, client=VaultClient)
+
+        assert mocked_dict_filter.call_args.kwargs == {"filter": expected_filter}
+
+    @staticmethod
+    @pytest.mark.parametrize(
+        ("test_secret", "filter_overridden", "expected_filter"),
+        [
+            (
+                {
+                    "path": "/secret/path",
+                    "mount_point": "/mount_point",
+                    "version": 1,
+                    "engine": "kv2",
+                    "filter": "data.key",
+                },
+                "data.OtherKey",
+                "data.data.OtherKey",  # kv2 prepends 'data.' automatically
+            ),
+            (
+                {
+                    "path": "/secret/path",
+                    "mount_point": "/mount_point",
+                    "version": 1,
+                    "engine": "kv2",
+                    "filter": "data.key",
+                },
+                "",  # test override with empty filter (to return complete secret)
+                "",
+            ),
+            (
+                {
+                    "path": "/secret/path",
+                    "mount_point": "/mount_point",
+                    "engine": "kv1",
+                    "filter": "data.key"
+                },
+                "data.OtherKey",
+                "data.OtherKey",
+            ),
+            (
+                {
+                    "path": "/secret/path",
+                    "mount_point": "/mount_point",
+                    "engine": "kv1",
+                },
+                "data.newFilter",
+                "data.newFilter",
+            ),
+        ],
+    )
+    def test_filter_override(mocker, test_secret, filter_overridden, expected_filter):
+        """test that a manually specified filter overrides the filter in the secret definition"""
+        mocker.patch.object(VaultClient, "Client")
+        mocked_dict_filter = mocker.patch("as3ninja.vault.dict_filter")
+        vault(ctx=MockContext(), secret=test_secret, client=VaultClient, filter=filter_overridden)
+
+        assert mocked_dict_filter.call_args.kwargs == {"filter": expected_filter}

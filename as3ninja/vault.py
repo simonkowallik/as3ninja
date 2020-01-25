@@ -13,6 +13,7 @@ from jinja2.runtime import Context
 from pydantic import BaseModel, ValidationError, validator
 
 from .settings import NINJASETTINGS
+from .utils import dict_filter
 
 
 class VaultSecretsEngines(Enum):
@@ -31,12 +32,14 @@ class VaultSecret(BaseModel):
     :param path: The secret path. If `mount_point` is not specified the first path element is assumed to be the `mount_point`.
     :param mount_point: The secrets engine path. Optional.
     :param engine: The secrets engine. Optional.
+    :param filter: Optional Filter to select specific data from the secret, e.g. "data.privateKey". Filter automatically prepends "data." for kv2 to replicate the same behaviour for kv1 and kv2.
     :param version: The version of the secret. Only relevant for KV2 Secrets Engine. Optional. Default: 0 (latest secret version)
     """
 
     path: str
     mount_point: str
     engine: Union[str, VaultSecretsEngines] = VaultSecretsEngines["default"]
+    filter: Optional[str]
     version: int = 0
 
     def __init__(self, *args, **kwargs):
@@ -180,6 +183,7 @@ def vault(
     ctx: Context,
     secret: dict,
     client: Optional[VaultClient] = None,
+    filter: Optional[str] = None,
     version: Optional[int] = None,
 ) -> dict:
     """Vault filter to retrieve a secret. The secret is returned as a dict.
@@ -187,6 +191,7 @@ def vault(
     :param ctx: Context: Jinja2 Context (automatically provided by jinja2)
     :param secret: secret configuration statement, automatically passed by "piping" to the vault filter
     :param client: Optional Vault client
+    :param filter: Optional Filter to select specific data from the secret, e.g. "data.privateKey". Filter automatically prepends "data." for kv2 to replicate the same behaviour for kv1 and kv2.
     :param version: Optional secret version (overrides version provided by secret configuration statement)
 
     """
@@ -200,11 +205,23 @@ def vault(
     else:
         vault_client = VaultClient.defaultClient(ctx=ctx)
 
+    if filter is None:
+        filter = secret.filter
+
     if secret.engine == VaultSecretsEngines.kv2:
-        return vault_client.secrets.kv.v2.read_secret_version(
-            path=secret.path, mount_point=secret.mount_point, version=secret.version
+        if filter:
+            # prepend "data." for kv2 to replicate behaviour of kv1
+            filter = "data." + filter
+        return dict_filter(
+            vault_client.secrets.kv.v2.read_secret_version(
+                path=secret.path, mount_point=secret.mount_point, version=secret.version
+            ),
+            filter=filter,
         )
     elif secret.engine == VaultSecretsEngines.kv1:
-        return vault_client.secrets.kv.v1.read_secret(
-            path=secret.path, mount_point=secret.mount_point
+        return dict_filter(
+            vault_client.secrets.kv.v1.read_secret(
+                path=secret.path, mount_point=secret.mount_point
+            ),
+            filter=filter,
         )
