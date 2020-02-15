@@ -64,11 +64,11 @@ Ready to contribute? Here's how to set up `as3ninja` for local development.
 
     $ git clone --branch edge git@github.com:your_name_here/as3ninja.git
 
-3. Install your local copy into a virtualenv. Assuming you have pipenv installed, this is how you set up your fork for local development::
+3. Install your local copy into a virtualenv. Assuming you use poetry:
 
     $ cd as3ninja/
-    $ pipenv install --dev --sequential
-    $ pipenv shell
+    $ poetry shell
+    $ poetry install
 
 4. Create a branch for local development::
 
@@ -76,13 +76,12 @@ Ready to contribute? Here's how to set up `as3ninja` for local development.
 
    Now you can make your changes locally.
 
-5. When you're done making changes, check that your changes pass flake8 and the
-   tests, including testing other Python versions with tox::
+5. When you're done making changes, check that your changes comply to code formatting and
+   pass the tests:
 
     $ make lint
     $ make code-format
-    $ python setup.py test or py.test
-    $ tox
+    $ make test
 
 6. Commit your changes and push your branch to GitHub::
 

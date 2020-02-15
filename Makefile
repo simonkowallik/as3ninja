@@ -46,11 +46,12 @@ clean-pyc: ## remove Python file artifacts
 
 clean-test: ## remove test and coverage artifacts
 	rm -f .coverage
+	rm -f coverage.xml
 	rm -fr htmlcov/
 	rm -fr .pytest_cache
+	find . -name '.mypy_cache' -exec rm -fr {} +
 
 lint:
-	flake8 as3ninja tests
 	pylint as3ninja tests
 	mypy as3ninja
 
@@ -75,15 +76,21 @@ coverage:
 	coverage html
 	$(BROWSER) htmlcov/index.html
 
-docs: ## generate Sphinx HTML documentation, including API docs
+## generate Sphinx HTML documentation, including API docs
+docs: dependencies
 	rm -f docs/as3ninja.rst
 	rm -f docs/modules.rst
-	pipenv lock -r > docs/requirements.txt
-	pipenv lock -r --dev | tail -n +2 >> docs/requirements.txt
 	sphinx-apidoc -o docs/ as3ninja
 	$(MAKE) -C docs clean
 	$(MAKE) -C docs html
 	$(BROWSER) docs/_build/html/index.html
+
+dependencies:  # lock dependencies and generate requirements.txt
+	# requirements.txt, used by: readthedocs, snyk, Dockerfile
+	poetry lock
+	poetry export --dev --without-hashes \
+				-f requirements.txt \
+				-o docs/requirements.txt
 
 #release: dist ## package and upload a release
 #	twine upload dist/*
@@ -91,14 +98,5 @@ docs: ## generate Sphinx HTML documentation, including API docs
 #	pyinstaller --name as3ninja as3ninja/cli.py
 
 dist: clean ## builds source and wheel package
-	python setup.py sdist
-	python setup.py bdist_wheel
+	poetry build
 	ls -l dist
-
-install: clean ## install the package to the active Python's site-packages
-	python setup.py install
-
-dependencies:
-	pipenv lock
-	pipenv-setup sync
-	pipenv lock -r --dev > docs/requirements.txt

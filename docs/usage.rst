@@ -84,19 +84,19 @@ Command Line Usage
 
 .. code-block:: shell
 
-    # for system wide installation (not recommended)
-    git clone https://github.com/simonkowallik/as3ninja
-    cd as3ninja
-    python3 setup.py install
+    # for manual system wide installation (not recommended)
+    $ git clone https://github.com/simonkowallik/as3ninja
+    $ cd as3ninja
+    $ poetry build
+    $ pip3 install $(ls build/as3ninja*.whl)
+
 
 .. code-block:: shell
 
-    git clone https://github.com/simonkowallik/as3ninja
-    cd as3ninja
-    pipenv install
-    pipenv shell
+    # via PyPI using pip
+    $ pip=$(type -p pip3 || type -p pip)
+    $ $pip install as3ninja
 
-.. Note:: For now AS3 Ninja is not available on PyPI and system wide installation is not recommended. Using docker or a virtualenv/pipenv is recommended.
 
 API Usage
 ---------
@@ -123,6 +123,8 @@ Navigate to `http://localhost:8000/docs`_ and `http://localhost:8000/redoc`_ to 
 
 Python Package
 --------------
+
+.. todo:: Update usage as a module
 
 To use AS3 Ninja in your python project:
 

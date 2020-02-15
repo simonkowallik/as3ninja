@@ -16,38 +16,48 @@ FROM base as build
 
 RUN apk update --no-cache; \
     apk add --no-cache \
+            alpine-sdk \
             bash \
             git \
+            libffi-dev \
             make \
             openssl \
+            openssl-dev \
             python3 \
-            vim \
-            alpine-sdk \
+            py3-cffi \
             python3-dev \
-            ; \
-    pip3 install --no-cache-dir \
-            pipenv \
+            ;
+
+RUN pip3 install --no-cache-dir \
+            poetry \
             ;
 
 RUN mkdir /build
 
-ADD . /as3ninja
-
 WORKDIR /as3ninja
 
-RUN bash -c "export PYTHONPATH=/build/lib/python3.8/site-packages; \
-             export PATH=\"$PATH:/build/bin\"; \
-             pip3 install \
-                --no-cache-dir \
-                --ignore-installed \
-                --prefix /build \
-                -r <(pipenv --bare lock --requirements); \
-            "
+ADD ./as3ninja /as3ninja/as3ninja
+ADD ./pyproject.toml /as3ninja
+ADD ./poetry.lock /as3ninja
 
-RUN bash -c "rm -rf .[a-z]*; \
-             ls | egrep -v '(as3ninja|LICENSE)' | xargs rm -rf; \
-             mv /as3ninja /build/as3ninja; \
-            "
+RUN echo "* create stubs: docs, tests, README.md for poetry build to succeed."; \
+    mkdir docs tests; touch README.md; \
+    poetry build -f wheel; \
+    poetry export --without-hashes \
+    -f requirements.txt -o requirements.txt; \
+    export PYTHONPATH=/build/lib/python3.8/site-packages; \
+    export PATH="$PATH:/build/bin"; \
+    pip3 install \
+       --no-cache-dir \
+       --prefix /build \
+       --ignore-installed \
+       -r requirements.txt; \
+    pip3 install \
+       --no-cache-dir \
+       --prefix /build \
+       --no-deps \
+       $(ls dist/*.whl); \
+    echo "* The above requirements error about poetry and pyrsistent is save to ignore."
 
 # final image
 FROM base
@@ -64,10 +74,7 @@ RUN apk update --no-cache; \
             python3 \
             vim \
             ; \
-    pip3 install --no-cache-dir \
-            email-validator \
-            ; \
-    mv /usr/as3ninja /as3ninja; \
+    mkdir /as3ninja; \
     addgroup as3ninja; \
     adduser -h /as3ninja -s /sbin/nologin -G as3ninja -S -D -H as3ninja; \
     chown -R as3ninja.as3ninja /as3ninja; \

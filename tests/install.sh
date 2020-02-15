@@ -1,10 +1,19 @@
 #!/usr/bin/env bash
 
-# general
-sudo apt-get remove python2.7
-sudo pip install pipenv codecov
-pipenv install --dev
+# set pip
+pip=$(type -p pip3 || type -p pip)
 
+# remove old python, avoid interferances
+sudo apt-get remove python2.7
+
+# install required tooling
+sudo $pip install codecov poetry
+
+# install dependencies including dev
+sudo poetry export --dev -f requirements.txt -o requirements.txt
+sudo $pip install -r requirements.txt
+
+# add docker when docker testing is requested
 if [[ "$DOCKER_TESTING" == "true" ]]
 then
     curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
