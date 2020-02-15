@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+set -v -e
 
 # set pip
 pip=$(type -p pip3 || type -p pip)
@@ -7,11 +8,11 @@ pip=$(type -p pip3 || type -p pip)
 sudo apt-get remove python2.7
 
 # install required tooling
-sudo $pip install codecov poetry
+$pip install codecov poetry
 
 # install dependencies including dev
-sudo poetry export --dev -f requirements.txt -o requirements.txt
-sudo $pip install -r requirements.txt
+poetry export --dev -f requirements.txt -o requirements.txt
+$pip install -r requirements.txt
 
 # add docker when docker testing is requested
 if [[ "$DOCKER_TESTING" == "true" ]]
