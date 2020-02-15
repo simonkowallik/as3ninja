@@ -192,7 +192,6 @@ To use the short git commit id within the Declaration Template you would referen
     .. _`confluence.atlassian.com : Using the .netrc file`: https://confluence.atlassian.com/bitbucketserver/permanently-authenticating-with-git-repositories-776639846.html#PermanentlyauthenticatingwithGitrepositories-Usingthe.netrcfile
 
 
-
 Merging multiple Template Configuration Files
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -311,6 +310,145 @@ and ``'backends'`` was then again overridden by ``backends_dev.yaml``.
 
 
 .. Important:: Please note that sequences (lists, arrays) are not merged, they are replaced entirely.
+
+
+Including further Template Configurations using `as3ninja.include` namespace
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Further Template Configuration files can be included using ``include`` within the ``as3ninja`` namespace.
+
+Combined with the ability to merge multiple Template Configuration files, this becomes a powerful feature which can raise complexity. So use with care.
+
+
+Important rules for using ``as3ninja.include``:
+
+  1. Files included via ``as3ninja.include`` cannot include further Template Configuration files.
+
+  2. All Template Configuration files supplied to `as3ninja` can use ``as3ninja.include``.
+
+  3. Every file included via ``as3ninja.include`` will only be included once, even if multiple configuration files reference this file.
+
+  4. Files will be included in the order specified.
+
+  5. Files are included just after the current configuration file (containing the include statement).
+
+  6. When filename and/or path globbing is used, all matching files will be included alphabetically.
+
+  7. Finally when all includes have been identified ``as3ninja.include`` will be updated with the full list of all includes in the order loaded.
+
+
+The following example illustrates the behavior.
+Suppose we have the below tree structure and three Template Configuration files.
+
+.. code-block:: shell
+    :linenos:
+    ./configs
+    ├── one.yaml
+    ├── second
+    │   ├── 2a.yaml
+    │   ├── 2b.yaml
+    │   └── 2c.yaml
+    └── third
+        ├── 3rd.yaml
+        ├── a
+        │   ├── 3a.yaml
+        │   └── a2
+        │       └── 3a2.yaml
+        ├── b
+        │   ├── 3b1.yaml
+        │   └── 3b2.yaml
+        └── c
+            └── 3c.yaml
+
+
+.. code-block:: yaml
+    :linenos:
+
+    # first.yaml
+    as3ninja:
+      include: ./configs/one.yaml  # a single file include can use key:value
+
+
+.. code-block:: yaml
+    :linenos:
+
+    # second.yaml
+    as3ninja:
+      include:  # multiple file includes require a list
+        - ./configs/second/2c.yaml  # explicitly include 2c.yaml first
+        - ./configs/second/*.yaml  # include all other files
+        # The above order ensures that 2c.yaml is merged first and the
+        # remaining files are merged afterwards.
+        # 2c.yaml will not be imported twice, hence this allows to
+        # control merge order with wildcard includes.
+
+
+.. code-block:: yaml
+    :linenos:
+
+    # third.yaml
+    as3ninja:
+      include:
+        - ./configs/third/**/*.yaml  # recursively include all .yaml files
+        - ./configs/one.yaml  # try including one.yaml again
+
+
+This will result in the following list of files, which will be merged to one configuration in the order listed:
+
+.. code-block:: shell
+    :linenos:
+
+    first.yaml
+    configs/one.yaml
+    second.yaml
+    configs/second/2c.yaml  # notice 2c.yaml is included first
+    configs/second/2a.yaml
+    configs/second/2b.yaml
+    third.yaml
+    configs/third/3rd.yaml
+    configs/third/a/3a.yaml
+    configs/third/a/a2/3a2.yaml
+    configs/third/b/3b1.yaml
+    configs/third/b/3b2.yaml
+    configs/third/c/3c.yam
+    # notice that configs/one.yaml is not included by third.yaml
+
+
+Assume every YAML file has an ``data: <filename>`` entry and you have a `template.jinja2` with ``{{ ninja | jsonify }}``.
+
+.. code-block:: shell
+    :linenos:
+
+    as3ninja transform --no-validate -t template.jinja2 \
+      -c first.yaml \
+      -c second.yaml \
+      -c third.yaml \
+      | jq .
+
+would produce:
+
+.. code-block:: json
+    :linenos:
+
+    {
+      "as3ninja": {
+        "include": [
+          "configs/one.yaml",
+          "configs/second/2c.yaml",
+          "configs/second/2a.yaml",
+          "configs/second/2b.yaml",
+          "configs/third/3rd.yaml",
+          "configs/third/a/3a.yaml",
+          "configs/third/a/a2/3a2.yaml",
+          "configs/third/b/3b1.yaml",
+          "configs/third/b/3b2.yaml",
+          "configs/third/c/3c.yaml"
+        ]
+      },
+      "data": "configs/third/c/3c.yaml"
+    }
+
+.. Note:: The above example is intended to demonstrate the behavior but could be seen as an example for bad practice due to the include complexity.
 
 
 Default Template Configuration File

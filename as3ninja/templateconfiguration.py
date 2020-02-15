@@ -35,7 +35,7 @@ class AS3TemplateConfiguration(DictLike):
     Files can be included using the as3ninja.include ``Union[str, List[str]]`` namespace in every specified configuration file.
     Files included through this namespace will not be checked for as3ninja.include and therefore cannot include further files.
 
-    The as3ninja.include namespace is updated will entries of all as3ninja.include entries, globbing will be expanded. This helps during troubleshooting.
+    The as3ninja.include namespace is updated with entries of all as3ninja.include entries, globbing will be expanded. This helps during troubleshooting.
 
     If a list of inputs is provided, the input will be merged using :py:meth:`_dict_deep_update`.
 
