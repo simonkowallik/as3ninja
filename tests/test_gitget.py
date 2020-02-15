@@ -175,13 +175,12 @@ class Test_Gitget_interface:
     def test_TimeoutExpired():
         """test TimeoutExpired is raised when an operation takes too long."""
         with pytest.raises(GitgetException) as exception_info:
-            with Gitget(
-                repository="https://github.com/python/cpython"
-            ) as gitrepo:
+            with Gitget(repository="https://github.com/python/cpython") as gitrepo:
                 print(gitrepo.info)
 
         assert exception_info.type is GitgetException
         assert "TimeoutExpired" in str(exception_info.value)
+
 
 class Test_Gitget_specific_commit_id:
     @staticmethod

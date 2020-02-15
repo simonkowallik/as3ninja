@@ -3,7 +3,7 @@
 from typing import List, Optional, Union
 
 from fastapi import FastAPI, HTTPException, Query
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from starlette.middleware.cors import CORSMiddleware
 from starlette.responses import RedirectResponse
 
@@ -16,6 +16,10 @@ from .declaration import (
 )
 from .gitget import Gitget, GitgetException
 from .schema import AS3Schema, AS3SchemaVersionError, AS3ValidationError
+from .templateconfiguration import (
+    AS3TemplateConfiguration,
+    AS3TemplateConfigurationError,
+)
 from .utils import deserialize
 
 CORS_SETTINGS = {
@@ -54,18 +58,27 @@ class Error(BaseModel):
 class AS3DeclareGit(BaseModel):
     """Model for an AS3 Declaration from a Git repository"""
 
-    repository: str
-    branch: Optional[str]
-    commit: Optional[str]
-    depth: int = 1
-    template_configuration: Optional[Union[str, List[str]]]
+    repository: str = Field(..., description="Git repository to clone")
+    branch: Optional[str] = Field(None, description="Branch of git repository")
+    commit: Optional[str] = Field(
+        None, description="Git commit id or HEAD~<int> syntax"
+    )
+    depth: int = Field(1, description="git --depth: Number of commits to clone")
+    template_configuration: Optional[Union[List[Union[dict, str]], dict, str]] = Field(
+        None, description="Template Configuration to use"
+    )
+    declaration_template: Optional[str] = Field(
+        None, description="File to use as the Declaration Template"
+    )
 
 
 class AS3Declare(BaseModel):
     """Model for an inline AS3 Declaration"""
 
-    template_configuration: Union[dict, List[dict]]
-    declaration_template: str
+    template_configuration: Union[List[dict], dict] = Field(
+        ..., description="Template Configuration to use"
+    )
+    declaration_template: str = Field(..., description="Declaration Template")
 
 
 app = FastAPI(docs_url=None, redoc_url=None, openapi_url=None)
@@ -162,19 +175,21 @@ async def _schema_validate(
 @api.post("/declaration/transform")
 async def post_declaration_transform(as3d: AS3Declare):
     """Transforms an AS3 declaration template, see ``AS3Declare`` for details on the expected input. Returns the AS3 Declaration."""
-    error = None
     try:
-        d = AS3Declaration(
-            template_configuration=as3d.template_configuration,
+        as3tc = AS3TemplateConfiguration(as3d.template_configuration)
+
+        as3declaration = AS3Declaration(
+            template_configuration=as3tc.dict(),
             declaration_template=as3d.declaration_template,
         )
-        return d.declaration
+        return as3declaration.dict()
 
     except (
         AS3SchemaVersionError,
         AS3JSONDecodeError,
         AS3TemplateSyntaxError,
         AS3UndefinedError,
+        AS3TemplateConfigurationError,
     ) as exc:
         error = Error(code=400, message=str(exc))
         raise HTTPException(status_code=error.code, detail=error.message)
@@ -183,55 +198,39 @@ async def post_declaration_transform(as3d: AS3Declare):
 @api.post("/declaration/transform/git")
 async def post_declaration_git_transform(as3d: AS3DeclareGit):
     """Transforms an AS3 declaration template, see ``AS3DeclareGit`` for details on the expected input. Returns the AS3 Declaration."""
-    error = None
     try:
-        template_configuration: list = []
         with Gitget(
             repository=as3d.repository,
             branch=as3d.branch,
             commit=as3d.commit,
             depth=as3d.depth,
         ) as gitrepo:
-            if as3d.template_configuration and isinstance(
-                as3d.template_configuration, list
-            ):
-                for config_file in as3d.template_configuration:
-                    template_configuration.append(
-                        deserialize(datasource=f"{gitrepo.repodir}/{config_file}")
-                    )
-            elif as3d.template_configuration:
-                template_configuration.append(
-                    deserialize(
-                        datasource=f"{gitrepo.repodir}/{as3d.template_configuration}"
-                    )
-                )
-            else:
-                try:
-                    template_configuration.append(
-                        deserialize(datasource=f"{gitrepo.repodir}/ninja.json")
-                    )
-                except:
-                    # json failed, try yaml, then yml
-                    try:
-                        template_configuration.append(
-                            deserialize(datasource=f"{gitrepo.repodir}/ninja.yaml")
-                        )
-                    except:
-                        template_configuration.append(
-                            deserialize(datasource=f"{gitrepo.repodir}/ninja.yml")
-                        )
-            template_configuration.append({"as3ninja": {"git": gitrepo.info}})
-            d = AS3Declaration(
-                template_configuration=template_configuration,
+            as3tc = AS3TemplateConfiguration(
+                template_configuration=as3d.template_configuration,
+                base_path=f"{gitrepo.repodir}/",
+                overlay={"as3ninja": {"git": gitrepo.info}},
+            )
+
+            if as3d.declaration_template is not None:
+                with open(
+                    f"{gitrepo.repodir}/{as3d.declaration_template}", "r"
+                ) as template:
+                    as3d.declaration_template = template.read()
+
+            as3declaration = AS3Declaration(
+                template_configuration=as3tc.dict(),
+                declaration_template=as3d.declaration_template,
                 jinja2_searchpath=gitrepo.repodir,
             )
-            return d.declaration
+            return as3declaration.dict()
     except (
         GitgetException,
         AS3SchemaVersionError,
         AS3JSONDecodeError,
         AS3TemplateSyntaxError,
         AS3UndefinedError,
+        AS3TemplateConfigurationError,
+        KeyError,  # missing declaration_template (explicit and within as3ninja.)
     ) as exc:
         error = Error(code=400, message=str(exc))
         raise HTTPException(status_code=error.code, detail=error.message)

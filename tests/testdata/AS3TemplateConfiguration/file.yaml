@@ -1,0 +1,6 @@
+file.yaml: true
+content:
+  yamlList:
+    - a
+    - b
+    - c

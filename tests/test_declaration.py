@@ -10,9 +10,10 @@ from as3ninja.declaration import (
     AS3TemplateSyntaxError,
     AS3UndefinedError,
 )
+from as3ninja.templateconfiguration import AS3TemplateConfiguration
 from tests.utils import fixture_tmpdir, format_json, load_file
 
-mock_template_configuration: dict = {"a": "aaa", "b": "bbb"}
+mock_template_configuration = AS3TemplateConfiguration({"a": "aaa", "b": "bbb"})
 mock_declaration_template: str = """{
     "json": true,
     "a": "{{ninja.a}}",
@@ -24,11 +25,12 @@ mock_declaration: str = """{
     "b": "bbb"
 }"""
 
-mock_template_configuration2: list = [
-    {"a": "aaa", "b": "bbb"},
-    {"a": "AAA", "c": "CCC"},
-]
-mock_template_configuration2_merged: dict = {"a": "AAA", "b": "bbb", "c": "CCC"}
+mock_template_configuration2 = AS3TemplateConfiguration(
+    [{"a": "aaa", "b": "bbb"}, {"a": "AAA", "c": "CCC"},]
+)
+mock_template_configuration2_merged = AS3TemplateConfiguration(
+    {"a": "AAA", "b": "bbb", "c": "CCC"}
+)
 mock_declaration_template2: str = """{
     "json": true,
     "a": "{{ninja.a}}",
@@ -42,27 +44,31 @@ mock_declaration2: str = """{
     "c": "CCC"
 }"""
 
-mock_template_configuration_with_template: list = [
-    {"a": "aaa", "b": "bbb", "as3ninja": {"declaration_template": "/dev/null"}},
-    {
-        "a": "AAA",
-        "c": "CCC",
-        "as3ninja": {
-            "declaration_template": "tests/testdata/declaration/transform/template.j2"
+mock_template_configuration_with_template = AS3TemplateConfiguration(
+    [
+        {"a": "aaa", "b": "bbb", "as3ninja": {"declaration_template": "/dev/null"}},
+        {
+            "a": "AAA",
+            "c": "CCC",
+            "as3ninja": {
+                "declaration_template": "tests/testdata/declaration/transform/template.j2"
+            },
         },
-    },
-]
+    ]
+)
 
-mock_template_configuration_with_template_inline: list = [
-    {"a": "aaa", "b": "bbb"},
-    {
-        "a": "AAA",
-        "c": "CCC",
-        "as3ninja": {
-            "declaration_template": '{"json": True,"a": "{{ninja.a}}","b": "{{ninja.b}}","c": "{{ninja.c}}"}'
+mock_template_configuration_with_template_inline = AS3TemplateConfiguration(
+    [
+        {"a": "aaa", "b": "bbb"},
+        {
+            "a": "AAA",
+            "c": "CCC",
+            "as3ninja": {
+                "declaration_template": '{"json": True,"a": "{{ninja.a}}","b": "{{ninja.b}}","c": "{{ninja.c}}"}'
+            },
         },
-    },
-]
+    ]
+)
 
 
 @pytest.fixture(scope="class")
@@ -87,7 +93,7 @@ def as3d_interface2():
 def as3d_empty():
     return AS3Declaration(
         declaration_template='{"json": true}',
-        template_configuration={"non empty": "dict"},
+        template_configuration=AS3TemplateConfiguration({"non empty": "dict"}),
     )
 
 
@@ -96,20 +102,16 @@ def as3d_empty():
 class Test_Interface:
     @staticmethod
     def test_declaration(as3d_interface1):
-        assert isinstance(as3d_interface1.declaration, dict)
-        assert as3d_interface1.declaration == json.loads(mock_declaration)
+        assert isinstance(as3d_interface1.dict(), dict)
+        assert as3d_interface1.dict() == json.loads(mock_declaration)
 
     @staticmethod
-    def test_declaration_asjson(as3d_interface1, as3d_interface2):
-        assert isinstance(as3d_interface1.declaration_asjson, str)
-        assert format_json(as3d_interface1.declaration_asjson) == format_json(
-            mock_declaration
-        )
+    def test_json(as3d_interface1, as3d_interface2):
+        assert isinstance(as3d_interface1.json(), str)
+        assert format_json(as3d_interface1.json()) == format_json(mock_declaration)
 
-        assert isinstance(as3d_interface2.declaration_asjson, str)
-        assert format_json(as3d_interface2.declaration_asjson) == format_json(
-            mock_declaration2
-        )
+        assert isinstance(as3d_interface2.json(), str)
+        assert format_json(as3d_interface2.json()) == format_json(mock_declaration2)
 
     @staticmethod
     def test_declaration_template(as3d_interface1):
@@ -117,28 +119,12 @@ class Test_Interface:
         assert as3d_interface1.declaration_template == mock_declaration_template
 
     @staticmethod
-    def test_template_configuration(as3d_interface1, as3d_interface2):
-        assert isinstance(as3d_interface1.template_configuration, dict)
-        assert as3d_interface1.template_configuration == mock_template_configuration
-
-        assert isinstance(as3d_interface2.template_configuration, list)
-        assert as3d_interface2.template_configuration == mock_template_configuration2
-
-    @staticmethod
-    def test_configuration(as3d_interface1, as3d_interface2):
-        assert isinstance(as3d_interface1.configuration, dict)
-        assert as3d_interface1.configuration == mock_template_configuration
-
-        assert isinstance(as3d_interface2.configuration, dict)
-        assert as3d_interface2.configuration == mock_template_configuration2_merged
-
-    @staticmethod
     def test_declaration_template_file_in_configuration():
         as3d = AS3Declaration(
             template_configuration=mock_template_configuration_with_template
         )
-        assert isinstance(as3d.declaration, dict)
-        assert format_json(as3d.declaration_asjson) == format_json(mock_declaration2)
+        assert isinstance(as3d.dict(), dict)
+        assert format_json(as3d.json()) == format_json(mock_declaration2)
 
     @staticmethod
     def test_declaration_template_in_configuration_inline():
@@ -164,57 +150,14 @@ class Test_Interface:
             AS3Declaration()
 
 
-@pytest.mark.usefixtures("as3d_empty")
-class Test__dict_deep_update:
-    @staticmethod
-    def test_simple(as3d_empty):
-        dict_to_update = {"a": {"a": 1}}
-        update = {"b": {"b": 1}, "a": {"b": 1}}
-        expected_result = {"a": {"a": 1, "b": 1}, "b": {"b": 1}}
-        as3d = as3d_empty._dict_deep_update(
-            dict_to_update=dict_to_update, update=update
-        )
-        assert as3d == expected_result
-
-    @staticmethod
-    def test_nested(as3d_empty):
-        dict_to_update = {"a": {"a": 1}}
-        update = {"b": {"b": 1}, "a": {"b": 1, "a": {"updated_by_b": 1}}}
-        expected_result = {"a": {"a": {"updated_by_b": 1}, "b": 1}, "b": {"b": 1}}
-        as3d = as3d_empty._dict_deep_update(
-            dict_to_update=dict_to_update, update=update
-        )
-        assert as3d == expected_result
-
-    @staticmethod
-    def test_list(as3d_empty):
-        dict_to_update = {"a": {"a": [1, 2, 3]}, (1, 2, 3): {"tuple": True}}
-        update = {
-            "b": {"b": 1},
-            "a": {"b": 1, "a": {"updated_by_b": 1}},
-            (1, 2, 3): {"tuple": True, "updated_by_b": 1},
-        }
-        expected_result = {
-            "a": {"a": {"updated_by_b": 1}, "b": 1},
-            "b": {"b": 1},
-            (1, 2, 3): {"tuple": True, "updated_by_b": 1},
-        }
-        as3d = as3d_empty._dict_deep_update(
-            dict_to_update=dict_to_update, update=update
-        )
-        assert as3d == expected_result
-
-
 class Test_implicit_transform:
-    # TODO: test with empty configuration
-    # TODO: test with configuration only, where template file location is read from configuration
     @staticmethod
     def test_simple():
         as3d = AS3Declaration(
             declaration_template=mock_declaration_template,
             template_configuration=mock_template_configuration,
         )
-        assert as3d.declaration["a"] == "aaa"
+        assert as3d.dict()["a"] == "aaa"
 
     @staticmethod
     def test_simple_list():
@@ -222,8 +165,8 @@ class Test_implicit_transform:
             declaration_template=mock_declaration_template2,
             template_configuration=mock_template_configuration2,
         )
-        assert as3d.declaration["a"] == "AAA"
-        assert as3d.declaration["c"] == "CCC"
+        assert as3d.dict()["a"] == "AAA"
+        assert as3d.dict()["c"] == "CCC"
 
     @staticmethod
     def test_file_include_searchpath():
@@ -239,7 +182,7 @@ class Test_implicit_transform:
             template_configuration=configuration,
             jinja2_searchpath="tests/testdata/declaration/transform/",
         )
-        assert as3d.declaration == expected_result
+        assert as3d.dict() == expected_result
 
     @staticmethod
     def test_file_include_searchpath_2():
@@ -255,7 +198,7 @@ class Test_implicit_transform:
             template_configuration=configuration,
             jinja2_searchpath="tests/testdata/",
         )
-        assert as3d.declaration == expected_result
+        assert as3d.dict() == expected_result
 
     @staticmethod
     def test_file_include_no_jinja2_searchpath():
@@ -269,7 +212,7 @@ class Test_implicit_transform:
         as3d = AS3Declaration(
             declaration_template=template, template_configuration=configuration
         )
-        assert as3d.declaration == expected_result
+        assert as3d.dict() == expected_result
 
     @staticmethod
     def test_file_include_searchpath_configlist():
@@ -282,14 +225,13 @@ class Test_implicit_transform:
 
         as3d = AS3Declaration(
             declaration_template=template,
-            template_configuration=configuration,
+            template_configuration=AS3TemplateConfiguration(configuration),
             jinja2_searchpath="tests/testdata/declaration/transform/",
         )
-        assert as3d.declaration == expected_result
+        assert as3d.dict() == expected_result
 
 
-class Test_transform_method:
-    # TODO: test the transform method
+class Test_transform_syntaxerror:
     @staticmethod
     def test_multi_template_syntax_error():
         """https://github.com/simonkowallik/as3ninja/issues/4"""
@@ -303,8 +245,9 @@ class Test_transform_method:
                 template_configuration={},
                 jinja2_searchpath="tests/testdata/declaration/syntax_error/",
             )
-        assert "{% This line raises a Syntax Error %}<---- Error line:2" in str(exc.value)
-
+        assert "{% This line raises a Syntax Error %}<---- Error line:2" in str(
+            exc.value
+        )
 
 
 class Test_invalid_declarations:

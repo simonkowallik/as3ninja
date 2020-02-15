@@ -376,8 +376,10 @@ class Test_AS3SchemaError:
         s = fixture_as3schema
         # set an invalid JSON Schema reference to provoke jsonschema.exceptions.RefResolutionError
         version = "3.10.0"
-        _ = s.schemas[version] # load schema
-        s._schemas[version]["properties"]["declaration"]["additionalProperties"]["$ref"] = "#/definitions/InvalidReference"
+        _ = s.schemas[version]  # load schema
+        s._schemas[version]["properties"]["declaration"]["additionalProperties"][
+            "$ref"
+        ] = "#/definitions/InvalidReference"
 
         with pytest.raises(AS3SchemaError) as excinfo:
             s.validate(declaration=self.declaration_v390__dict, version=version)

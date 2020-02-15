@@ -68,6 +68,14 @@ as3ninja.settings module
    :undoc-members:
    :show-inheritance:
 
+as3ninja.templateconfiguration module
+-------------------------------------
+
+.. automodule:: as3ninja.templateconfiguration
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 as3ninja.utils module
 ---------------------
 

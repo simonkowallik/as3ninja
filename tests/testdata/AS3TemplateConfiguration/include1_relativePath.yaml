@@ -1,0 +1,5 @@
+include1_relativePath.yaml: true
+data: include1_relativePath.yaml
+
+as3ninja:
+  include: AS3TemplateConfiguration/included1.yaml

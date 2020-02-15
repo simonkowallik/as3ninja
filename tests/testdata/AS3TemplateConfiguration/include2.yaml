@@ -1,0 +1,7 @@
+include2.yaml: true
+data: include2.yaml
+
+as3ninja:
+  include:
+    - tests/testdata/AS3TemplateConfiguration/included2b.yaml
+    - tests/testdata/AS3TemplateConfiguration/included2*.yaml

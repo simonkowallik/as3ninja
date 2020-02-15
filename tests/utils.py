@@ -5,6 +5,7 @@ import json
 import shutil
 from pathlib import Path
 from tempfile import mkdtemp
+from typing import Union
 
 import pytest
 
@@ -14,9 +15,11 @@ import pytest
 __all__ = ["format_json", "load_file", "fixture_tmpdir"]
 
 
-def format_json(jsonstr: str) -> str:
+def format_json(jsondata: Union[str, dict]) -> str:
     """formats json based on the formatting defaults of json.dumps"""
-    return json.dumps(json.loads(jsonstr), sort_keys=True)
+    if isinstance(jsondata, str):
+        return json.dumps(json.loads(jsondata), sort_keys=True)
+    return json.dumps(jsondata, sort_keys=True)
 
 
 def load_file(filename: str) -> str:

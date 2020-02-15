@@ -13,8 +13,9 @@ The integration in AS3 Ninja is based on `hvac`_.
 Background
 ----------
 The term `secrets` describes secret information, like private cryptographic keys for x509 certificates, passwords and other shared secrets.
-As secrets are often used to guarantee confidentiality and integrity, it is crucial to prevent compromise.
-As configuration management and version control systems, like git(hub), are not well suited nor meant to hold secret information Vault provides a solution to manage secrets for AS3 Ninja.
+As secrets are often used to ensure confidentiality and integrity, it is crucial to prevent compromise.
+Configuration management and version control systems, like git(hub), are not well suited nor meant to hold secret information.
+HashiCorp Vault provides a solution to manage secrets for AS3 Ninja.
 
 Different types of secrets exist, therefore Vault provides a variety of `Secrets Engines` to fullfil the specific needs of these secret types.
 Two `Secrets Engines` are useful particular for AS3 Ninja:
@@ -103,7 +104,7 @@ To retrieve a secret from Vault a couple of parameters are required:
 2. The `path` of the Secret
 3. The Secrets `engine`
 4. The `version` (in case of Secrets Engine kv2)
-
+5. The `filter` selects the exact piece of information required from the response
 
 mount_point
 ***********
@@ -130,6 +131,13 @@ In case KV2 is used, secrets can be versioned.
 When `version` is provided, a specific version of the secret is fetched.
 Default is `version=0`, which is the most recent version.
 `version` is optional.
+
+filter
+******
+
+`filter` is an optional setting and can be used to select a specific element from the Vault response.
+The filter is a string of keys separated by dots (e.g. `key1.key2.key3`).
+If a key contains a dot in the name, it can be escaped (e.g. `k\\\\.e\\\\.y.anotherKey` would be split to `k.e.y` and `anotherKey`).
 
 Examples
 ********
@@ -175,7 +183,7 @@ The secret `v1Service` references to a specific version of the secret (`version:
 Using Vault with AS3 Ninja
 --------------------------
 
-Let's look at using `vault` as a filter and function as well as using `VaultClient`.
+Let's look at using `vault` as a jinja2 filter and function as well as using `VaultClient`.
 
 .. Note:: To keep the examples concise, none of the below produce a valid AS3 declaration. Therefore the `--no-validate` flag is required.
 
@@ -242,10 +250,27 @@ Modifying the Declaration Template like below would just extract this specific v
       "myAPI": {{ (ninja.secrets.myAPI | vault)['data']['secretKey'] | jsonify }}
     }
 
-The resulting JSON now only contains the secret:
+
+Using a `filter` in the secret's definition within the Template Configuration is a better alternative as this separates the configuration further from the implementation (the Declaration Template).
+Here is the updated Template Configuration:
+
+.. code-block:: yaml
+    :linenos:
+    :emphasize-lines: 6
+
+    # Template Configuration
+    secrets:
+      myAPI:
+        path: /secretOne/myAPI/sharedKey
+        engine: kv1
+        filter: data.secretKey
+
+
+The resulting JSON now only contains the information we are looking for:
 
 .. code-block:: json
     :linenos:
+    :emphasize-lines: 2
 
     {
       "myAPI": "AES 128 4d3642df883756b0d5746f32463f6005"
@@ -282,7 +307,7 @@ Resulting JSON:
 
 .. code-block:: json
     :linenos:
-    :emphasize-lines: 9,15
+    :emphasize-lines: 7,8,9,11,15
 
     {
       "latestService": {
@@ -307,19 +332,25 @@ Resulting JSON:
       }
     }
 
-As we already know the result carries likely more information than we need. The difference with the KV2 Secrets Engine is that there is one more level of nesting as it does provide explicit metadata about the secret.
-The secret we are looking for is found at `data -> data -> privateKey`. Within the secret's metadata the version of the retrieved secret is displayed (``"version": 2`` at line 15).
+As we already know the result carries likely more information than we need. In contrast to KV1 the KV2 Secrets Engine uses one more level of nesting as it does provide explicit metadata (line 11) about the secret.
+The information we are looking for is found at `data -> data -> privateKey` (line 7-9). Within the secret's metadata the version of the retrieved secret is displayed (``"version": 2`` at line 15).
 
-As we already learnt we can "filter" for the specific data we want to extract by updating the Declaration Template:
+As we already learnt we can filter the response data by either updating the Declaration Template or using the filter.
+Updated Template Configuration:
 
-.. code-block:: jinja
+
+.. code-block:: yaml
     :linenos:
+    :emphasize-lines: 5
 
-    {
-      "latestService": {{
-            (ninja.secrets.latestService | vault)['data']['data']['privateKey'] | jsonify
-          }}
-    }
+      # Template Configuration
+      latestService:
+        path: /otherService/privateKey
+        mount_point: /SecEnginePath/myKV2
+        filter: data.privateKey
+
+.. Note:: Although KV2 stores the `privateKey` in `data -> data` we can omit the first instance of `data` as this is automatically prepended by the vault jinja2 filter/function. If you would like to access the `version` in the `metadata` the filter would be `metadata.version`.
+
 
 Result:
 
@@ -333,7 +364,7 @@ Result:
 Using `vault` as a jinja2 function
 **********************************
 
-.. Note:: This examples is based on the KV2 example above
+.. Note:: The below example is based on the KV2 example above
 
 We can use `vault` as a jinja2 function as well.
 This allows us to implement more generic queries and re-use the secret information without asking Vault all the time.
@@ -344,7 +375,7 @@ This allows us to implement more generic queries and re-use the secret informati
 
     {
     {% set s = namespace() %}
-    {% set s.latestService = vault(secret=ninja.secrets.latestService) %}
+    {% set s.latestService = vault(secret=ninja.secrets.latestService, filter="") %}
     {% set s.latestService_privKey = s.latestService['data']['data']['privateKey'] %}
     {% set s.latestService_ver = s.latestService['data']['metadata']['version'] %}
         "latestService_privateKey": {{ s.latestService_privKey | jsonify }},
@@ -353,6 +384,7 @@ This allows us to implement more generic queries and re-use the secret informati
 
 The above Declaration Template creates a jinja2 variable namespace for better reusability.
 `vault` is invoked passing ``ninja.secrets.latestService`` to the `secret` parameter manually. When using `vault` as a jinja2 filter, this isn't necessary as the "piped" variable name is passed to the `secret` parameter automatically.
+In addition the `filter` parameter is set to an empty string to override any `filter` set within the Template Configuration. The empty string is not treated as a filter, therefore the whole secret is returned.
 
 ``secrets.latestService`` now contains all the data we saw in the previous example and we create two more variables to store and later use the specific secret information we are interested in.
 
@@ -404,9 +436,7 @@ Re-using the `myAPI` example with the following Declaration Template:
     {% set vc = namespace() %}
     {% set vc.client = VaultClient(addr="https://localhost:8201", verify=False) %}
     "myAPI": {{
-            ( ninja.secrets.myAPI | vault(client=vc.client) )
-            ['data']['secretKey']
-            | jsonify
+            ninja.secrets.myAPI | vault(client=vc.client) | jsonify
         }}
     }
 
@@ -430,6 +460,7 @@ Here is a fully parametrized example.
       myAPI:
         path: /secretOne/myAPI/sharedKey
         engine: kv1
+        filter: data.secretKey
 
 .. code-block:: jinja
     :linenos:
@@ -445,9 +476,7 @@ Here is a fully parametrized example.
                           )
     %}
     "myAPI": {{
-            ( ninja.secrets.myAPI | vault(client=vc.client) )
-            ['data']['secretKey']
-            | jsonify
+            ninja.secrets.myAPI | vault(client=vc.client) | jsonify
         }}
     }
 
@@ -464,18 +493,23 @@ Although it is out of scope AS3 Ninja's vault integration can be used from pytho
 
     my_vault_token = "s.tCU2wabNVCcySNncK2Mf6dwT"
 
-    s_myAPI = {'path':'/secretOne/myAPI/sharedKey', 'engine':'kv1'}
+    s_myAPI = {
+          'path':'/secretOne/myAPI/sharedKey',
+          'engine':'kv1',
+          'filter':'data.secretKey',
+          }
 
     s_latestService = {
           'path':'/otherService/privateKey',
-          'mount_point':'SecEnginePath/myKV2'
+          'mount_point':'SecEnginePath/myKV2',
+          'filter':'data.privateKey',
         }
 
     # using vault with an explicit Vault client
 
     vc = VaultClient(addr="http://localhost:8200/",token=my_vault_token)
 
-    vault(ctx={}, client=vc, secret=s_myAPI)['data']['secretKey']
+    vault(ctx={}, client=vc, secret=s_myAPI)
     'AES 128 4d3642df883756b0d5746f32463f6005'
 
     vault(ctx={} ,client=vc, secret=s_latestService)['data']['data']['privateKey']
@@ -488,11 +522,11 @@ Although it is out of scope AS3 Ninja's vault integration can be used from pytho
 
     jinja2_context = {'ninja':{'as3ninja':{ 'vault': vault_settings }}}
 
-    vault(ctx=jinja2_context, secret=s_myAPI)['data']['secretKey']
+    vault(ctx=jinja2_context, secret=s_myAPI)
     'AES 128 4d3642df883756b0d5746f32463f6005'
 
-    vault(ctx=jinja2_context, secret=s_latestService)['data']['data']['privateKey']
+    vault(ctx=jinja2_context, secret=s_latestService)
     '-----BEGIN RSA PRIVATE KEY-----\nMIHzAgEAAjEAvAI1w37cQcrflizN6Q...'
 
-    vault(ctx=jinja2_context, secret=s_latestService, version=1)['data']['data']['privateKey']
+    vault(ctx=jinja2_context, secret=s_latestService, version=1)
     '-----BEGIN RSA PRIVATE KEY-----\nMIGrAgEAAiEAyKNcibrMfVxuEwtifp...'
