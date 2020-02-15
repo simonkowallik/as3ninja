@@ -9,6 +9,9 @@ then
 fi
 
 function docker_pytest() {
+    # give the container time to start
+    sleep 15
+
     py.test $COVERAGE \
         tests/test_api.py
 }
