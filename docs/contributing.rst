@@ -1,4 +1,3 @@
-.. highlight:: shell
 
 ============
 Contributing
@@ -62,32 +61,51 @@ Ready to contribute? Here's how to set up `as3ninja` for local development.
 1. Fork the `as3ninja` repo on GitHub.
 2. Clone your fork locally::
 
+
+.. code-block:: shell
+
     $ git clone --branch edge git@github.com:your_name_here/as3ninja.git
 
-3. Install your local copy into a virtualenv. Assuming you use poetry:
+
+3. Install your local copy into a virtualenv. Assuming you use poetry::
+
+
+.. code-block:: shell
 
     $ cd as3ninja/
     $ poetry shell
     $ poetry install
 
+
 4. Create a branch for local development::
+
+
+.. code-block:: shell
 
     $ git checkout -b (bugfix|feature|enhancement)/name-of-your-bugfix-or-feature
 
-   Now you can make your changes locally.
 
-5. When you're done making changes, check that your changes comply to code formatting and
-   pass the tests:
+Now you can make your changes locally.
+
+5. When you're done making changes, check that your changes comply to code formatting and pass the tests::
+
+
+.. code-block:: shell
 
     $ make lint
     $ make code-format
     $ make test
 
+
 6. Commit your changes and push your branch to GitHub::
+
+
+.. code-block:: shell
 
     $ git add .
     $ git commit
     $ git push origin (bugfix|feature|enhancement)/name-of-your-bugfix-or-feature
+
 
 7. Submit a pull request through GitHub.
 

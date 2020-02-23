@@ -342,6 +342,7 @@ Suppose we have the below tree structure and three Template Configuration files.
 
 .. code-block:: shell
     :linenos:
+
     ./configs
     ├── one.yaml
     ├── second
