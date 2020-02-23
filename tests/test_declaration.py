@@ -249,6 +249,20 @@ class Test_transform_syntaxerror:
             exc.value
         )
 
+class Test_transform_DOLLARschema:
+    @pytest.mark.parametrize("template", [
+        """{ "$schema": "schemalink", "foo": "bar" }""",  # $schema will be removed
+        """{ "foo": "bar" }""",  # must yield the same result as above
+    ])
+    def test_remove_schema(self, template):
+        expected_result = {"foo": "bar"}
+
+        as3d = AS3Declaration(
+            declaration_template=template,
+            template_configuration={},
+        )
+        assert as3d.dict() == expected_result
+
 
 class Test_invalid_declarations:
     @staticmethod

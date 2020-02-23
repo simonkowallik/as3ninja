@@ -224,6 +224,14 @@ class AS3Declaration:
             declaration = self._jinja2_render()
 
             self._declaration = json.loads(declaration)
+
+            # remove $schema as AS3 currently fails to install declarattion when present
+            # https://github.com/F5Networks/f5-appsvcs-extension/issues/173
+            try:
+                del(self._declaration["$schema"])
+            except KeyError:
+                pass  # ignore if $schema not present
+
             self._declaration_json = json.dumps(
                 self._declaration
             )  # properly formats JSON
