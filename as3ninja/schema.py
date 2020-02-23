@@ -1,12 +1,13 @@
 # -*- coding: utf-8 -*-
 """AS3 Schema Class module. Represents the AS3 JSON Schema as a python class."""
 import json
+import re
 import sys
 from copy import deepcopy
 from pathlib import Path
-from typing import Union
+from typing import Optional, Union
 
-from jsonschema import validate as jsonschema_validate
+from jsonschema import Draft7Validator, FormatChecker
 from jsonschema.exceptions import RefResolutionError, SchemaError, ValidationError
 
 from .gitget import Gitget
@@ -48,6 +49,7 @@ class AS3Schema:
     _versions: tuple = ()
     _schemas: dict = {}
     _schemas_ref_updated: dict = {}
+    _validators: dict = {}
 
     _SCHEMA_REF_URL_TEMPLATE = (
         NINJASETTINGS.SCHEMA_BASE_PATH
@@ -280,28 +282,101 @@ class AS3Schema:
             )
         return "file://" + str(url[0])
 
-    def _schema_ref_updated(self, version: str) -> dict:
-        """Private Method: _schema_ref_updated returns the AS3 Schema for specified version with updated references.
+    def _schema_ref_update(self, version: str) -> dict:
+        """Private Method: _schema_ref_update returns the AS3 Schema for specified version with updated references.
 
             :param version: The AS3 Schema version
         """
-        # Memoize
-        if version not in self._schemas_ref_updated:
-            # do not mutate schema, create full copy instead
-            self._schemas_ref_updated[version] = deepcopy(self.schemas[version])
-            self._ref_update(
-                schema=self._schemas_ref_updated[version],
-                _ref_url=self._build_ref_url(version=version),
-            )
+        # do not mutate schema, create full copy instead
+        _schema = deepcopy(self.schemas[version])
+        self._ref_update(
+            schema=_schema, _ref_url=self._build_ref_url(version=version),
+        )
 
-        return self._schemas_ref_updated[version]
+        return _schema
+
+    @staticmethod
+    def _regex_match(regex: str, value: str) -> bool:
+        """Matches a regular expression against value. Returns `True` when regex matches, `False` otherwise.
+
+            :param regex: The regular expression, for example: ``r'^[ -~]+$'``
+            :param value: Value to apply the regular expression to
+        """
+        r = re.compile(regex)
+        if r.match(value) is None:
+            return False
+        return True
+
+    def _format_checker(self) -> FormatChecker:
+        """Returns an instance of jsonschema.FormatChecker with F5 AS3 custom formats."""
+        F5_FORMATS = {  # based on AS3 3.17.1 : lib/adcParserFormats.js
+            "f5name": lambda v: self._regex_match(
+                r"^([A-Za-z][0-9A-Za-z_]{0,63})?$", v
+            ),
+            "f5bigip": lambda v: self._regex_match(
+                r"^\x2f[^\x00-\x19\x22#\'*<>?\x5b-\x5d\x7b-\x7d\x7f]+$", v
+            ),
+            "f5long-id": lambda v: self._regex_match(
+                r"^[^\x00-\x20\x22\'<>\x5c^`|\x7f]{0,255}$", v
+            ),
+            "f5label": lambda v: self._regex_match(
+                r"^[^\x00-\x1f\x22#&*<>?\x5b-\x5d`\x7f]{0,64}$", v
+            ),
+            "f5remark": lambda v: self._regex_match(
+                r"^[^\x00-\x1f\x22\x5c\x7f]{0,64}$", v
+            ),
+            "f5pointer": lambda v: self._regex_match(
+                r"((@|[0-9]+)|(([0-9]*\x2f)?((@|[0-9]+|[A-Za-z][0-9A-Za-z_]{0,63})\x2f)*([0-9]+|([A-Za-z][0-9A-Za-z_]{0,63}))))?#?$",
+                v,
+            ),
+            "f5base64": lambda v: self._regex_match(
+                r"^([0-9A-Za-z\/+_-]*|[0-9A-Za-z\/+_-]+={1,2})$", v
+            ),
+            "f5ip": lambda v: self._regex_match(
+                r"^[0-9a-fA-F\/%:.]{4,49}$", v
+            ),  # imprecise ip address verification
+            "f5ipv6": lambda v: self._regex_match(
+                r"^[0-9a-fA-F\/%:.]{4,49}$", v
+            ),  # imprecise ip address verification
+            "f5ipv4": lambda v: self._regex_match(
+                r"^[0-9\/%:.]{7,24}$", v
+            ),  # imprecise ip address verification
+            # other formats used within as3 schema: date-time, uri, url
+        }
+
+        format_checker = FormatChecker()
+
+        # update FormatChecker instance's format checkers with the F5_FORMAT lambdas
+        for format_name in F5_FORMATS.keys():
+            format_checker.checkers[format_name] = (F5_FORMATS[format_name], ())
+
+        return format_checker
+
+    def _validator(self, version: str) -> None:
+        """Creates jsonschema.Draft7Validator for specified AS3 schema version.
+        Will check schema is valid and raise a jsonschema SchemaError otherwise.
+        Memoizes the Draft7Validator instance for faster re-use.
+
+            :param version: AS3 schema version
+        """
+
+        # create validator and memoize if it doesn't exist
+        if version not in self._validators:
+            _schema = self._schema_ref_update(version=version)
+            validator = Draft7Validator(
+                schema=_schema, format_checker=self._format_checker(),
+            )
+            validator.check_schema(_schema)  # check schema is valid
+            self._validators[version] = validator  # memoize validator
+
+        return self._validators[version]
 
     def validate(
-        self, declaration: Union[dict, str], version: Union[str, None] = None
+        self, declaration: Union[dict, str], version: Optional[str] = None
     ) -> None:
         """Method: Validates a declaration against the AS3 Schema. Raises a AS3ValidationError on failure.
 
-            :param declaration: The declaration to be validated against the AS3 Schema.
+            :param declaration: Declaration to be validated against the AS3 Schema.
             :param version: Allows to validate the declaration against the specified version
                     instead of this AS3 Schema instance version. If set to "auto", the version of the declaration is used.
         """
@@ -316,9 +391,8 @@ class AS3Schema:
             version = self._check_version(version=version)
 
         try:
-            jsonschema_validate(
-                declaration, schema=self._schema_ref_updated(version=version)
-            )
+            validator = self._validator(version)
+            validator.validate(declaration)
         except ValidationError as exc:
             raise AS3ValidationError("AS3 Validation Error", exc)
         except (SchemaError, RefResolutionError) as exc:
