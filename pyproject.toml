@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "as3ninja"
 
-version = "0.4.0"  # as3ninja/__init__.py -> __version__
+version = "0.5.0-edge"  # as3ninja/__init__.py -> __version__
 license = "ISC"
 description = "AS3 Ninja is a templating and validation engine for your AS3 declarations providing a CLI and Swagger REST API"
 readme = "README.md"
