@@ -14,12 +14,12 @@ function docker_pytest() {
     cnt=0
     while true
     do
-        curl -s http://localhost:8000/api/schema/latest_version | grep latest_version >/dev/null
-        if [[ $? -eq 0 ]]
+        if [[ $(curl -s http://localhost:8000/api/schema/latest_version | grep latest_version) =~ "latest_version" ]]
         then
+            echo "reachable"
+            sleep 5
             break
-        fi
-        if [[ $cnt -eq 120 ]]
+        elif [[ $cnt -eq 120 ]]
         then
             echo
             echo "ERROR: API in docker container unreachable after 120 tries."
