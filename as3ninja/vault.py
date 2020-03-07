@@ -14,9 +14,11 @@ from pathlib import Path
 from typing import Optional, Union
 
 import hvac
+from jinja2 import contextfunction
 from jinja2.runtime import Context
 from pydantic import BaseModel, validator
 
+from .jinja2.j2ninja import J2Ninja
 from .settings import NINJASETTINGS
 from .utils import dict_filter
 
@@ -78,6 +80,7 @@ class VaultSecret(BaseModel):
             if value[0] == "/":
                 return str(Path(value))
             return str(Path(f"/{value}"))
+        return value
 
     @staticmethod
     def _split_mount_point_path(path: str) -> tuple:
@@ -95,6 +98,7 @@ class VaultSecret(BaseModel):
         return (None, path)
 
 
+@J2Ninja.registerfunction
 class VaultClient:
     """Vault Client object, returns a hvac.v1.Client object.
 
@@ -186,6 +190,9 @@ class VaultClient:
         return cls._defaultClient
 
 
+@J2Ninja.registerfilter
+@J2Ninja.registerfunction
+@contextfunction
 def vault(
     ctx: Context,
     secret: dict,

@@ -99,8 +99,10 @@ AS3 Ninja comes with additional filters and functions which are specifically aim
 
 See also:
 
-* :py:mod:`as3ninja.filters`
-* :py:mod:`as3ninja.functions`
+* :py:mod:`as3ninja.jinja2.filterfunctions`
+* :py:mod:`as3ninja.jinja2.filters`
+* :py:mod:`as3ninja.jinja2.functions`
+* :py:mod:`as3ninja.jinja2.tests`
 
 
 Template Configuration

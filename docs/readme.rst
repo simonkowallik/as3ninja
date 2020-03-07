@@ -42,7 +42,7 @@ Features
 
   * reads your JSON or YAML configurations to generate AS3 Declarations
 
-  * carefully crafted Jinja2 :py:mod:`as3ninja.filters` and :py:mod:`as3ninja.functions` further enhance the templating capabilities
+  * carefully crafted Jinja2 :py:mod:`as3ninja.jinja2.filters`, :py:mod:`as3ninja.jinja2.functions` and :py:mod:`as3ninja.jinja2.filterfunctions` further enhance the templating capabilities
 
 * Use Git(hub) to pull template configurations and declaration templates
 

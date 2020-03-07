@@ -64,7 +64,7 @@ mock_template_configuration_with_template_inline = AS3TemplateConfiguration(
             "a": "AAA",
             "c": "CCC",
             "as3ninja": {
-                "declaration_template": '{"json": True,"a": "{{ninja.a}}","b": "{{ninja.b}}","c": "{{ninja.c}}"}'
+                "declaration_template": '{"json": True,"a": "{{ninja.a}}","b": "{{ninja.b}}","c": "{{ninja.c}}"}'  # this will fail as a file is required
             },
         },
     ]
@@ -128,7 +128,7 @@ class Test_Interface:
 
     @staticmethod
     def test_declaration_template_in_configuration_inline():
-        with pytest.raises(ValueError):
+        with pytest.raises(FileNotFoundError):
             AS3Declaration(
                 template_configuration=mock_template_configuration_with_template_inline
             )

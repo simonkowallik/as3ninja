@@ -18,8 +18,7 @@ from jinja2 import (
 )
 from jinja2.exceptions import TemplateSyntaxError, UndefinedError
 
-from .filters import ninjafilters
-from .functions import ninjafunctions
+from .jinja2 import J2Ninja
 from .utils import deserialize
 
 __all__ = [
@@ -168,10 +167,9 @@ class AS3Declaration:
                 declaration_template_file = self._template_configuration["as3ninja"][
                     "declaration_template"
                 ]
-                self._declaration_template = deserialize(
-                    datasource=f"{self._jinja2_searchpath}/{declaration_template_file}",
-                    return_as=str,
-                )
+                with open(f"{self._jinja2_searchpath}/{declaration_template_file}", "r") as declaration_template_file_fh:
+                    self._declaration_template = declaration_template_file_fh.read()
+
             except (KeyError, TypeError) as exc:
                 raise KeyError(
                     f"as3ninja.declaration_template not valid or missing in template_configuration: {exc}"
@@ -210,8 +208,9 @@ class AS3Declaration:
         )
         env.globals["jinja2_searchpath"] = self._jinja2_searchpath + "/"
         env.globals["ninja"] = self._template_configuration
-        env.globals.update(ninjafunctions)
-        env.filters.update(ninjafilters)
+        env.globals.update(J2Ninja.functions)
+        env.filters.update(J2Ninja.filters)
+        env.tests.update(J2Ninja.tests)
 
         return env.get_template("template").render()
 
