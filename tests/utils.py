@@ -36,3 +36,18 @@ def fixture_tmpdir():
     except FileNotFoundError:
         # ignore exception: tests can delete the tmpdir
         pass
+
+
+@pytest.fixture
+def fixture_mktmpfile(tmp_path_factory):
+    """Fixture to create a temporary file with 'data' as content"""
+
+    def _mktmpfile(data):
+        """Fixture to create a temporary file with 'data' as content"""
+        fn = tmp_path_factory.mktemp("mktmpfile")
+        fn_file = str(fn) + "/file"
+        with open(fn_file, "w") as fn_handle:
+            fn_handle.write(data)
+        return fn_file
+
+    return _mktmpfile

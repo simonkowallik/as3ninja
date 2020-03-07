@@ -5,6 +5,7 @@ Various utils and helpes used by AS3 Ninja
 
 # pylint: disable=C0330 # Wrong hanging indentation before block
 # pylint: disable=C0301 # Line too long
+# pylint: disable=C0116 # Missing function or method docstring
 
 import json
 import sys
@@ -14,41 +15,27 @@ from typing import Any, ItemsView, Iterator, KeysView, Optional, Union, ValuesVi
 import yaml
 
 
-def deserialize(
-    datasource: str, return_as: Union[dict, str, None] = None
-) -> Union[dict, str]:
-    """deserialize first tries to read a config from a file otherwise from the passed variable.
-        depending on return_as the content is parsed to a dict from JSON|YAML or returned as str
-
-    :param datasource: str:
-    :param return_as: Union[dict: str: None:]:  (Default value = None)
-
+def deserialize(datasource: str) -> dict:
     """
-    # TODO: probably a good idea to seperate datasource parameter into file/data
-    (error_file_open, error_json_deserialize) = (False, False)
-    try:
-        with open(datasource, "r") as jyfile:
-            data = jyfile.read()
-    except OSError:
-        data = datasource
-        error_file_open = "Error"
+    deserialize de-serializes JSON or YAML from a file to a python dict.
 
-    if return_as is str and not error_file_open:
-        return str(data)
+    A ValueError exception is raised if JSON and YAML de-serialization fails.
+
+    :param datasource: A file or data to deserialize
+    """
+    with open(datasource, "r") as jy_file:
+        data = jy_file.read()
 
     try:
         _data = json.loads(data)
     except (json.JSONDecodeError, TypeError):
-        error_json_deserialize = "Error"
         try:
             _data = yaml.safe_load(data)
         except (yaml.parser.ParserError, yaml.scanner.ScannerError):
             _data = None
 
     if not isinstance(_data, dict):
-        raise ValueError(
-            f"deserialize: Could not convert datasource to dict. Errors: file open:{error_file_open}, JSON deserialize:{error_json_deserialize}, YAML deserialize:Error, datasource:{datasource}"
-        )
+        raise ValueError("deserialize: Could not deserialize datasource.")
 
     return _data
 
@@ -194,7 +181,7 @@ def dict_filter(
 
     return dict_to_filter
 
-
+# pylint: disable=W0105 # String statement has no effect
 """
 PathAccessError and dict_filter are based on boltons iterutils: https://github.com/mahmoud/boltons
 
@@ -228,5 +215,4 @@ DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
 THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
 """
