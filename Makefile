@@ -70,6 +70,9 @@ test:
 
 tests: test
 
+test-docker:
+	DOCKER_TESTING=true tests/run_tests.sh
+
 coverage:
 	REPORT=true tests/run_tests.sh
 	coverage report -m
@@ -77,7 +80,7 @@ coverage:
 	$(BROWSER) htmlcov/index.html
 
 ## generate Sphinx HTML documentation, including API docs
-docs: dependencies
+docs:
 	rm -f docs/as3ninja.rst
 	rm -f docs/modules.rst
 	sphinx-apidoc -o docs/ as3ninja
@@ -85,12 +88,17 @@ docs: dependencies
 	$(MAKE) -C docs html
 	$(BROWSER) docs/_build/html/index.html
 
-dependencies:  # lock dependencies and generate requirements.txt
+dependencies-update:
+	poetry update
+
+dependencies-lock:  # lock dependencies and generate requirements.txt
 	# requirements.txt, used by: readthedocs, snyk, Dockerfile
 	poetry lock
 	poetry export --dev --without-hashes \
 				-f requirements.txt \
 				-o docs/requirements.txt
+
+dependencies: dependencies-update dependencies-lock
 
 #release: dist ## package and upload a release
 #	twine upload dist/*
