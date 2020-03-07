@@ -1,5 +1,11 @@
 # -*- coding: utf-8 -*-
-"""AS3 Ninja global configuration parameters"""
+"""
+AS3 Ninja global configuration parameters.
+"""
+
+# pylint: disable=C0330 # Wrong hanging indentation before block
+# pylint: disable=C0301 # Line too long
+
 import json
 from pathlib import Path
 from typing import Union
@@ -9,17 +15,13 @@ from pydantic import BaseSettings
 __all__ = ["NINJASETTINGS"]
 
 
-global AS3_SCHEMA_DIRECTORY
-global AS3NINJA_CONFIGFILE_NAME
 AS3_SCHEMA_DIRECTORY = "/f5-appsvcs-extension"
 AS3NINJA_CONFIGFILE_NAME = "as3ninja.settings.json"
 
-
-global RUNTIME_CONFIG
 RUNTIME_CONFIG = ["SCHEMA_BASE_PATH"]
 
 
-def detect_SCHEMA_BASE_PATH() -> Path:
+def detect_schema_base_path() -> Path:
     """Detect where AS3 JSON Schema files are stored.
 
     First checks for existence of `Path.cwd()/f5-appsvcs-extension` and uses this path if found.
@@ -38,7 +40,7 @@ def detect_SCHEMA_BASE_PATH() -> Path:
     return _homeSchema
 
 
-def detect_CONFIG_FILE() -> Union[Path, None]:
+def detect_config_file() -> Union[Path, None]:
     """Detect if/where the AS3 Ninja config file `(as3ninja.settings.json)` is located.
 
     First checks for existence of `as3ninja.settings.json` and uses this file if found.
@@ -83,7 +85,7 @@ class NinjaSettings(BaseSettings):
     GITGET_PROXY: str = ""
 
     # Base path for Schema files
-    SCHEMA_BASE_PATH: str = str(detect_SCHEMA_BASE_PATH())
+    SCHEMA_BASE_PATH: str = str(detect_schema_base_path())
     # Github repository to fetch schema files
     SCHEMA_GITHUB_REPO: str = "https://github.com/F5Networks/f5-appsvcs-extension"
 
@@ -91,13 +93,15 @@ class NinjaSettings(BaseSettings):
     VAULT_SSL_VERIFY: bool = True
 
     class Config:
+        """Configuration for NinjaSettings BaseSettings class"""
+
         env_prefix = "AS3N_"
         case_sensitive = True
 
 
-config_file = detect_CONFIG_FILE()
+CONFIG_FILE = detect_config_file()
 
-if config_file is None:
+if CONFIG_FILE is None:
     NINJASETTINGS = NinjaSettings()
 
     with open(
@@ -108,4 +112,4 @@ if config_file is None:
             cf_json.pop(key)
         cf.write(json.dumps(cf_json, indent=4, sort_keys=True))
 else:
-    NINJASETTINGS = NinjaSettings().parse_file(path=config_file)
+    NINJASETTINGS = NinjaSettings().parse_file(path=CONFIG_FILE)

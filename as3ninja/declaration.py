@@ -1,8 +1,13 @@
 # -*- coding: utf-8 -*-
-"""The AS3Declaration module. Represents an AS3 Declaration as a python class."""
+"""
+The AS3Declaration module. Represents an AS3 Declaration as a python class.
+"""
+
+# pylint: disable=C0330 # Wrong hanging indentation before block
+# pylint: disable=C0301 # Line too long
+
 import json
-from collections import abc
-from typing import List, Union
+from typing import Dict, Union
 
 from jinja2 import (
     ChoiceLoader,
@@ -12,11 +17,9 @@ from jinja2 import (
     StrictUndefined,
 )
 from jinja2.exceptions import TemplateSyntaxError, UndefinedError
-from six import iteritems
 
 from .filters import ninjafilters
 from .functions import ninjafunctions
-from .templateconfiguration import AS3TemplateConfiguration
 from .utils import deserialize
 
 __all__ = [
@@ -152,7 +155,7 @@ class AS3Declaration:
 
     def __init__(
         self,
-        template_configuration: dict,
+        template_configuration: Dict,
         declaration_template: str = None,
         jinja2_searchpath: str = ".",
     ):
@@ -228,9 +231,9 @@ class AS3Declaration:
             # remove $schema as AS3 currently fails to install declarattion when present
             # https://github.com/F5Networks/f5-appsvcs-extension/issues/173
             try:
-                del(self._declaration["$schema"])
+                del self._declaration["$schema"]
             except KeyError:
-                pass  # ignore if $schema not present
+                pass  # ignore KeyError for missing $schema
 
             self._declaration_json = json.dumps(
                 self._declaration

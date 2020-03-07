@@ -2,18 +2,25 @@
 """
 HashiCorp Vault integration
 """
+
+# pylint: disable=C0330 # Wrong hanging indentation before block
+# pylint: disable=C0301 # Line too long
+# pylint: disable=E0213 # Method should have "self" as first argument
+# pylint: disable=R0201 # Method could be a function
+
 from enum import Enum
 from os import getenv
 from pathlib import Path
-from typing import Callable, Optional, Union
+from typing import Optional, Union
 
 import hvac
-from jinja2 import Environment, contextfilter, environmentfilter
 from jinja2.runtime import Context
-from pydantic import BaseModel, ValidationError, validator
+from pydantic import BaseModel, validator
 
 from .settings import NINJASETTINGS
 from .utils import dict_filter
+
+__all__ = ["VaultSecretsEngines", "VaultSecret", "VaultClient", "vault"]
 
 
 class VaultSecretsEngines(Enum):
@@ -115,7 +122,7 @@ class VaultClient:
         return self._client
 
     @classmethod
-    def defaultClient(self, ctx: Context) -> hvac.v1.Client:
+    def defaultClient(cls, ctx: Context) -> hvac.v1.Client:
         """Returns a hvac.v1.Client based on system/environment settings.
 
         This is method is not intended to be used directly.
@@ -134,7 +141,7 @@ class VaultClient:
 
         :param ctx: Context: Jinja2 Context
         """
-        if not self._defaultClient:
+        if not cls._defaultClient:
             client = hvac.Client()
             # client might be authenticated already, e.g. when run through CLI
             if not client.is_authenticated():
@@ -174,9 +181,9 @@ class VaultClient:
                         message="Could not successfully authenticate."
                     )
 
-            self._defaultClient = client
+            cls._defaultClient = client
 
-        return self._defaultClient
+        return cls._defaultClient
 
 
 def vault(

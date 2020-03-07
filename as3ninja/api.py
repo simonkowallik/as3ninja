@@ -1,5 +1,11 @@
 # -*- coding: utf-8 -*-
-"""API"""
+"""
+AS3Ninja's REST API
+"""
+
+# pylint: disable=C0330 # Wrong hanging indentation before block
+# pylint: disable=C0301 # Line too long
+
 from typing import List, Optional, Union
 
 from fastapi import FastAPI, HTTPException, Query
@@ -20,7 +26,6 @@ from .templateconfiguration import (
     AS3TemplateConfiguration,
     AS3TemplateConfigurationError,
 )
-from .utils import deserialize
 
 CORS_SETTINGS = {
     "allow_origins": [

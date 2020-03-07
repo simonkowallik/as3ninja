@@ -1,5 +1,11 @@
 # -*- coding: utf-8 -*-
-"""Gitget provides a minimal interface to 'git' to clone a repository with a specific branch, tag or commit id."""
+"""
+Gitget provides a minimal interface to 'git' to clone a repository with a specific branch, tag or commit id.
+"""
+
+# pylint: disable=C0330 # Wrong hanging indentation before block
+# pylint: disable=C0301 # Line too long
+
 import shlex
 import shutil
 from datetime import datetime
@@ -35,6 +41,8 @@ class Gitget:
             :param force: Optional. Forces removal of an existing repodir before cloning (use with care). (Default value = False)
     """
 
+    # pylint: disable=too-many-instance-attributes
+    # pylint: disable=too-many-arguments
     def __init__(
         self,
         repository: str,
@@ -193,6 +201,7 @@ class Gitget:
                 self._gitcmd + cmd,
                 shell=False,
                 cwd=self._repodir,
+                check=False,
                 capture_output=True,
                 timeout=NINJASETTINGS.GITGET_TIMEOUT,
             )
@@ -205,7 +214,7 @@ class Gitget:
             )
         except TimeoutExpired as exc:
             raise GitgetException(
-                f"Gitget failed due to exception:TimeoutExpired, STDERR: {str(exc.stderr.decode('utf8'))}"
+                f"Gitget failed due to exception:TimeoutExpired, exception details: {str(exc)}"
             )
 
         return result.stdout.decode("utf8")

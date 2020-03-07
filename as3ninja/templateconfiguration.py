@@ -1,11 +1,17 @@
 # -*- coding: utf-8 -*-
-"""The AS3TemplateConfiguration module. Allows to build an AS3 Template Configuration from YAML, JSON or dict."""
+"""
+The AS3TemplateConfiguration module allows to compose AS3 Template Configurations from YAML, JSON or dict(s).
+"""
+
+# pylint: disable=C0330 # Wrong hanging indentation before block
+# pylint: disable=C0301 # Line too long
+
 import json
 from collections import abc
 from pathlib import Path
 from typing import Generator, List, Optional, Union
 
-from pydantic import BaseModel, ValidationError, validator
+from pydantic import BaseModel, ValidationError
 from six import iteritems
 
 from as3ninja.utils import DictLike, deserialize
@@ -18,8 +24,6 @@ __all__ = [
 
 class AS3TemplateConfigurationError(ValueError):
     """Raised when a problem occurs during building the Template Configuration."""
-
-    pass
 
 
 class AS3TemplateConfiguration(DictLike):
@@ -260,12 +264,12 @@ class AS3TemplateConfiguration(DictLike):
             -> { 'a': {'b':1, 'c':2, 'd':3} }
 
         """
-        for k, v in iteritems(update):
-            dv = dict_to_update.get(k, {})
-            if not isinstance(dv, abc.Mapping):
-                dict_to_update[k] = v
-            elif isinstance(v, abc.Mapping):
-                dict_to_update[k] = self._dict_deep_update(dv, v)
+        for key, value in iteritems(update):
+            dict_value = dict_to_update.get(key, {})
+            if not isinstance(dict_value, abc.Mapping):
+                dict_to_update[key] = value
+            elif isinstance(value, abc.Mapping):
+                dict_to_update[key] = self._dict_deep_update(dict_value, value)
             else:
-                dict_to_update[k] = v
+                dict_to_update[key] = value
         return dict_to_update

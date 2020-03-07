@@ -1,19 +1,15 @@
 # -*- coding: utf-8 -*-
-"""Various utils and helpes used by AS3 Ninja"""
+"""
+Various utils and helpes used by AS3 Ninja
+"""
+
+# pylint: disable=C0330 # Wrong hanging indentation before block
+# pylint: disable=C0301 # Line too long
+
 import json
 import sys
 from functools import wraps
-from typing import (
-    Any,
-    ItemsView,
-    Iterator,
-    KeysView,
-    List,
-    Optional,
-    Tuple,
-    Union,
-    ValuesView,
-)
+from typing import Any, ItemsView, Iterator, KeysView, Optional, Union, ValuesView
 
 import yaml
 
@@ -105,9 +101,10 @@ def failOnException(wrapped_function):
 
     @wraps(wrapped_function)
     def failOnException_wrapper(*args, **kwargs):
+        """wrapper function"""
         try:
             return wrapped_function(*args, **kwargs)
-        except Exception:
+        except Exception:  # pylint: disable=W0703
             sys.exit(1)
 
     return failOnException_wrapper

@@ -1,5 +1,11 @@
 # -*- coding: utf-8 -*-
-"""AS3 Schema Class module. Represents the AS3 JSON Schema as a python class."""
+"""
+AS3 Schema Class module. Represents the AS3 JSON Schema as a python class.
+"""
+
+# pylint: disable=C0330 # Wrong hanging indentation before block
+# pylint: disable=C0301 # Line too long
+
 import json
 import re
 import sys
@@ -18,8 +24,6 @@ __all__ = ["AS3Schema", "AS3SchemaVersionError", "AS3SchemaError", "AS3Validatio
 
 class AS3SchemaVersionError(ValueError):
     """AS3 Schema Version Error, version is likely invalid or unknown."""
-
-    pass
 
 
 class AS3SchemaError(SchemaError):
@@ -66,7 +70,7 @@ class AS3Schema:
         if not self._SCHEMA_LOCAL_FSPATH.exists():
             self.updateschemas()
 
-        if not version == "latest":
+        if version != "latest":
             # make sure latest version gets always loaded first
             self._load_schema(version="latest")
 
@@ -89,8 +93,8 @@ class AS3Schema:
             schemalist: list = []
             versions: list = []
 
-            for x in list(path.glob(self._SCHEMA_FILENAME_GLOB)):
-                schemalist.append(str(x))
+            for _schema_file in list(path.glob(self._SCHEMA_FILENAME_GLOB)):
+                schemalist.append(str(_schema_file))
             schemalist.sort(key=self.__schemalist_sort_helper, reverse=True)
 
             if version == "latest":
@@ -108,8 +112,8 @@ class AS3Schema:
                 if version == version_file:
                     try:
                         self._validate_schema_version_format(version=version_file)
-                        with open(schemafile, "rb") as f:
-                            _schema = json.loads(f.read())
+                        with open(schemafile, "rb") as _schemafile_fh:
+                            _schema = json.loads(_schemafile_fh.read())
                             self._schemas[version] = _schema
                     except (AS3SchemaVersionError, ValueError):
                         print(
@@ -130,7 +134,7 @@ class AS3Schema:
         for _schema_version in _schemas_versions:
             self._schemas[_schema_version] = self._schemas.pop(_schema_version)
 
-    def _update_versions(self, versions: list = []) -> None:
+    def _update_versions(self, versions: list) -> None:
         """Private Method: Updates and sorts the versions class attribute"""
         try:
             versions.pop(versions.index("latest"))
@@ -194,7 +198,7 @@ class AS3Schema:
 
             :param version: str: AS3 Schema version
         """
-        if not version == "latest":
+        if version != "latest":
             try:
                 _ver = int(version.replace(".", ""))
                 if _ver < 380:
@@ -302,14 +306,14 @@ class AS3Schema:
             :param regex: The regular expression, for example: ``r'^[ -~]+$'``
             :param value: Value to apply the regular expression to
         """
-        r = re.compile(regex)
-        if r.match(value) is None:
+        regx = re.compile(regex)
+        if regx.match(value) is None:
             return False
         return True
 
     def _format_checker(self) -> FormatChecker:
         """Returns an instance of jsonschema.FormatChecker with F5 AS3 custom formats."""
-        F5_FORMATS = {  # based on AS3 3.17.1 : lib/adcParserFormats.js
+        f5_formats = {  # based on AS3 3.17.1 : lib/adcParserFormats.js
             "f5name": lambda v: self._regex_match(
                 r"^([A-Za-z][0-9A-Za-z_]{0,63})?$", v
             ),
@@ -347,8 +351,8 @@ class AS3Schema:
         format_checker = FormatChecker()
 
         # update FormatChecker instance's format checkers with the F5_FORMAT lambdas
-        for format_name in F5_FORMATS.keys():
-            format_checker.checkers[format_name] = (F5_FORMATS[format_name], ())
+        for format_name in f5_formats:
+            format_checker.checkers[format_name] = (f5_formats[format_name], ())
 
         return format_checker
 
