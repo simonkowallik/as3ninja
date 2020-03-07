@@ -1,6 +1,13 @@
 as3ninja package
 ================
 
+Subpackages
+-----------
+
+.. toctree::
+
+   as3ninja.jinja2
+
 Submodules
 ----------
 
@@ -24,22 +31,6 @@ as3ninja.declaration module
 ---------------------------
 
 .. automodule:: as3ninja.declaration
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-as3ninja.filters module
------------------------
-
-.. automodule:: as3ninja.filters
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-as3ninja.functions module
--------------------------
-
-.. automodule:: as3ninja.functions
    :members:
    :undoc-members:
    :show-inheritance:

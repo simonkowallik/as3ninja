@@ -22,6 +22,7 @@ def ninjutsu(ctx: Context, value: str, **kwargs: dict) -> str:
     Example:
 
     .. code-block:: jinja
+
         ...
         {% for thisone in allofthem %}
         ...
@@ -39,6 +40,7 @@ def ninjutsu(ctx: Context, value: str, **kwargs: dict) -> str:
     Also note that the variable name will be an attribute of the namespace.
 
     .. code-block:: jinja
+
         ...
         {% clipboard = namespace() %}
         {% for thisone in allofthem %}
