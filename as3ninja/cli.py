@@ -37,6 +37,21 @@ logger.add(
 )
 
 
+def _output_declaration(
+    as3declaration: AS3Declaration, output_file: Union[str, None], pretty: bool,
+):
+    """
+    Function to output the transformed declaration
+    """
+    if output_file:
+        output_file.write(as3declaration.json())
+    else:
+        if pretty:
+            print(json.dumps(as3declaration.dict(), indent=4, sort_keys=True))
+        else:
+            print(as3declaration.json())
+
+
 @click.group(context_settings=dict(help_option_names=["-h", "--help"]))
 @click.version_option(version=__version__)
 def cli() -> None:
@@ -112,13 +127,7 @@ def transform(
         as3s = AS3Schema()
         as3s.validate(declaration=as3declaration.dict())
 
-    if output_file:
-        output_file.write(as3declaration.json())
-    else:
-        if pretty:
-            print(json.dumps(as3declaration.dict(), indent=4, sort_keys=True))
-        else:
-            print(as3declaration.json())
+    _output_declaration(as3declaration, output_file=output_file, pretty=pretty)
 
 
 @cli.command()
@@ -209,13 +218,7 @@ def git_transform(  # pylint: disable=R0913 # Too many arguments
             as3s = AS3Schema()
             as3s.validate(declaration=as3declaration.dict())
 
-        if output_file:
-            output_file.write(as3declaration.json())
-        else:
-            if pretty:
-                print(json.dumps(as3declaration.dict(), indent=4, sort_keys=True))
-            else:
-                print(as3declaration.json())
+        _output_declaration(as3declaration, output_file=output_file, pretty=pretty)
 
 
 @cli.command()
