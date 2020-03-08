@@ -6,8 +6,8 @@ from jinja2 import DictLoader, Environment
 from jinja2.runtime import Context
 
 from as3ninja.jinja2 import J2Ninja
-from as3ninja.jinja2.filters import *
 from as3ninja.jinja2.filterfunctions import *
+from as3ninja.jinja2.filters import *
 from tests.utils import format_json
 
 

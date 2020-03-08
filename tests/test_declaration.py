@@ -4,8 +4,8 @@ import json
 import pytest
 from jinja2.exceptions import TemplateSyntaxError
 
-from as3ninja.declaration import (
-    AS3Declaration,
+from as3ninja.declaration import AS3Declaration
+from as3ninja.exceptions import (
     AS3JSONDecodeError,
     AS3TemplateSyntaxError,
     AS3UndefinedError,
@@ -249,18 +249,19 @@ class Test_transform_syntaxerror:
             exc.value
         )
 
+
 class Test_transform_DOLLARschema:
-    @pytest.mark.parametrize("template", [
-        """{ "$schema": "schemalink", "foo": "bar" }""",  # $schema will be removed
-        """{ "foo": "bar" }""",  # must yield the same result as above
-    ])
+    @pytest.mark.parametrize(
+        "template",
+        [
+            """{ "$schema": "schemalink", "foo": "bar" }""",  # $schema will be removed
+            """{ "foo": "bar" }""",  # must yield the same result as above
+        ],
+    )
     def test_remove_schema(self, template):
         expected_result = {"foo": "bar"}
 
-        as3d = AS3Declaration(
-            declaration_template=template,
-            template_configuration={},
-        )
+        as3d = AS3Declaration(declaration_template=template, template_configuration={},)
         assert as3d.dict() == expected_result
 
 

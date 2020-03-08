@@ -14,16 +14,10 @@ from typing import Generator, List, Optional, Union
 from pydantic import BaseModel, ValidationError
 from six import iteritems
 
+from as3ninja.exceptions import AS3TemplateConfigurationError
 from as3ninja.utils import DictLike, deserialize
 
-__all__ = [
-    "AS3TemplateConfiguration",
-    "AS3TemplateConfigurationError",
-]
-
-
-class AS3TemplateConfigurationError(ValueError):
-    """Raised when a problem occurs during building the Template Configuration."""
+__all__ = ["AS3TemplateConfiguration"]
 
 
 class AS3TemplateConfiguration(DictLike):

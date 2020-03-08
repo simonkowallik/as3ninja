@@ -11,7 +11,6 @@ from as3ninja.utils import (
     escape_split,
     failOnException,
 )
-
 from tests.utils import fixture_mktmpfile
 
 json_str = """

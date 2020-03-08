@@ -16,30 +16,11 @@ from typing import Optional, Union
 from jsonschema import Draft7Validator, FormatChecker
 from jsonschema.exceptions import RefResolutionError, SchemaError, ValidationError
 
+from .exceptions import AS3SchemaError, AS3SchemaVersionError, AS3ValidationError
 from .gitget import Gitget
 from .settings import NINJASETTINGS
 
-__all__ = ["AS3Schema", "AS3SchemaVersionError", "AS3SchemaError", "AS3ValidationError"]
-
-
-class AS3SchemaVersionError(ValueError):
-    """AS3 Schema Version Error, version is likely invalid or unknown."""
-
-
-class AS3SchemaError(SchemaError):
-    """Raised when AS3 Schema is erroneous, eg. does not adhere to jsonschema standards."""
-
-    def __init__(self, message: str = "", original_exception=None):
-        super(AS3SchemaError, self).__init__(f"{message}: {str(original_exception)}")
-
-
-class AS3ValidationError(ValidationError):
-    """Validation of AS3 declaration against AS3 Schema produced an error."""
-
-    def __init__(self, message: str = "", original_exception=None):
-        super(AS3ValidationError, self).__init__(
-            f"{message}: {str(original_exception)}"
-        )
+__all__ = ["AS3Schema"]
 
 
 class AS3Schema:

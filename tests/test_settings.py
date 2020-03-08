@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
-import pytest
-import mock
-from mock import call
-
-from pydantic import ValidationError
 from pathlib import Path
+
+import mock
+import pytest
+from mock import call
+from pydantic import ValidationError
 
 from as3ninja.settings import NinjaSettings, NinjaSettingsLoader
 

@@ -181,6 +181,7 @@ def dict_filter(
 
     return dict_to_filter
 
+
 # pylint: disable=W0105 # String statement has no effect
 """
 PathAccessError and dict_filter are based on boltons iterutils: https://github.com/mahmoud/boltons

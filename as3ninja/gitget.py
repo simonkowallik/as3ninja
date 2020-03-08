@@ -10,17 +10,14 @@ import shlex
 import shutil
 from datetime import datetime
 from pathlib import Path
-from subprocess import CalledProcessError, SubprocessError, TimeoutExpired, run
+from subprocess import CalledProcessError, TimeoutExpired, run
 from tempfile import mkdtemp
 from typing import Optional, Union
 
+from .exceptions import GitgetException
 from .settings import NINJASETTINGS
 
-__all__ = ["Gitget", "GitgetException"]
-
-
-class GitgetException(SubprocessError):
-    """Gitget Exception, subclassed SubprocessError Exception"""
+__all__ = ["Gitget"]
 
 
 class Gitget:

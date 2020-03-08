@@ -7,12 +7,12 @@ from tempfile import mkdtemp
 import pytest
 from jsonschema import FormatChecker
 
-from as3ninja.schema import (
-    AS3Schema,
+from as3ninja.exceptions import (
     AS3SchemaError,
     AS3SchemaVersionError,
     AS3ValidationError,
 )
+from as3ninja.schema import AS3Schema
 from tests.utils import fixture_tmpdir
 
 

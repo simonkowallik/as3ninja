@@ -4,8 +4,8 @@ from uuid import UUID
 import pytest
 
 from as3ninja.jinja2 import J2Ninja
-from as3ninja.jinja2.functions import *
 from as3ninja.jinja2.filterfunctions import *
+from as3ninja.jinja2.functions import *
 
 
 def test_J2Ninja_functions_is_dict():

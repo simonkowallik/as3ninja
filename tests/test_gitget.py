@@ -5,7 +5,8 @@ from pathlib import Path
 import mock
 import pytest
 
-from as3ninja.gitget import NINJASETTINGS, Gitget, GitgetException
+from as3ninja.exceptions import GitgetException
+from as3ninja.gitget import NINJASETTINGS, Gitget
 from tests.utils import fixture_tmpdir
 
 # TODO: mock actual git interactions to decrease test time + increase predictability
