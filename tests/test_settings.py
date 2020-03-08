@@ -93,6 +93,18 @@ class Test_NinjaSettingsLoader_methods:
         )
 
     @staticmethod
+    def test_detect_schema_base_path__exists(mocker):
+        mP_exists = mocker.patch.object(Path, "exists", return_value=True)
+
+        # returns str (a path)
+        _schema_base_path = NinjaSettingsLoader._detect_schema_base_path()
+        assert isinstance(_schema_base_path, str)
+        assert NinjaSettingsLoader.AS3_SCHEMA_DIRECTORY in _schema_base_path
+
+        # Path.exists() called once
+        assert mP_exists.call_count == 1
+
+    @staticmethod
     def test_detect_config_file__noConfigFile(mocker):
         mP_is_file = mocker.patch.object(
             Path, "is_file", return_value=False
@@ -114,7 +126,7 @@ class Test_NinjaSettingsLoader_methods:
         mP_mkdir.assert_has_calls([call(mode=448, parents=True, exist_ok=True)])
 
     @staticmethod
-    def test_detect_config_file(mocker):
+    def test_detect_config_file__exists(mocker):
         mP_is_file = mocker.patch.object(
             Path, "is_file", return_value=True
         )  # config file found on first try
@@ -123,7 +135,9 @@ class Test_NinjaSettingsLoader_methods:
         mP_touch = mocker.patch.object(Path, "touch")
 
         # returns config file
-        assert isinstance(NinjaSettingsLoader._detect_config_file(), str)
+        _cfgfile = NinjaSettingsLoader._detect_config_file()
+        assert isinstance(_cfgfile, str)
+        assert "as3ninja" in _cfgfile
 
         # Path.is_file() called once only (file found)
         assert mP_is_file.call_count == 1
@@ -150,3 +164,23 @@ class Test_NinjaSettingsLoader:
 
         # check that NinjaSettings is returned
         assert isinstance(NSL(), NinjaSettings)
+
+    @staticmethod
+    def test_config_file_exists(mocker):
+        """
+        Test code path for non-existing config file in __init__
+        """
+        mocker.patch.object(
+            NinjaSettingsLoader,
+            "_detect_config_file",
+            return_value="path/to/config.file",
+        )
+        mocker.patch.object(NinjaSettingsLoader, "_detect_schema_base_path")
+        mocker.patch("as3ninja.settings.NinjaSettings")
+        mocked_deserialize = mocker.patch("as3ninja.settings.deserialize")
+
+        NSL = NinjaSettingsLoader()
+        _ = NSL()
+
+        # deserialize called with return value from _detect_config_file
+        mocked_deserialize.assert_called_once_with("path/to/config.file")
