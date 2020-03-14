@@ -7,7 +7,6 @@ AS3 Schema Class module. Represents the AS3 JSON Schema as a python class.
 # pylint: disable=C0301 # Line too long
 
 import json
-import re
 import sys
 from copy import deepcopy
 from pathlib import Path
