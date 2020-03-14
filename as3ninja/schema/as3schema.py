@@ -13,12 +13,13 @@ from copy import deepcopy
 from pathlib import Path
 from typing import Optional, Union
 
-from jsonschema import Draft7Validator, FormatChecker
+from jsonschema import Draft7Validator
 from jsonschema.exceptions import RefResolutionError, SchemaError, ValidationError
 
-from .exceptions import AS3SchemaError, AS3SchemaVersionError, AS3ValidationError
-from .gitget import Gitget
-from .settings import NINJASETTINGS
+from ..exceptions import AS3SchemaError, AS3SchemaVersionError, AS3ValidationError
+from ..gitget import Gitget
+from ..settings import NINJASETTINGS
+from .formatcheckers import AS3FormatChecker
 
 __all__ = ["AS3Schema"]
 
@@ -280,63 +281,6 @@ class AS3Schema:
 
         return _schema
 
-    @staticmethod
-    def _regex_match(regex: str, value: str) -> bool:
-        """Matches a regular expression against value. Returns `True` when regex matches, `False` otherwise.
-
-            :param regex: The regular expression, for example: ``r'^[ -~]+$'``
-            :param value: Value to apply the regular expression to
-        """
-        regx = re.compile(regex)
-        if regx.match(value) is None:
-            return False
-        return True
-
-    def _format_checker(self) -> FormatChecker:
-        """Returns an instance of jsonschema.FormatChecker with F5 AS3 custom formats."""
-        f5_formats = {  # based on AS3 3.17.1 : lib/adcParserFormats.js
-            "f5name": lambda v: self._regex_match(
-                r"^([A-Za-z][0-9A-Za-z_]{0,63})?$", v
-            ),
-            "f5bigip": lambda v: self._regex_match(
-                r"^\x2f[^\x00-\x19\x22#\'*<>?\x5b-\x5d\x7b-\x7d\x7f]+$", v
-            ),
-            "f5long-id": lambda v: self._regex_match(
-                r"^[^\x00-\x20\x22\'<>\x5c^`|\x7f]{0,255}$", v
-            ),
-            "f5label": lambda v: self._regex_match(
-                r"^[^\x00-\x1f\x22#&*<>?\x5b-\x5d`\x7f]{0,64}$", v
-            ),
-            "f5remark": lambda v: self._regex_match(
-                r"^[^\x00-\x1f\x22\x5c\x7f]{0,64}$", v
-            ),
-            "f5pointer": lambda v: self._regex_match(
-                r"((@|[0-9]+)|(([0-9]*\x2f)?((@|[0-9]+|[A-Za-z][0-9A-Za-z_]{0,63})\x2f)*([0-9]+|([A-Za-z][0-9A-Za-z_]{0,63}))))?#?$",
-                v,
-            ),
-            "f5base64": lambda v: self._regex_match(
-                r"^([0-9A-Za-z\/+_-]*|[0-9A-Za-z\/+_-]+={1,2})$", v
-            ),
-            "f5ip": lambda v: self._regex_match(
-                r"^[0-9a-fA-F\/%:.]{4,49}$", v
-            ),  # imprecise ip address verification
-            "f5ipv6": lambda v: self._regex_match(
-                r"^[0-9a-fA-F\/%:.]{4,49}$", v
-            ),  # imprecise ip address verification
-            "f5ipv4": lambda v: self._regex_match(
-                r"^[0-9\/%:.]{7,24}$", v
-            ),  # imprecise ip address verification
-            # other formats used within as3 schema: date-time, uri, url
-        }
-
-        format_checker = FormatChecker()
-
-        # update FormatChecker instance's format checkers with the F5_FORMAT lambdas
-        for format_name in f5_formats:
-            format_checker.checkers[format_name] = (f5_formats[format_name], ())
-
-        return format_checker
-
     def _validator(self, version: str) -> None:
         """Creates jsonschema.Draft7Validator for specified AS3 schema version.
         Will check schema is valid and raise a jsonschema SchemaError otherwise.
@@ -349,7 +293,7 @@ class AS3Schema:
         if version not in self._validators:
             _schema = self._schema_ref_update(version=version)
             validator = Draft7Validator(
-                schema=_schema, format_checker=self._format_checker(),
+                schema=_schema, format_checker=AS3FormatChecker(),
             )
             validator.check_schema(_schema)  # check schema is valid
             self._validators[version] = validator  # memoize validator

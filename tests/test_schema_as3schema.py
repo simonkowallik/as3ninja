@@ -20,7 +20,7 @@ from tests.utils import fixture_tmpdir
 def fixture_as3schema():
     s = AS3Schema()
     yield s
-    # tear down / empty class attributes to prevent tests from influencing eachother
+    # tear down / empty class attributes to prevent tests from influencing each other
     AS3Schema._latest_version = ""
     AS3Schema._versions = ()
     AS3Schema._schemas = {}
@@ -353,7 +353,7 @@ class Test_validate_declaration:
             fixture_as3schema.schema["properties"]["declaration"]["properties"][
                 "Common"
             ]["properties"]["label"]["$ref"].startswith("#")
-            == True
+            is True
         )
 
     @pytest.mark.parametrize(
@@ -367,7 +367,7 @@ class Test_validate_declaration:
         ],
     )
     def test_invalid_f5formats(self, declaration, fixture_as3schema):
-        """tests invalid id f5 format"""
+        """test invalid field formats against AS3 Format Checker"""
         with pytest.raises(AS3ValidationError):
             fixture_as3schema.validate(declaration=declaration)
 
@@ -412,46 +412,3 @@ class Test_updateschemas:
         s = AS3Schema()
         s.updateschemas(repodir=repodir)
         assert Path(repodir + "/schema/latest/").exists()
-
-
-class Test_regex_match:
-    @staticmethod
-    def test_positive_match():
-        assert AS3Schema._regex_match("^[a-z]{3}$", "foo") == True
-
-    @staticmethod
-    def test_negative_match():
-        assert AS3Schema._regex_match("[^a-z]{3}$", "foo") == False
-
-
-@pytest.mark.usefixtures("fixture_as3schema")
-class Test__format_checker:
-    def test_is_FormatChecker(self, fixture_as3schema):
-        fc = fixture_as3schema._format_checker()
-        assert isinstance(fc, FormatChecker)
-
-    def test_format_checkers_positive(self, fixture_as3schema):
-        fc = fixture_as3schema._format_checker()
-        assert fc.checkers["f5remark"][0]("Hi there! this is a remark!") == True
-        assert (
-            fc.checkers["f5long-id"][0](
-                "sha256:9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08"
-            )
-            == True
-        )
-        assert fc.checkers["f5pointer"][0]("/@/A/serviceMain/virtualPort") == True
-        assert fc.checkers["f5base64"][0]("dGVzdA==") == True
-        assert fc.checkers["f5base64"][0]("dGVzdA_/+") == True
-        assert fc.checkers["f5name"][0]("My_ObjectName") == True
-        assert fc.checkers["f5label"][0]("This is a label") == True
-        assert fc.checkers["f5ip"][0]("0.0.0.0") == True
-        assert fc.checkers["f5ip"][0]("255.255.255.255/32%65535") == True
-        assert fc.checkers["f5ip"][0]("2001:0db8:::7334") == True
-        assert (
-            fc.checkers["f5ipv6"][0](
-                "2001:0db8:85a3:0000:0000:8A2E:0370:7334/128%65535"
-            )
-            == True
-        )
-        assert fc.checkers["f5ipv6"][0]("2001:0db8:::7334") == True
-        assert fc.checkers["f5ipv4"][0]("255.255.255.255/32%65535") == True
