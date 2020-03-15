@@ -29,6 +29,7 @@ class AS3FormatChecker(FormatChecker):
         """
         Returns dict of AS3 formats: f5ip, f5ipv4, f5ipv6, f5label, f5long-id, f5remark, f5pointer, f5base64
         Currently missing formats used in AS3:
+
             - date-time
             - uri
             - url
