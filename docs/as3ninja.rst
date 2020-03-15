@@ -7,6 +7,7 @@ Subpackages
 .. toctree::
 
    as3ninja.jinja2
+   as3ninja.schema
 
 Submodules
 ----------
@@ -35,18 +36,18 @@ as3ninja.declaration module
    :undoc-members:
    :show-inheritance:
 
-as3ninja.gitget module
-----------------------
+as3ninja.exceptions module
+--------------------------
 
-.. automodule:: as3ninja.gitget
+.. automodule:: as3ninja.exceptions
    :members:
    :undoc-members:
    :show-inheritance:
 
-as3ninja.schema module
+as3ninja.gitget module
 ----------------------
 
-.. automodule:: as3ninja.schema
+.. automodule:: as3ninja.gitget
    :members:
    :undoc-members:
    :show-inheritance:
@@ -63,6 +64,14 @@ as3ninja.templateconfiguration module
 -------------------------------------
 
 .. automodule:: as3ninja.templateconfiguration
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+as3ninja.types module
+---------------------
+
+.. automodule:: as3ninja.types
    :members:
    :undoc-members:
    :show-inheritance:

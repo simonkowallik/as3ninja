@@ -100,7 +100,7 @@ dependencies-lock:  # lock dependencies and generate requirements.txt
 
 dependencies: dependencies-update dependencies-lock
 
-publish-testpypi:
+publish-testpypi: docs dist
 	#poetry config repositories.testpypi https://test.pypi.org/legacy/
 	poetry publish -r testpypi
 

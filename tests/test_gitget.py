@@ -9,7 +9,7 @@ from as3ninja.exceptions import GitgetException
 from as3ninja.gitget import NINJASETTINGS, Gitget
 from tests.utils import fixture_tmpdir
 
-# TODO: mock actual git interactions to decrease test time + increase predictability
+# IDEA: provide fully mocked tests (quick testing) and fully un-mocked tests (thorough testing)
 
 
 class Test_Gitget_staticmethods:
@@ -73,20 +73,38 @@ class Test_Gitget_sh_quote:
         assert result == f"'{teststring}'"
 
     @staticmethod
-    def test_command_injection():
+    def test_quoting_command_injection():
         teststring = "'; ls /; echo"
         result = Gitget._sh_quote(teststring)
         assert result == "''\"'\"'; ls /; echo'"
 
 
+@pytest.mark.usefixtures("fixture_tmpdir")
 class Test_Gitget_subprocess_security:
     @staticmethod
     def test_shell_false(mocker):
         """test that subprocess.run is using shell=False"""
         mocked_run = mocker.patch("as3ninja.gitget.run")
-        Gitget._run_command(mock.MagicMock(), "ls")
-        print(mocked_run.call_args)
+        Gitget._run_command(mock.MagicMock(), ("ls"))
         assert "shell=False" in str(mocked_run.call_args)
+
+    @staticmethod
+    def test_command_injection_output(fixture_tmpdir):
+        """test that subprocess.run output doesn't contain output from injected command"""
+        mocked_self = mock.MagicMock()
+        mocked_self._gitcmd = Gitget._gitcmd
+        mocked_self._repodir = fixture_tmpdir
+        output = Gitget._run_command(mocked_self, ("--version", ";", "pwd"))
+        assert mocked_self._repodir not in output
+
+    @staticmethod
+    def test_command_injection_exit(fixture_tmpdir):
+        """test that subprocess.run isn't raising an exception due to exit 1"""
+        mocked_self = mock.MagicMock()
+        mocked_self._gitcmd = Gitget._gitcmd
+        mocked_self._repodir = fixture_tmpdir
+        # must not raise an exception
+        Gitget._run_command(mocked_self, ("--version", ";", "exit", "1"))
 
 
 class Test_Gitget_interface:
@@ -150,7 +168,7 @@ class Test_Gitget_interface:
 
     @staticmethod
     @pytest.mark.skipif(
-        sys.version_info < (3, 7, 5),
+        sys.version_info >= (3, 7, 0) and sys.version_info < (3, 7, 5),
         reason="Skipping this test when python version < 3.7.5  as it hangs forever, see: https://bugs.python.org/issue37424",
     )
     @mock.patch.object(NINJASETTINGS, "GITGET_TIMEOUT", 5)
@@ -169,7 +187,7 @@ class Test_Gitget_interface:
 
     @staticmethod
     @pytest.mark.skipif(
-        sys.version_info < (3, 7, 5),
+        sys.version_info >= (3, 7, 0) and sys.version_info < (3, 7, 5),
         reason="Skipping this test when python version < 3.7.5  as it hangs forever, see: https://bugs.python.org/issue37424",
     )
     @mock.patch.object(NINJASETTINGS, "GITGET_TIMEOUT", 0.01)
