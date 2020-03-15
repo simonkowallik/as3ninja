@@ -10,8 +10,26 @@ fi
 
 function docker_pytest() {
     # give the container time to start
-    sleep 15
-
+    echo -n "waiting for container to be reachable:"
+    cnt=0
+    while true
+    do
+        if [[ $(curl -s http://localhost:8000/api/schema/latest_version | grep latest_version) =~ "latest_version" ]]
+        then
+            echo "reachable"
+            sleep 5
+            break
+        elif [[ $cnt -eq 120 ]]
+        then
+            echo
+            echo "ERROR: API in docker container unreachable after 120 tries."
+            exit 1
+        fi
+        cnt=$(($cnt+1))
+        echo -n "."
+        sleep 5
+    done
+    # run tests
     py.test $COVERAGE \
         tests/test_api.py
 }

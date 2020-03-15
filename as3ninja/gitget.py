@@ -1,20 +1,23 @@
 # -*- coding: utf-8 -*-
-"""Gitget provides a minimal interface to 'git' to clone a repository with a specific branch, tag or commit id."""
+"""
+Gitget provides a minimal interface to 'git' to clone a repository with a specific branch, tag or commit id.
+"""
+
+# pylint: disable=C0330 # Wrong hanging indentation before block
+# pylint: disable=C0301 # Line too long
+
 import shlex
 import shutil
 from datetime import datetime
 from pathlib import Path
-from subprocess import CalledProcessError, SubprocessError, TimeoutExpired, run
+from subprocess import PIPE, CalledProcessError, TimeoutExpired, run
 from tempfile import mkdtemp
 from typing import Optional, Union
 
+from .exceptions import GitgetException
 from .settings import NINJASETTINGS
 
-__all__ = ["Gitget", "GitgetException"]
-
-
-class GitgetException(SubprocessError):
-    """Gitget Exception, subclassed SubprocessError Exception"""
+__all__ = ["Gitget"]
 
 
 class Gitget:
@@ -35,6 +38,16 @@ class Gitget:
             :param force: Optional. Forces removal of an existing repodir before cloning (use with care). (Default value = False)
     """
 
+    _gitcmd = (
+        "git",
+        "-c",
+        f"http.sslVerify={NINJASETTINGS.GITGET_SSL_VERIFY}",
+        "-c",
+        f"http.proxy={NINJASETTINGS.GITGET_PROXY}",
+    )
+
+    # pylint: disable=too-many-instance-attributes
+    # pylint: disable=too-many-arguments
     def __init__(
         self,
         repository: str,
@@ -58,13 +71,6 @@ class Gitget:
             self._repodir_persist = False
         self._force = force
         self._gitlog: dict = {"branch": self._branch, "commit": {}, "author": {}}
-        self._gitcmd = [
-            "git",
-            "-c",
-            f"http.sslVerify={NINJASETTINGS.GITGET_SSL_VERIFY}",
-            "-c",
-            f"http.proxy={NINJASETTINGS.GITGET_PROXY}",
-        ]
 
     def __enter__(self):
         _repodir = Path(self._repodir)
@@ -130,7 +136,7 @@ class Gitget:
     def _clone(self):
         """Private Method: clones git repository"""
         self._run_command(
-            [
+            (
                 "clone",
                 self._depth and "--depth" or None,
                 self._depth and self._sh_quote(self._depth) or None,
@@ -138,7 +144,7 @@ class Gitget:
                 self._branch and self._sh_quote(self._branch) or None,
                 self._sh_quote(self._repo),
                 self._sh_quote(self._repodir),
-            ]
+            )
         )
 
     def _checkout_commit(self):
@@ -149,15 +155,15 @@ class Gitget:
         """
         if self._depth and self._depth == 1:
             # by default look for commit within the last 20 commits
-            self._run_command(["fetch", "--depth", "20"])
+            self._run_command(("fetch", "--depth", "20"))
 
-        self._run_command(["reset", "--hard", self._sh_quote(self._commit)])
+        self._run_command(("reset", "--hard", self._sh_quote(self._commit)))
 
     def _get_gitlog(self) -> None:
         """Private Method: parses the git log to a dict"""
         # git log -n 1 --pretty=commit_id:%H%nauthor:%an%nauthor_email:%aE%nauthor_date:%at%ncommit_date:%ct%ncommit_subject:%s
         result = self._run_command(
-            ["log", "-n", "1", "--pretty=%H%n%ct%n%s%n%an%n%aE%n%at"]
+            ("log", "-n", "1", "--pretty=%H%n%ct%n%s%n%an%n%aE%n%at")
         )
         (
             self._gitlog["commit"]["id"],
@@ -177,10 +183,10 @@ class Gitget:
         )
         if not self._branch:
             # git rev-parse --abbrev-ref HEAD
-            result = self._run_command(["rev-parse", "--abbrev-ref", "HEAD"])
+            result = self._run_command(("rev-parse", "--abbrev-ref", "HEAD"))
             self._gitlog["branch"] = result.rstrip()
 
-    def _run_command(self, cmd: list) -> str:
+    def _run_command(self, cmd: tuple) -> str:
         """Private Method: runs a shell command and handles/raises exceptions based on the command return code
 
             :param cmd: list of command + arguments
@@ -188,12 +194,14 @@ class Gitget:
         result = None
         try:
             # exclude None types from command
-            cmd = [command for command in cmd if command]
+            cmd = tuple(command for command in cmd if command)
             result = run(  # nosec (bandit: disable subprocess.run check)
                 self._gitcmd + cmd,
                 shell=False,
                 cwd=self._repodir,
-                capture_output=True,
+                check=False,
+                stdout=PIPE,
+                stderr=PIPE,
                 timeout=NINJASETTINGS.GITGET_TIMEOUT,
             )
             result.check_returncode()
@@ -205,7 +213,7 @@ class Gitget:
             )
         except TimeoutExpired as exc:
             raise GitgetException(
-                f"Gitget failed due to exception:TimeoutExpired, STDERR: {str(exc.stderr.decode('utf8'))}"
+                f"Gitget failed due to exception:TimeoutExpired, exception details: {str(exc)}"
             )
 
         return result.stdout.decode("utf8")

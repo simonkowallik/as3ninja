@@ -9,7 +9,7 @@ Coverage](https://img.shields.io/codecov/c/github/simonkowallik/as3ninja?style=f
 
 - Free software: ISC license
 - Documentation: <https://as3ninja.readthedocs.io>
-- Works with Python 3.7 and up
+- Works with Python 3.6 and up
 
 ## What is AS3 Ninja and what can it do for you?
 
@@ -33,14 +33,14 @@ What AS3 Ninja doesn't do:
 
 ## Features
 
-- Validate your AS3 Declarations against the AS3 Schema (via API, eg. for CI/CD)
+- Validate your AS3 Declarations against the AS3 Schema (via API, eg. for CI/CD) and AS3 specific formats
 - Create AS3 Declarations from templates using the full power of Jinja2 (CLI and API)
   - reads your JSON or YAML configurations to generate AS3 Declarations
   - carefully crafted Jinja2 `as3ninja.filters` and `as3ninja.functions` further enhance the templating capabilities
 - Use Git(hub) to pull template configurations and declaration templates
 - HashiCorp Vault integration to retrieve secrets
 - AS3 Ninja provides a simple CLI..
-- ..and a REST API including a Swagger/OpenAPI interface at `/docs` and `/redoc` (openapi.json @ `/openapi.json`)
+- ..and a REST API including a Swagger/OpenAPI interface at `/api/docs` and `/api/redoc` (openapi.json @ `/api/openapi.json`)
 
 ## AS3 Ninja Interface
 
@@ -74,5 +74,4 @@ AS3 Ninja's focus is flexibility in templating and features, it is not hardened 
 
 ## Where to start?
 
-[Read the Docs](https://as3ninja.readthedocs.io/) and then [Try it
-out](https://as3ninja.readthedocs.io/en/latest/usage.html)\! :-)
+[Read the Docs](https://as3ninja.readthedocs.io/) and then [Try it out](https://as3ninja.readthedocs.io/en/latest/usage.html)\! :-)

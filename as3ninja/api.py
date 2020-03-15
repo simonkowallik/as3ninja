@@ -1,5 +1,11 @@
 # -*- coding: utf-8 -*-
-"""API"""
+"""
+AS3Ninja's REST API
+"""
+
+# pylint: disable=C0330 # Wrong hanging indentation before block
+# pylint: disable=C0301 # Line too long
+
 from typing import List, Optional, Union
 
 from fastapi import FastAPI, HTTPException, Query
@@ -8,19 +14,20 @@ from starlette.middleware.cors import CORSMiddleware
 from starlette.responses import RedirectResponse
 
 from . import __description__, __projectname__, __version__
-from .declaration import (
-    AS3Declaration,
+from .declaration import AS3Declaration
+from .exceptions import (
     AS3JSONDecodeError,
+    AS3SchemaVersionError,
     AS3TemplateSyntaxError,
     AS3UndefinedError,
+    AS3ValidationError,
 )
 from .gitget import Gitget, GitgetException
-from .schema import AS3Schema, AS3SchemaVersionError, AS3ValidationError
+from .schema import AS3Schema
 from .templateconfiguration import (
     AS3TemplateConfiguration,
     AS3TemplateConfigurationError,
 )
-from .utils import deserialize
 
 CORS_SETTINGS = {
     "allow_origins": [
@@ -81,14 +88,14 @@ class AS3Declare(BaseModel):
     declaration_template: str = Field(..., description="Declaration Template")
 
 
-app = FastAPI(docs_url=None, redoc_url=None, openapi_url=None)
+app = FastAPI(docs_url=None, redoc_url=None, openapi_url=None)  # pylint: disable=C0103
 
 app.add_middleware(CORSMiddleware, **CORS_SETTINGS)
 
 
 @app.on_event("startup")
 def startup():
-    # preload AS3Schema Class - assume Schemas are available
+    """preload AS3Schema Class - assume Schemas are available"""
     _ = AS3Schema()
 
 
@@ -116,7 +123,7 @@ async def openapi_redirect():
     return RedirectResponse(url="/api/openapi.json")
 
 
-api = FastAPI(
+api = FastAPI(  # pylint: disable=C0103
     openapi_prefix="/api",
     title=__projectname__,
     description=__description__,

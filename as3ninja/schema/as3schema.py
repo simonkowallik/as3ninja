@@ -1,40 +1,26 @@
 # -*- coding: utf-8 -*-
-"""AS3 Schema Class module. Represents the AS3 JSON Schema as a python class."""
+"""
+AS3 Schema Class module. Represents the AS3 JSON Schema as a python class.
+"""
+
+# pylint: disable=C0330 # Wrong hanging indentation before block
+# pylint: disable=C0301 # Line too long
+
 import json
 import sys
 from copy import deepcopy
 from pathlib import Path
-from typing import Union
+from typing import Optional, Union
 
-from jsonschema import validate as jsonschema_validate
+from jsonschema import Draft7Validator
 from jsonschema.exceptions import RefResolutionError, SchemaError, ValidationError
 
-from .gitget import Gitget
-from .settings import NINJASETTINGS
+from ..exceptions import AS3SchemaError, AS3SchemaVersionError, AS3ValidationError
+from ..gitget import Gitget
+from ..settings import NINJASETTINGS
+from .formatcheckers import AS3FormatChecker
 
-__all__ = ["AS3Schema", "AS3SchemaVersionError", "AS3SchemaError", "AS3ValidationError"]
-
-
-class AS3SchemaVersionError(ValueError):
-    """AS3 Schema Version Error, version is likely invalid or unknown."""
-
-    pass
-
-
-class AS3SchemaError(SchemaError):
-    """Raised when AS3 Schema is erroneous, eg. does not adhere to jsonschema standards."""
-
-    def __init__(self, message: str = "", original_exception=None):
-        super(AS3SchemaError, self).__init__(f"{message}: {str(original_exception)}")
-
-
-class AS3ValidationError(ValidationError):
-    """Validation of AS3 declaration against AS3 Schema produced an error."""
-
-    def __init__(self, message: str = "", original_exception=None):
-        super(AS3ValidationError, self).__init__(
-            f"{message}: {str(original_exception)}"
-        )
+__all__ = ["AS3Schema"]
 
 
 class AS3Schema:
@@ -48,6 +34,7 @@ class AS3Schema:
     _versions: tuple = ()
     _schemas: dict = {}
     _schemas_ref_updated: dict = {}
+    _validators: dict = {}
 
     _SCHEMA_REF_URL_TEMPLATE = (
         NINJASETTINGS.SCHEMA_BASE_PATH
@@ -64,7 +51,7 @@ class AS3Schema:
         if not self._SCHEMA_LOCAL_FSPATH.exists():
             self.updateschemas()
 
-        if not version == "latest":
+        if version != "latest":
             # make sure latest version gets always loaded first
             self._load_schema(version="latest")
 
@@ -87,8 +74,8 @@ class AS3Schema:
             schemalist: list = []
             versions: list = []
 
-            for x in list(path.glob(self._SCHEMA_FILENAME_GLOB)):
-                schemalist.append(str(x))
+            for _schema_file in list(path.glob(self._SCHEMA_FILENAME_GLOB)):
+                schemalist.append(str(_schema_file))
             schemalist.sort(key=self.__schemalist_sort_helper, reverse=True)
 
             if version == "latest":
@@ -106,8 +93,8 @@ class AS3Schema:
                 if version == version_file:
                     try:
                         self._validate_schema_version_format(version=version_file)
-                        with open(schemafile, "rb") as f:
-                            _schema = json.loads(f.read())
+                        with open(schemafile, "rb") as _schemafile_fh:
+                            _schema = json.loads(_schemafile_fh.read())
                             self._schemas[version] = _schema
                     except (AS3SchemaVersionError, ValueError):
                         print(
@@ -128,7 +115,7 @@ class AS3Schema:
         for _schema_version in _schemas_versions:
             self._schemas[_schema_version] = self._schemas.pop(_schema_version)
 
-    def _update_versions(self, versions: list = []) -> None:
+    def _update_versions(self, versions: list) -> None:
         """Private Method: Updates and sorts the versions class attribute"""
         try:
             versions.pop(versions.index("latest"))
@@ -192,7 +179,7 @@ class AS3Schema:
 
             :param version: str: AS3 Schema version
         """
-        if not version == "latest":
+        if version != "latest":
             try:
                 _ver = int(version.replace(".", ""))
                 if _ver < 380:
@@ -280,28 +267,44 @@ class AS3Schema:
             )
         return "file://" + str(url[0])
 
-    def _schema_ref_updated(self, version: str) -> dict:
-        """Private Method: _schema_ref_updated returns the AS3 Schema for specified version with updated references.
+    def _schema_ref_update(self, version: str) -> dict:
+        """Private Method: _schema_ref_update returns the AS3 Schema for specified version with updated references.
 
             :param version: The AS3 Schema version
         """
-        # Memoize
-        if version not in self._schemas_ref_updated:
-            # do not mutate schema, create full copy instead
-            self._schemas_ref_updated[version] = deepcopy(self.schemas[version])
-            self._ref_update(
-                schema=self._schemas_ref_updated[version],
-                _ref_url=self._build_ref_url(version=version),
-            )
+        # do not mutate schema, create full copy instead
+        _schema = deepcopy(self.schemas[version])
+        self._ref_update(
+            schema=_schema, _ref_url=self._build_ref_url(version=version),
+        )
 
-        return self._schemas_ref_updated[version]
+        return _schema
+
+    def _validator(self, version: str) -> None:
+        """Creates jsonschema.Draft7Validator for specified AS3 schema version.
+        Will check schema is valid and raise a jsonschema SchemaError otherwise.
+        Memoizes the Draft7Validator instance for faster re-use.
+
+            :param version: AS3 schema version
+        """
+
+        # create validator and memoize if it doesn't exist
+        if version not in self._validators:
+            _schema = self._schema_ref_update(version=version)
+            validator = Draft7Validator(
+                schema=_schema, format_checker=AS3FormatChecker(),
+            )
+            validator.check_schema(_schema)  # check schema is valid
+            self._validators[version] = validator  # memoize validator
+
+        return self._validators[version]
 
     def validate(
-        self, declaration: Union[dict, str], version: Union[str, None] = None
+        self, declaration: Union[dict, str], version: Optional[str] = None
     ) -> None:
         """Method: Validates a declaration against the AS3 Schema. Raises a AS3ValidationError on failure.
 
-            :param declaration: The declaration to be validated against the AS3 Schema.
+            :param declaration: Declaration to be validated against the AS3 Schema.
             :param version: Allows to validate the declaration against the specified version
                     instead of this AS3 Schema instance version. If set to "auto", the version of the declaration is used.
         """
@@ -316,9 +319,8 @@ class AS3Schema:
             version = self._check_version(version=version)
 
         try:
-            jsonschema_validate(
-                declaration, schema=self._schema_ref_updated(version=version)
-            )
+            validator = self._validator(version)
+            validator.validate(declaration)
         except ValidationError as exc:
             raise AS3ValidationError("AS3 Validation Error", exc)
         except (SchemaError, RefResolutionError) as exc:

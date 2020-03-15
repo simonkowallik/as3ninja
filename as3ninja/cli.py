@@ -2,6 +2,10 @@
 """
 AS3 Ninja CLI module
 """
+
+# pylint: disable=C0330 # Wrong hanging indentation before block
+# pylint: disable=C0301 # Line too long
+
 import json
 import sys
 from typing import Optional, Union
@@ -13,15 +17,12 @@ from . import __version__
 from .declaration import AS3Declaration
 from .gitget import Gitget
 from .schema import AS3Schema
-from .templateconfiguration import (
-    AS3TemplateConfiguration,
-    AS3TemplateConfigurationError,
-)
+from .templateconfiguration import AS3TemplateConfiguration
 from .utils import deserialize, failOnException
 
 logger.remove()
-log_stderr = logger.bind(task="stderr")
-log_stdout = logger.bind(task="stdout")
+LOG_STDERR = logger.bind(task="stderr")
+LOG_STDOUT = logger.bind(task="stdout")
 logger.add(
     sys.stderr,
     colorize=True,
@@ -36,10 +37,25 @@ logger.add(
 )
 
 
+def _output_declaration(
+    as3declaration: AS3Declaration, output_file: Union[str, None], pretty: bool,
+):
+    """
+    Function to output the transformed declaration
+    """
+    if output_file:
+        output_file.write(as3declaration.json())
+    else:
+        if pretty:
+            print(json.dumps(as3declaration.dict(), indent=4, sort_keys=True))
+        else:
+            print(as3declaration.json())
+
+
 @click.group(context_settings=dict(help_option_names=["-h", "--help"]))
 @click.version_option(version=__version__)
 def cli() -> None:
-    pass
+    """main cli command group"""
 
 
 @cli.command()
@@ -81,12 +97,12 @@ def cli() -> None:
     help="Pretty print JSON (when printed to STDOUT)",
 )
 @failOnException
-@log_stderr.catch(reraise=True)
+@LOG_STDERR.catch(reraise=True)
 def transform(
     declaration_template: str,
     configuration_file: Optional[tuple],
     output_file: Union[str, None],
-    validate: bool,
+    validate: bool,  # pylint: disable=W0621 # Redefining name 'validate' from outer scope
     pretty: bool,
 ):
     """Render AS3 Declaration from local files.
@@ -111,13 +127,7 @@ def transform(
         as3s = AS3Schema()
         as3s.validate(declaration=as3declaration.dict())
 
-    if output_file:
-        output_file.write(as3declaration.json())
-    else:
-        if pretty:
-            print(json.dumps(as3declaration.dict(), indent=4, sort_keys=True))
-        else:
-            print(as3declaration.json())
+    _output_declaration(as3declaration, output_file=output_file, pretty=pretty)
 
 
 @cli.command()
@@ -165,12 +175,12 @@ def transform(
 )
 @click.option("--depth", required=False, default=False, help="Git clone depth")
 @failOnException
-@log_stderr.catch(reraise=True)
-def git_transform(
+@LOG_STDERR.catch(reraise=True)
+def git_transform(  # pylint: disable=R0913 # Too many arguments
     declaration_template: Optional[str],
     configuration_file: Optional[tuple],
     output_file: Union[str, None],
-    validate: bool,
+    validate: bool,  # pylint: disable=W0621 # Redefining name 'validate' from outer scope
     pretty: bool,
     repository: str,
     branch: Union[str, None],
@@ -208,13 +218,7 @@ def git_transform(
             as3s = AS3Schema()
             as3s.validate(declaration=as3declaration.dict())
 
-        if output_file:
-            output_file.write(as3declaration.json())
-        else:
-            if pretty:
-                print(json.dumps(as3declaration.dict(), indent=4, sort_keys=True))
-            else:
-                print(as3declaration.json())
+        _output_declaration(as3declaration, output_file=output_file, pretty=pretty)
 
 
 @cli.command()
@@ -233,7 +237,7 @@ def git_transform(
     help="AS3 Schema version to use for validation (e.g. 3.16.0)",
 )
 @failOnException
-@log_stderr.catch(reraise=True)
+@LOG_STDERR.catch(reraise=True)
 def validate(
     declaration: str, version: Optional[str],
 ):
@@ -241,13 +245,10 @@ def validate(
 
     If no version is specified, the latest available version is used."""
     as3s = AS3Schema(version=version)
-    try:
-        _declaration = deserialize(declaration.name)
-        as3s.validate(declaration=_declaration)
-        log_stdout.info(
-            "Validation passed for AS3 Schema version: {}",
-            as3s.version,
-            feature="f-strings",
-        )
-    except Exception:
-        raise
+    _declaration = deserialize(declaration.name)
+    as3s.validate(declaration=_declaration)
+    LOG_STDOUT.info(
+        "Validation passed for AS3 Schema version: {}",
+        as3s.version,
+        feature="f-strings",
+    )

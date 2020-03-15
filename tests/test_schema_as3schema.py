@@ -5,13 +5,14 @@ from pathlib import Path
 from tempfile import mkdtemp
 
 import pytest
+from jsonschema import FormatChecker
 
-from as3ninja.schema import (
-    AS3Schema,
+from as3ninja.exceptions import (
     AS3SchemaError,
     AS3SchemaVersionError,
     AS3ValidationError,
 )
+from as3ninja.schema import AS3Schema
 from tests.utils import fixture_tmpdir
 
 
@@ -19,9 +20,11 @@ from tests.utils import fixture_tmpdir
 def fixture_as3schema():
     s = AS3Schema()
     yield s
-    # tear down / empty class attributes to prevent tests from influencing eachother
+    # tear down / empty class attributes to prevent tests from influencing each other
+    AS3Schema._latest_version = ""
+    AS3Schema._versions = ()
     AS3Schema._schemas = {}
-    AS3Schema._schemas_ref_updated = {}
+    AS3Schema._validators = {}
 
 
 def test_schema__ref_update(fixture_as3schema):
@@ -350,8 +353,23 @@ class Test_validate_declaration:
             fixture_as3schema.schema["properties"]["declaration"]["properties"][
                 "Common"
             ]["properties"]["label"]["$ref"].startswith("#")
-            == True
+            is True
         )
+
+    @pytest.mark.parametrize(
+        "declaration",
+        [
+            """{ "class": "AS3", "declaration": { "class": "ADC", "schemaVersion": "3.11.0", "id": "invalid --> ' <--", "TurtleCorp": { "class": "Tenant", "WebApp": { "class": "Application", "template": "http", "pool_web": { "class": "Pool", "minimumMembersActive": 1, "monitors": [ "http", "tcp" ], "members": [ { "serverAddresses": [ "192.0.2.10", "192.0.2.11" ], "servicePort": 80 } ] }, "serviceMain": { "class": "Service_HTTP", "virtualAddresses": [ "10.0.1.11" ], "pool": "pool_web" } } } } }""",
+            """{ "class": "AS3", "declaration": { "class": "ADC", "schemaVersion": "3.11.0", "id": "id", "label": "invalid --> ' <--", "TurtleCorp": { "class": "Tenant", "WebApp": { "class": "Application", "template": "http", "pool_web": { "class": "Pool", "minimumMembersActive": 1, "monitors": [ "http", "tcp" ], "members": [ { "serverAddresses": [ "192.0.2.10", "192.0.2.11" ], "servicePort": 80 } ] }, "serviceMain": { "class": "Service_HTTP", "virtualAddresses": [ "10.0.1.11" ], "pool": "pool_web" } } } } }""",
+            """{ "class": "AS3", "declaration": { "class": "ADC", "schemaVersion": "3.11.0", "id": "id", "remark": "invalid --> \\\\ <--", "TurtleCorp": { "class": "Tenant", "WebApp": { "class": "Application", "template": "http", "pool_web": { "class": "Pool", "minimumMembersActive": 1, "monitors": [ "http", "tcp" ], "members": [ { "serverAddresses": [ "192.0.2.10", "192.0.2.11" ], "servicePort": 80 } ] }, "serviceMain": { "class": "Service_HTTP", "virtualAddresses": [ "10.0.1.11" ], "pool": "pool_web" } } } } }""",
+            """{ "class": "AS3", "declaration": { "class": "ADC", "schemaVersion": "3.11.0", "id": "id", "Turtle<!invalid!>Corp": { "class": "Tenant", "WebApp": { "class": "Application", "template": "http", "pool_web": { "class": "Pool", "minimumMembersActive": 1, "monitors": [ "http", "tcp" ], "members": [ { "serverAddresses": [ "192.0.2.10", "192.0.2.11" ], "servicePort": 80 } ] }, "serviceMain": { "class": "Service_HTTP", "virtualAddresses": [ "10.0.1.11" ], "pool": "pool_web" } } } } }""",
+            """{ "class": "AS3", "declaration": { "class": "ADC", "schemaVersion": "3.11.0", "id": "id", "TurtleCorp": { "class": "Tenant", "WebApp": { "class": "Application", "template": "http", "pool_web": { "class": "Pool", "minimumMembersActive": 1, "monitors": [ "http", "tcp" ], "members": [ { "serverAddresses": [ "INVALID" ], "servicePort": 80 } ] }, "serviceMain": { "class": "Service_HTTP", "virtualAddresses": [ "10.0.1.11" ], "pool": "pool_web" } } } } }""",
+        ],
+    )
+    def test_invalid_f5formats(self, declaration, fixture_as3schema):
+        """test invalid field formats against AS3 Format Checker"""
+        with pytest.raises(AS3ValidationError):
+            fixture_as3schema.validate(declaration=declaration)
 
 
 @pytest.mark.usefixtures("fixture_as3schema")

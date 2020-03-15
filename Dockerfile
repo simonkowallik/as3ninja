@@ -51,12 +51,12 @@ RUN echo "* create stubs: docs, tests, README.md for poetry build to succeed."; 
        --no-cache-dir \
        --prefix /build \
        --ignore-installed \
-       -r requirements.txt; \
+       -r requirements.txt || exit 1; \
     pip3 install \
        --no-cache-dir \
        --prefix /build \
        --no-deps \
-       $(ls dist/*.whl); \
+       $(ls dist/*.whl) || exit 1; \
     echo "* The above requirements error about poetry and pyrsistent is save to ignore."
 
 # final image

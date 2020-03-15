@@ -111,11 +111,11 @@ Use ``curl`` or ``httpie`` to query all available AS3 Schema versions:
 
 .. image:: _static/_httpie_api.svg
 
-Navigate to `http://localhost:8000/docs`_ and `http://localhost:8000/redoc`_ to explore the API.
+Navigate to `http://localhost:8000/api/docs`_ and `http://localhost:8000/api/redoc`_ to explore the API.
 
-.. _`http://localhost:8000/docs`: http://localhost:8000/docs
+.. _`http://localhost:8000/api/docs`: http://localhost:8000/api/docs
 
-.. _`http://localhost:8000/redoc`: http://localhost:8000/redoc
+.. _`http://localhost:8000/api/redoc`: http://localhost:8000/api/redoc
 
 
 .. todo:: Postman collection for API calls
@@ -131,7 +131,8 @@ To use AS3 Ninja in your python project:
 .. code-block:: python
    :linenos:
 
-   from as3ninja import schema, declaration
+   from as3ninja.schema import AS3Schema, AS3ValidationError
+   from as3ninja.declaration import AS3Declaration
 
    # Declaration Template (str)
    declaration_template = """
@@ -154,7 +155,7 @@ To use AS3 Ninja in your python project:
    }
 
    # generate the AS3 Declaration
-   as3declaration = declaration.AS3Declaration(
+   as3declaration = AS3Declaration(
        template_configuration=template_configuration,
        declaration_template=declaration_template
        )
@@ -169,11 +170,11 @@ To use AS3 Ninja in your python project:
                     'schemaVersion': '3.11.0'}}
 
    # create an AS3 schema instance
-   as3schema = schema.AS3Schema()
+   as3schema = AS3Schema()
 
    # Validate the AS3 Declaration against the AS3 Schema (latest version)
    try:
        as3schema.validate(declaration=as3declaration.declaration)
-   except schema.AS3ValidationError:
+   except AS3ValidationError:
        # an AS3ValidationError exception is raised when the validation fails
        raise

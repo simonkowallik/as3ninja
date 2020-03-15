@@ -342,6 +342,7 @@ Suppose we have the below tree structure and three Template Configuration files.
 
 .. code-block:: shell
     :linenos:
+
     ./configs
     ├── one.yaml
     ├── second
@@ -770,7 +771,7 @@ In this case ``http`` maps to the AS3 service class ``Service_HTTP``.
 Line 9-13 deals with monitors, if ``app.monitors`` is defined it is used,
 otherwise ``app.type`` is used again to lookup the default monitor to use, based on the Template Configuration (line 17-19).
 Note that ``"monitors"`` is expected to be a JSON array of monitors, this is why the Template Configuration YAML uses a list for ``monitor.http``.
-``jsonify`` is an AS3 Ninja Filter (see :py:func:`as3ninja.filters.jsonify`) which will convert any "piped" data to a valid JSON format.
+``jsonify`` is an AS3 Ninja Filter (see :py:func:`as3ninja.jinja2.filterfunctions.jsonify`) which will convert any "piped" data to a valid JSON format.
 A python list (which the YAML de-serializes to) is converted to a JSON array.
 
 The ``"members"`` key for a `AS3 Pool class` is expected to be a list, each list entry is an object with several key:value pairs.

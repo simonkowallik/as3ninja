@@ -4,8 +4,8 @@ import json
 import pytest
 from jinja2.exceptions import TemplateSyntaxError
 
-from as3ninja.declaration import (
-    AS3Declaration,
+from as3ninja.declaration import AS3Declaration
+from as3ninja.exceptions import (
     AS3JSONDecodeError,
     AS3TemplateSyntaxError,
     AS3UndefinedError,
@@ -64,7 +64,7 @@ mock_template_configuration_with_template_inline = AS3TemplateConfiguration(
             "a": "AAA",
             "c": "CCC",
             "as3ninja": {
-                "declaration_template": '{"json": True,"a": "{{ninja.a}}","b": "{{ninja.b}}","c": "{{ninja.c}}"}'
+                "declaration_template": '{"json": True,"a": "{{ninja.a}}","b": "{{ninja.b}}","c": "{{ninja.c}}"}'  # this will fail as a file is required
             },
         },
     ]
@@ -128,7 +128,7 @@ class Test_Interface:
 
     @staticmethod
     def test_declaration_template_in_configuration_inline():
-        with pytest.raises(ValueError):
+        with pytest.raises(FileNotFoundError):
             AS3Declaration(
                 template_configuration=mock_template_configuration_with_template_inline
             )
@@ -248,6 +248,21 @@ class Test_transform_syntaxerror:
         assert "{% This line raises a Syntax Error %}<---- Error line:2" in str(
             exc.value
         )
+
+
+class Test_transform_DOLLARschema:
+    @pytest.mark.parametrize(
+        "template",
+        [
+            """{ "$schema": "schemalink", "foo": "bar" }""",  # $schema will be removed
+            """{ "foo": "bar" }""",  # must yield the same result as above
+        ],
+    )
+    def test_remove_schema(self, template):
+        expected_result = {"foo": "bar"}
+
+        as3d = AS3Declaration(declaration_template=template, template_configuration={},)
+        assert as3d.dict() == expected_result
 
 
 class Test_invalid_declarations:

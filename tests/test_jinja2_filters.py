@@ -5,12 +5,14 @@ import pytest
 from jinja2 import DictLoader, Environment
 from jinja2.runtime import Context
 
-from as3ninja.filters import *
+from as3ninja.jinja2 import J2Ninja
+from as3ninja.jinja2.filterfunctions import *
+from as3ninja.jinja2.filters import *
 from tests.utils import format_json
 
 
-def test_ninjafilters_is_dict():
-    assert type(ninjafilters) == dict
+def test_J2Ninja_filters_is_dict():
+    assert type(J2Ninja.filters) == dict
 
 
 class Test_Base64:
@@ -73,10 +75,15 @@ class Test_readfile:
             result = readfile(Context, "tests/testdata/functions/utf8.txt")
 
     @staticmethod
-    def test_non_existing_file():
+    def test_non_existing_file_missingOk():
         result = readfile(Context, "does/not/exist.ext", missing_ok=True)
         assert isinstance(result, str)
         assert result == ""
+
+    @staticmethod
+    def test_non_existing_file():
+        with pytest.raises(OSError):
+            readfile(Context, "does/not/exist.ext", missing_ok=False)
 
 
 class Test_ninjutsu:

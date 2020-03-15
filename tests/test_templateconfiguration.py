@@ -4,10 +4,8 @@ from pathlib import Path
 import pytest
 from pydantic import ValidationError
 
-from as3ninja.templateconfiguration import (
-    AS3TemplateConfiguration,
-    AS3TemplateConfigurationError,
-)
+from as3ninja.exceptions import AS3TemplateConfigurationError
+from as3ninja.templateconfiguration import AS3TemplateConfiguration
 
 from .utils import format_json
 

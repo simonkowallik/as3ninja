@@ -1,52 +1,19 @@
 # -*- coding: utf-8 -*-
 """
-The ninjafunctions contains clever jinja2 functions.
+This module holds Jinja2 functions for AS3 Ninja.
 """
+
+# pylint: disable=C0330 # Wrong hanging indentation before block
+# pylint: disable=C0301 # Line too long
+
 import re
 from pathlib import Path
-from uuid import uuid4
 
-from jinja2 import contextfunction
-from jinja2.runtime import Context
-
-from .utils import deserialize
-from .vault import VaultClient as _VaultClient
-from .vault import VaultSecret, VaultSecretsEngines
-from .vault import vault as _vault
-
-ninjafunctions = dict()
+from .j2ninja import J2Ninja
+from ..utils import deserialize
 
 
-# additional __all__ entries will be added by registerfunction
-__all__ = ["ninjafunctions"]
-
-
-def registerfunction(f, name=None):
-    """A decorator which registers the decorated function in ninjafunctions dict and appends it's name to __all__"""
-    global ninjafunctions
-    ninjafunctions[name or f.__name__] = f
-    __all__.append(name or f.__name__)
-    return f
-
-
-@registerfunction
-@contextfunction
-def vault(*args, **kwargs):
-    return _vault(*args, **kwargs)
-
-
-@registerfunction
-class VaultClient(_VaultClient):
-    pass
-
-
-@registerfunction
-def uuid() -> str:
-    """Returns a UUID4"""
-    return str(uuid4())
-
-
-@registerfunction
+@J2Ninja.registerfunction
 class iterfiles:
     """iterates files, returns a tuple of all globbing matches and the file content as dict.
     Assumes the file content is either JSON or YAML.
@@ -82,8 +49,9 @@ class iterfiles:
             _li = list(m.groups())
             try:
                 _li.append(deserialize(datasource=filepath))
-            except:
-                _li.append(deserialize(datasource=filepath, return_as=str))
+            except ValueError:
+                with open(filepath, "r") as filepath_fh:
+                    _li.append(filepath_fh.read())
 
             return tuple(_li)
         else:
