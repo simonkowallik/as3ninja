@@ -35,7 +35,7 @@ pluggy==0.13.1
 py==1.8.1
 pydantic==1.4
 pygments==2.5.2
-pylint==2.4.4
+pylint==2.5.0
 pyparsing==2.4.6
 pyrsistent==0.15.7
 pytest==5.3.5
