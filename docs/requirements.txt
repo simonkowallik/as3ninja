@@ -47,7 +47,7 @@ regex==2020.2.20
 requests==2.23.0
 six==1.14.0
 snowballstemmer==2.0.0
-sphinx==2.4.4
+sphinx==3.0.4
 sphinx-autodoc-typehints==1.10.3
 sphinx-rtd-theme==0.4.3
 sphinxcontrib-applehelp==1.0.2
