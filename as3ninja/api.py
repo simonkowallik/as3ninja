@@ -124,7 +124,6 @@ async def openapi_redirect():
 
 
 api = FastAPI(  # pylint: disable=C0103
-    openapi_prefix="/api",
     title=__projectname__,
     description=__description__,
     version=__version__,
