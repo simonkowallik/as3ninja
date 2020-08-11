@@ -34,7 +34,7 @@ def deserialize(datasource: str) -> dict:
         except (yaml.parser.ParserError, yaml.scanner.ScannerError):
             _data = None
 
-    if not isinstance(_data, dict):
+    if not isinstance(_data, (dict, list)):
         raise ValueError("deserialize: Could not deserialize datasource.")
 
     return _data
