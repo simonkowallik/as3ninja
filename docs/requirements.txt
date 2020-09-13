@@ -1,36 +1,36 @@
-aiocontextvars==0.2.2; python_version < "3.7"
+aiocontextvars==0.2.2
 alabaster==0.7.12
 appdirs==1.4.4
 astroid==2.4.2
-atomicwrites==1.4.0; sys_platform == "win32"
-attrs==19.3.0
+atomicwrites==1.4.0
+attrs==20.2.0
 babel==2.8.0
 black==19.10b0
 certifi==2020.6.20
 chardet==3.0.4
 click==7.1.2
-colorama==0.4.3; sys_platform == "win32"
-contextvars==2.4; python_version < "3.7"
+colorama==0.4.3
+contextvars==2.4
 coverage==5.2.1
-dataclasses==0.6; python_version < "3.7"
+dataclasses==0.7
 docutils==0.16
-fastapi==0.60.1
+fastapi==0.61.1
 h11==0.9.0
-httptools==0.1.1; sys_platform != "win32" and sys_platform != "cygwin" and platform_python_implementation != "PyPy"
+httptools==0.1.1
 hvac==0.9.6
 idna==2.10
 imagesize==1.2.0
-immutables==0.14; python_version < "3.7"
-importlib-metadata==1.7.0; python_version < "3.8"
+immutables==0.14
+importlib-metadata==1.7.0
 isort==4.3.21
 jinja2==2.11.2
 jsonschema==3.2.0
 lazy-object-proxy==1.4.3
-loguru==0.5.1
+loguru==0.5.2
 markupsafe==1.1.1
 mccabe==0.6.1
 mock==4.0.2
-more-itertools==8.4.0
+more-itertools==8.5.0
 mypy==0.761
 mypy-extensions==0.4.3
 packaging==20.4
@@ -38,12 +38,12 @@ pathspec==0.8.0
 pluggy==0.13.1
 py==1.9.0
 pydantic==1.6.1
-pygments==2.6.1
-pylint==2.5.3
+pygments==2.7.0
+pylint==2.6.0
 pyparsing==2.4.7
-pyrsistent==0.16.0
+pyrsistent==0.17.3
 pytest==5.4.3
-pytest-cov==2.10.0
+pytest-cov==2.10.1
 pytest-mock==2.0.0
 pytz==2020.1
 pyyaml==5.3.1
@@ -51,7 +51,7 @@ regex==2020.7.14
 requests==2.24.0
 six==1.15.0
 snowballstemmer==2.0.0
-sphinx==3.1.2
+sphinx==3.2.1
 sphinx-autodoc-typehints==1.11.0
 sphinx-rtd-theme==0.4.3
 sphinxcontrib-applehelp==1.0.2
@@ -63,12 +63,11 @@ sphinxcontrib-serializinghtml==1.1.4
 starlette==0.13.6
 toml==0.10.1
 typed-ast==1.4.1
-typing-extensions==3.7.4.2
+typing-extensions==3.7.4.3
 urllib3==1.25.10
-uvicorn==0.11.7
-uvloop==0.14.0; sys_platform != "win32" and sys_platform != "cygwin" and platform_python_implementation != "PyPy"
+uvicorn==0.11.8
+uvloop==0.14.0
 wcwidth==0.2.5
 websockets==8.0.2
-win32-setctime==1.0.1; sys_platform == "win32"
-wrapt==1.12.1
-zipp==3.1.0; python_version < "3.8"
+win32-setctime==1.0.2
+zipp==3.1.0
