@@ -120,6 +120,7 @@ def to_list(data: Any) -> list:
     Another example using the python REPL:
 
     .. code-block:: python
+
         ( to_list("foo bar") == ['foo bar'] ) == True  # strings
 
         ( to_list(["foo", "bar"]) == ['foo', 'bar'] ) == True  # existing lists
