@@ -7,6 +7,7 @@ AS3 Ninja CLI module
 # pylint: disable=C0301 # Line too long
 
 import json
+import yaml
 import sys
 from typing import Any, List, Optional, Union
 
@@ -55,7 +56,7 @@ def _output_declaration(
 @click.group(context_settings=dict(help_option_names=["-h", "--help"]))
 @click.version_option(version=__version__)
 def cli() -> None:
-    """main cli command group"""
+    """AS3 Ninja CLI commands and command groups."""
 
 
 @cli.command()
@@ -252,3 +253,56 @@ def validate(
         as3s.version,
         feature="f-strings",
     )
+
+
+@cli.group(context_settings=dict(help_option_names=["-h", "--help"]))
+def schema() -> None:
+    """Group of AS3 Schema related commands."""
+    pass
+
+
+@schema.command()
+@failOnException
+@LOG_STDERR.catch(reraise=True)
+def update():
+    """Update AS3 JSON Schemas from Github."""
+    as3s = AS3Schema()
+    as3s.updateschemas()
+    as3s_new = AS3Schema()
+
+    if as3s.version != as3s_new.version:
+        click.echo(
+            f"Updated AS3 JSON Schemas from version:{as3s.version} to:{as3s_new.version}",
+        )
+    else:
+        click.echo(
+            f"AS3 JSON Schemas are up-to-date, current version:{as3s.version}",
+        )
+
+
+@schema.command()
+@click.option(
+    "--text",
+    "output_format",
+    flag_value="text",
+    help="Format output as text.",
+    default=True,
+)
+@click.option(
+    "--json", "output_format", flag_value="json", help="Format output as JSON.",
+)
+@click.option(
+    "--yaml", "output_format", flag_value="yaml", help="Format output as YAML.",
+)
+@failOnException
+@LOG_STDERR.catch(reraise=True)
+def versions(output_format):
+    """Prints all available AS3 JSON Schema versions."""
+    as3s = AS3Schema()
+
+    if output_format == "text":
+        click.echo("\n".join(as3s.versions))
+    elif output_format == "json":
+        click.echo(json.dumps({"as3_schema_versions": as3s.versions}))
+    elif output_format == "yaml":
+        click.echo(yaml.safe_dump({"as3_schema_versions": as3s.versions}))
