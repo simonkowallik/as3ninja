@@ -1,0 +1,4 @@
+CakeFactory:
+  class: Tenant
+  # include applications
+  website: !include ./tenants/CakeFactory/apps/website.yaml

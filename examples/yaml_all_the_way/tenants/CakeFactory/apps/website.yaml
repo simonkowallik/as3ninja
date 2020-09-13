@@ -1,0 +1,17 @@
+class: Application
+template: http
+serviceMain:
+  class: Service_HTTP
+  virtualAddresses:
+  - 198.19.4.100
+  - 10.10.4.100
+  pool: web_pool
+web_pool:
+  class: Pool
+  members:
+  - servicePort: 80
+    serverAddresses:
+    - 172.16.4.110
+  - servicePort: 8080
+    serverAddresses:
+    - 172.16.4.111

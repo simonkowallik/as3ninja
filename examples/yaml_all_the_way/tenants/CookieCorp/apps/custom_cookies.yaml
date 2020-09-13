@@ -1,0 +1,83 @@
+class: Application
+template: https
+serviceMain:
+  class: Service_HTTPS
+  virtualAddresses:
+    - 198.18.7.100
+    - 10.0.7.100
+  policyEndpoint: forward_policy
+  pool: web_pool
+  serverTLS: tlsconfig
+web_pool:
+  class: Pool
+  members:
+    - servicePort: 8080
+      shareNodes: true
+      serverAddresses:
+        - 192.168.7.10
+        - 192.168.7.11
+b2b_pool:
+  class: Pool
+  members:
+    - servicePort: 80
+      shareNodes: true
+      serverAddresses:
+        - 192.168.7.20
+        - 192.168.7.21
+        - 192.168.7.22
+b2c_pool:
+  class: Pool
+  members:
+    - servicePort: 80
+      shareNodes: true
+      serverAddresses:
+        - 192.168.7.30
+        - 192.168.7.31
+tlsconfig:
+  class: TLS_Server
+  certificates:
+    - certificate: tlscert
+# include the actual tlscert definition from an external file
+tlscert: !include ./tenants/CookieCorp/secrets/custom_cookies.yaml
+# define traffic routing policy
+forward_policy:
+  class: Endpoint_Policy
+  rules:
+    # custom.cookiecorp.com/custom -> b2c
+    - name: custom_cookies_b2c
+      conditions:
+        - type: httpUri
+          host:
+            operand: equals
+            values:
+              - custom.cookiecorp.com
+        - type: httpUri
+          path:
+            operand: starts-with
+            values:
+              - /custom
+      actions:
+        - type: forward
+          event: request
+          select:
+            pool:
+              use: b2c_pool
+    # custom.cookiecorp.com/business -> b2b
+    - name: custom_cookies_b2b
+      conditions:
+        - type: httpUri
+          host:
+            operand: equals
+            values:
+              - custom.cookiecorp.com
+        - type: httpUri
+          path:
+            operand: starts-with
+            values:
+              - /businesses
+      actions:
+        - type: forward
+          event: request
+          select:
+            pool:
+              use: b2b_pool

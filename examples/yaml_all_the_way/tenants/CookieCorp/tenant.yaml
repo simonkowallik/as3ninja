@@ -1,0 +1,6 @@
+CookieCorp:
+  class: Tenant
+  defaultRouteDomain: 10
+  # include applications
+  website: !include ./tenants/CookieCorp/apps/website.yaml
+  custom_cookies: !include ./tenants/CookieCorp/apps/custom_cookies.yaml

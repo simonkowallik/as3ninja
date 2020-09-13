@@ -1,0 +1,2 @@
+# include all tenants.yaml in ./tenants and it's subfolders, also make sure tenants will be a list
+tenants: !include [./tenants/**/tenant.yaml]
