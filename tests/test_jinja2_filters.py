@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 from os import stat
-from tests.test_api import Test_API_Startup_event
 from uuid import UUID
 
 import pytest
@@ -10,6 +9,7 @@ from jinja2.runtime import Context
 from as3ninja.jinja2 import J2Ninja
 from as3ninja.jinja2.filterfunctions import *
 from as3ninja.jinja2.filters import *
+from tests.test_api import Test_API_Startup_event
 from tests.utils import format_json
 
 

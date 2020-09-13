@@ -206,7 +206,9 @@ class AS3TemplateConfiguration(DictLike):
 
         return Path(_base_path).glob(pattern)
 
-    def _deserialize_includes(self, includes: List[str], register: bool = True) -> Generator:
+    def _deserialize_includes(
+        self, includes: List[str], register: bool = True
+    ) -> Generator:
         """Iterates and expands over the list of includes and yields the deseriealized data.
 
         :param includes: List of include files

@@ -7,11 +7,11 @@ AS3 Ninja CLI module
 # pylint: disable=C0301 # Line too long
 
 import json
-import yaml
 import sys
 from typing import Any, List, Optional, Union
 
 import click
+import yaml
 from loguru import logger
 
 from . import __version__
@@ -275,9 +275,7 @@ def update():
             f"Updated AS3 JSON Schemas from version:{as3s.version} to:{as3s_new.version}",
         )
     else:
-        click.echo(
-            f"AS3 JSON Schemas are up-to-date, current version:{as3s.version}",
-        )
+        click.echo(f"AS3 JSON Schemas are up-to-date, current version:{as3s.version}",)
 
 
 @schema.command()

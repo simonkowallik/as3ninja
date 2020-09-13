@@ -124,9 +124,7 @@ async def openapi_redirect():
 
 
 api = FastAPI(  # pylint: disable=C0103
-    title=__projectname__,
-    description=__description__,
-    version=__version__,
+    title=__projectname__, description=__description__, version=__version__,
 )
 
 api.add_middleware(CORSMiddleware, **CORS_SETTINGS)

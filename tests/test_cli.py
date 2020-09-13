@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 import json
-import yaml
 from pathlib import Path
 
-import pytest
 import mock
+import pytest
+import yaml
 from click.testing import CliRunner
 
 from as3ninja.cli import cli
@@ -304,13 +304,7 @@ class Test_schema_versions:
         """
         as3ninja schema versions text output (default)
         """
-        result = fixture_clicker.invoke(
-            cli,
-            [
-                "schema",
-                "versions",
-            ],
-        )
+        result = fixture_clicker.invoke(cli, ["schema", "versions",],)
 
         assert result.exit_code == 0
         assert result.output.count("\n") > 2  # more than two versions in output
@@ -320,39 +314,28 @@ class Test_schema_versions:
         """
         as3ninja schema versions JSON outout
         """
-        result = fixture_clicker.invoke(
-            cli,
-            [
-                "schema",
-                "versions",
-                "--json",
-            ],
-        )
+        result = fixture_clicker.invoke(cli, ["schema", "versions", "--json",],)
 
         assert result.exit_code == 0
         json_result = json.loads(result.output)
         assert "as3_schema_versions" in json_result
-        assert len(json_result["as3_schema_versions"]) > 2  # more than two versions in output
+        assert (
+            len(json_result["as3_schema_versions"]) > 2
+        )  # more than two versions in output
 
     @staticmethod
     def test_versions_yaml(fixture_clicker):
         """
         as3ninja schema versions YAML outout
         """
-        result = fixture_clicker.invoke(
-            cli,
-            [
-                "schema",
-                "versions",
-                "--yaml",
-            ],
-        )
+        result = fixture_clicker.invoke(cli, ["schema", "versions", "--yaml",],)
 
         assert result.exit_code == 0
         yaml_result = yaml.safe_load(result.output)
         assert "as3_schema_versions" in yaml_result
-        assert len(yaml_result["as3_schema_versions"]) > 2  # more than two versions in output
-
+        assert (
+            len(yaml_result["as3_schema_versions"]) > 2
+        )  # more than two versions in output
 
 
 class Test_schema_update:
@@ -362,18 +345,14 @@ class Test_schema_update:
         as3ninja schema update
         """
         mocked_as3schema = mock.MagicMock()
-        type(mocked_as3schema).version = mock.PropertyMock(side_effect=["3.1.0", "3.2.0", "3.1.0", "3.2.0"])
+        type(mocked_as3schema).version = mock.PropertyMock(
+            side_effect=["3.1.0", "3.2.0", "3.1.0", "3.2.0"]
+        )
         mocked_as3schema.return_value = mocked_as3schema
 
         mocker.patch("as3ninja.cli.AS3Schema", mocked_as3schema)
 
-        result = fixture_clicker.invoke(
-            cli,
-            [
-                "schema",
-                "update",
-            ],
-        )
+        result = fixture_clicker.invoke(cli, ["schema", "update",],)
 
         assert result.exit_code == 0
         assert result.output.count("3.1.0") == 1
@@ -385,18 +364,14 @@ class Test_schema_update:
         as3ninja schema update
         """
         mocked_as3schema = mock.MagicMock()
-        type(mocked_as3schema).version = mock.PropertyMock(side_effect=["3.1.0", "3.1.0", "3.1.0", "3.1.0"])
+        type(mocked_as3schema).version = mock.PropertyMock(
+            side_effect=["3.1.0", "3.1.0", "3.1.0", "3.1.0"]
+        )
         mocked_as3schema.return_value = mocked_as3schema
 
         mocker.patch("as3ninja.cli.AS3Schema", mocked_as3schema)
 
-        result = fixture_clicker.invoke(
-            cli,
-            [
-                "schema",
-                "update",
-            ],
-        )
+        result = fixture_clicker.invoke(cli, ["schema", "update",],)
 
         assert result.exit_code == 0
         assert result.output.count("3.1.0") == 1

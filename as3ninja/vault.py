@@ -228,7 +228,9 @@ def vault(
             filter = "data." + filter
         return dict_filter(
             vault_client.secrets.kv.v2.read_secret_version(
-                path=_secret.path, mount_point=_secret.mount_point, version=_secret.version
+                path=_secret.path,
+                mount_point=_secret.mount_point,
+                version=_secret.version,
             ),
             filter=filter,
         )
