@@ -7,9 +7,8 @@ The AS3TemplateConfiguration module allows to compose AS3 Template Configuration
 # pylint: disable=C0301 # Line too long
 
 import json
-from collections import abc
 from pathlib import Path
-from typing import Generator, List, Optional, Union
+from typing import Dict, Generator, List, Optional, Union
 
 from pydantic import BaseModel, ValidationError
 from six import iteritems
@@ -81,7 +80,7 @@ class AS3TemplateConfiguration(DictLike):
         self._configuration_json: str = ""
         self._template_configurations: list = []
 
-        self._base_path: str = base_path
+        self._base_path: str = base_path or ""
 
         if template_configuration is None:
             template_configuration = self._ninja_default_configfile()
@@ -207,7 +206,7 @@ class AS3TemplateConfiguration(DictLike):
 
         return Path(_base_path).glob(pattern)
 
-    def _deserialize_includes(self, includes: List[str], register: bool = True) -> dict:
+    def _deserialize_includes(self, includes: List[str], register: bool = True) -> Generator:
         """Iterates and expands over the list of includes and yields the deseriealized data.
 
         :param includes: List of include files
@@ -239,7 +238,7 @@ class AS3TemplateConfiguration(DictLike):
         for config in self._template_configurations:
             self._configuration = self._dict_deep_update(self._configuration, config)
 
-    def _dict_deep_update(self, dict_to_update: dict, update: dict) -> dict:
+    def _dict_deep_update(self, dict_to_update: Dict, update: Dict) -> Dict:
         """Similar to dict.update() but with full depth.
 
         :param dict_to_update: dict to update (will be mutated)
@@ -260,9 +259,9 @@ class AS3TemplateConfiguration(DictLike):
         """
         for key, value in iteritems(update):
             dict_value = dict_to_update.get(key, {})
-            if not isinstance(dict_value, abc.Mapping):
+            if not isinstance(dict_value, dict):
                 dict_to_update[key] = value
-            elif isinstance(value, abc.Mapping):
+            elif isinstance(value, dict):
                 dict_to_update[key] = self._dict_deep_update(dict_value, value)
             else:
                 dict_to_update[key] = value

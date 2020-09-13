@@ -8,7 +8,7 @@ AS3 Ninja CLI module
 
 import json
 import sys
-from typing import Optional, Union
+from typing import Any, List, Optional, Union
 
 import click
 from loguru import logger
@@ -38,7 +38,7 @@ logger.add(
 
 
 def _output_declaration(
-    as3declaration: AS3Declaration, output_file: Union[str, None], pretty: bool,
+    as3declaration: AS3Declaration, output_file: Any, pretty: bool,
 ):
     """
     Function to output the transformed declaration
@@ -99,8 +99,8 @@ def cli() -> None:
 @failOnException
 @LOG_STDERR.catch(reraise=True)
 def transform(
-    declaration_template: str,
-    configuration_file: Optional[tuple],
+    declaration_template: Any,
+    configuration_file: Optional[Any],
     output_file: Union[str, None],
     validate: bool,  # pylint: disable=W0621 # Redefining name 'validate' from outer scope
     pretty: bool,
@@ -114,7 +114,7 @@ def transform(
     If no Declaration Template is specified, it is read from the Template Configuration (as3ninja.declaration_template).
     If no Template Configuration is specified, the first default configuration file (ninja.json, ninja.yaml, ninja.yml). The file is expected to be in the CWD.
     """
-    template = None
+    template = ""
     if declaration_template:
         template = declaration_template.read()
 
@@ -178,14 +178,14 @@ def transform(
 @LOG_STDERR.catch(reraise=True)
 def git_transform(  # pylint: disable=R0913 # Too many arguments
     declaration_template: Optional[str],
-    configuration_file: Optional[tuple],
+    configuration_file: Optional[List],
     output_file: Union[str, None],
     validate: bool,  # pylint: disable=W0621 # Redefining name 'validate' from outer scope
     pretty: bool,
     repository: str,
     branch: Union[str, None],
     commit: Union[str, None],
-    depth: Union[int, None],
+    depth: Optional[int],
 ):
     """Render AS3 Declaration from Git Repository.
 

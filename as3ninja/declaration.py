@@ -7,7 +7,7 @@ The AS3Declaration module. Represents an AS3 Declaration as a python class.
 # pylint: disable=C0301 # Line too long
 
 import json
-from typing import Dict, Union
+from typing import Dict, Optional
 
 from jinja2 import (
     ChoiceLoader,
@@ -35,18 +35,18 @@ class AS3Declaration:
         An explicitly specified declaration_template takes precedence over any included template.
 
         :param template_configuration: AS3 Template Configuration as ``dict`` or ``list``
-        :param declaration_template: Optional Declaration Template as ``str`` (Default value = ``None``)
+        :param declaration_template: Optional Declaration Template as ``str`` (Default value = ````)
         :param jinja2_searchpath: The jinja2 search path for the FileSystemLoader. Important for jinja2 includes. (Default value = ``"."``)
     """
 
     def __init__(
         self,
         template_configuration: Dict,
-        declaration_template: str = None,
+        declaration_template: Optional[str] = None,
         jinja2_searchpath: str = ".",
     ):
         self._template_configuration = template_configuration
-        self._declaration_template = declaration_template
+        self._declaration_template = declaration_template or ""
         self._jinja2_searchpath = jinja2_searchpath
 
         if not self._declaration_template:
@@ -74,7 +74,7 @@ class AS3Declaration:
         return self._declaration_json
 
     @property
-    def declaration_template(self) -> Union[str, None]:
+    def declaration_template(self) -> str:
         """Property contains the declaration template loaded or provided during instantiation"""
         return self._declaration_template
 

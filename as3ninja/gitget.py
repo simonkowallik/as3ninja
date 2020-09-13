@@ -51,20 +51,22 @@ class Gitget:
     def __init__(
         self,
         repository: str,
-        depth: int = 1,
+        depth: Optional[int] = None,
         branch: Optional[str] = None,
         commit: Optional[str] = None,
         repodir: Optional[str] = None,
         force: bool = False,
     ):
-        if depth < 0:
+        if depth is None:
+            depth = 1
+        elif depth < 0:
             raise ValueError("depth must be 0 or a positive number.")
         self._depth = depth
         self._branch = branch
         self._commit = commit
         self._repo = repository
-        self._repodir = repodir
         if repodir:
+            self._repodir = repodir
             self._repodir_persist = True
         else:
             self._repodir = str(mkdtemp(suffix=".ninja.git"))
