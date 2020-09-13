@@ -120,8 +120,8 @@ class AS3Declaration:
             # https://github.com/F5Networks/f5-appsvcs-extension/issues/173
             try:
                 del self._declaration["$schema"]
-            except KeyError:
-                pass  # ignore KeyError for missing $schema
+            except (KeyError, TypeError):
+                pass  # ignore missing $schema
 
             self._declaration_json = json.dumps(
                 self._declaration
