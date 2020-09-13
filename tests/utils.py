@@ -51,3 +51,16 @@ def fixture_mktmpfile(tmp_path_factory):
         return fn_file
 
     return _mktmpfile
+
+
+@pytest.yield_fixture
+def fixture_recursion_depth_100(scope="function"):
+    """
+    Temporarily lowers the recursionlimit to 100
+    """
+    import sys
+
+    sys_recursionlimit = sys.getrecursionlimit()
+    sys.setrecursionlimit(100)
+    yield
+    sys.setrecursionlimit(sys_recursionlimit)

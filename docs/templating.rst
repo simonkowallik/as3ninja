@@ -452,6 +452,157 @@ would produce:
 .. Note:: The above example is intended to demonstrate the behavior but could be seen as an example for bad practice due to the include complexity.
 
 
+Including further YAML files using `!include`
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+AS3 Ninja uses a custom yaml ``!include`` tag which provides additional functionality to include further YAML files.
+
+``!include`` is followed by a filename (including the path from the current working directory) or a python list of filenames.
+The filename(s) can include a globbing pattern following the rules of `python3's pathlib Path.glob`_.
+
+.. _`python3's pathlib Path.glob`: https://docs.python.org/3/library/pathlib.html#pathlib.Path.glob
+
+
+.. Note:: Nesting ``!include`` is possible, e.g. `a.yaml` includes `b.yaml` which includes `c.yaml` but should be avoided in favor of a cleaner and more understandable design.
+
+
+Suppose we have the below tree structure:
+
+.. code-block:: shell
+    :linenos:
+
+    .
+    ├── main.yaml
+    └── services
+        ├── A
+        │   ├── serviceA1.yaml
+        │   ├── serviceA2.yaml
+        │   └── serviceA3.yaml
+        └── B
+            ├── serviceB1.yaml
+            └── serviceB2.yaml
+
+
+Each `serviceXY.yaml` file contains definitions for its service, for example:
+
+.. code-block:: yaml
+    :linenos:
+
+    ServiceXY:
+      address: 198.18.x.y
+
+
+In `main.yaml` we use ``!include`` to include the `serviceXY.yaml` files as follows:
+
+.. code-block:: yaml
+    :linenos:
+
+    # Use globbing to traverse all subdirectories in `./services/`
+    # and include all `.yaml` files:
+    all_services: !include ./services/**/*.yaml
+
+    # simply include a single yaml file:
+    service_a1: !include ./services/A/serviceA1.yaml
+
+    # include a single yaml file but make sure it is included as a list element:
+    service_b1_list: !include [./services/B/serviceB1.yaml]
+
+    # include two yaml files explicitly:
+    service_a2_b2: !include [./services/A/serviceA2.yaml, ./services/B/serviceB2.yaml]
+
+    # include all files matching serviceB*.yaml in the directory ./services/B/
+    services_b: !include ./services/B/serviceB*.yaml
+
+
+The above yaml describes all syntaxes of ``!include`` and is equivalent to the below yaml.
+
+Please specifically note the behavior for the following examples:
+
+- `all_services` contains a list of all the yaml files the globbing pattern matched.
+
+- `service_a1` only contains the one yaml file, because only one file was specified, it is included as an object not a list.
+
+- `service_a2_b2` contain a list with the entries of serviceA2.yaml and serviceB2.yaml
+
+- `service_b1_list` includes only serviceB1.yaml but as a list entry due to the explicit use of `[]`
+
+
+.. Note:: Also note that the above paths are relative to the CWD where as3ninja is executed. That means if `ls ./services/A/serviceA2.yaml` is successful running as3ninja from the current directory will work as well.
+
+.. code-block:: yaml
+    :linenos:
+
+    all_services:
+      - ServiceA2:
+          address: 198.18.1.2
+      - ServiceA3:
+          address: 198.18.1.3
+      - ServiceA1:
+          address: 198.18.1.1
+      - ServiceB2:
+          address: 198.18.2.2
+      - ServiceB1:
+          address: 198.18.2.1
+
+    service_a1:
+      ServiceA1:
+        address: 198.18.1.1
+
+    service_b1_list:
+      - ServiceB1:
+          address: 198.18.2.1
+
+    service_a2_b2:
+      - ServiceA2:
+          address: 198.18.1.2
+      - ServiceB2:
+          address: 198.18.2.2
+
+    services_b:
+      - ServiceB2:
+          address: 198.18.2.2
+      - ServiceB1:
+          address: 198.18.2.1
+
+
+It is important to note that ``!include`` does not create a "new yaml file" similar to the above example,
+instead it de-serializes the `main.yaml` file and treats ``!include`` as an "instruction",
+which then de-serializes the files found based on the ``!include`` statement.
+
+So de-serializing the `main.yaml` actually results in the below python data structure (dict):
+
+.. code-block:: python
+    :linenos:
+
+    {
+      "all_services": [
+        { "ServiceA2": { "address": "198.18.1.2" } },
+        { "ServiceA3": { "address": "198.18.1.3" } },
+        { "ServiceA1": { "address": "198.18.1.1" } },
+        { "ServiceB2": { "address": "198.18.2.2" } },
+        { "ServiceB1": { "address": "198.18.2.1" } }
+      ],
+      "service_a1": { "ServiceA1": { "address": "198.18.1.1" } },
+      "service_b1_list": [
+        { "ServiceB1": { "address": "198.18.2.1" } }
+      ],
+      "service_a2_b2": [
+        { "ServiceA2": { "address": "198.18.1.2" } },
+        { "ServiceB2": { "address": "198.18.2.2" } }
+      ],
+      "services_b": [
+        { "ServiceB2": { "address": "198.18.2.2" } },
+        { "ServiceB1": { "address": "198.18.2.1" } }
+      ]
+    }
+
+
+
+
+
+.. Caution:: ``!include`` does not prevent against circular inclusion loops, which would end in a RecursionError exception.
+
+
 Default Template Configuration File
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 

@@ -1,0 +1,1 @@
+some_namespace: !include tests/testdata/utils/deserialize/include.d/*.yaml

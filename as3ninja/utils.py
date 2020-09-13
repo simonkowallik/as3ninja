@@ -10,18 +10,105 @@ Various utils and helpes used by AS3 Ninja
 import json
 import sys
 from functools import wraps
-from typing import Any, ItemsView, Iterator, KeysView, Optional, Union, ValuesView
+from pathlib import Path
+from typing import (
+    Any,
+    Dict,
+    ItemsView,
+    Iterator,
+    KeysView,
+    List,
+    Optional,
+    Union,
+    ValuesView,
+)
 
 import yaml
 
 
-def deserialize(datasource: str) -> dict:
+class YamlConstructor:  # pylint: disable=R0903 # Too few public methods (1/2) (too-few-public-methods)
+    """
+    Organizes functions to implement a custom PyYAML constructor
+    """
+
+    INCLUDE_TAG = "!include"
+
+    @staticmethod
+    def _path_glob(value: str) -> List[str]:
+        """
+        A Path().glob() helper function, checks if `value` actually contains a globbing pattern and either returns `value` or the result of the globbing.
+
+        :param value: String to check for globbing pattern and, if pattern found, to feed to Path().glob()
+        """
+        if "*" in value:  # globbing is used
+            # return list of str with all globbing results
+            return [str(entry) for entry in Path().glob(value)]
+        return [value]
+
+    @classmethod
+    def _include_constructor(cls, _, node) -> Union[List, Dict]:
+        """
+        The PyYAML constructor for the INCLUDE_TAG (!include).
+        This method should not be called directly, it is passed to PyYAML as a constructor function.
+
+        :param node: The yaml node to be inspected
+        """
+        yaml_files: List = []
+
+        if isinstance(
+            node, yaml.nodes.ScalarNode
+        ):  # single include statement (type str)
+            yaml_files = cls._path_glob(node.value)
+
+            if len(yaml_files) == 1:
+                # return immediately as Path.glob doesn't resolve to multiple files
+                with open(yaml_files[0]) as yml_file:
+                    return yaml.safe_load(yml_file)
+            elif len(yaml_files) == 0:
+                # _path_glob has not found a single file
+                raise FileNotFoundError(f"No file found based on node:{node.value}")
+
+        elif isinstance(node, yaml.nodes.SequenceNode):  # include is of type list
+            for entry in node.value:
+                # extend list with globbed entries
+                yaml_files.extend(cls._path_glob(entry.value))
+
+        else:
+            # yaml.nodes.MappingNode is not supported / nor is any other
+            raise TypeError(
+                f"YAML Node of type:{type(node)} is not supported. node:{node}"
+            )
+
+        result = []
+        for yaml_file in yaml_files:
+            with open(yaml_file) as yml_file:
+                result.append(yaml.safe_load(yml_file))
+
+        return result
+
+    @classmethod
+    def add_constructors(cls, yaml_module):
+        """
+        Adds constructors to PyYAML module.
+
+        :param yaml_module: Name of loaded PyYAML module
+        """
+        yaml_module.add_constructor(
+            cls.INCLUDE_TAG, cls._include_constructor, Loader=yaml_module.SafeLoader
+        )
+
+
+YamlConstructor.add_constructors(yaml)
+
+
+def deserialize(datasource: str) -> Dict:
     """
     deserialize de-serializes JSON or YAML from a file to a python dict.
 
     A ValueError exception is raised if JSON and YAML de-serialization fails.
+    A FileNotFoundError is raised when an included file is not found.
 
-    :param datasource: A file or data to deserialize
+    :param datasource: The filename (including path) to deserialize
     """
     with open(datasource, "r") as jy_file:
         data = jy_file.read()
@@ -31,11 +118,19 @@ def deserialize(datasource: str) -> dict:
     except (json.JSONDecodeError, TypeError):
         try:
             _data = yaml.safe_load(data)
-        except (yaml.parser.ParserError, yaml.scanner.ScannerError):
-            _data = None
-
-    if not isinstance(_data, (dict, list)):
-        raise ValueError("deserialize: Could not deserialize datasource.")
+        except (
+            yaml.parser.ParserError,
+            yaml.scanner.ScannerError,
+            TypeError,
+            ValueError,
+        ) as yaml_exception:
+            raise ValueError(
+                "deserialize: Could not deserialize datasource. datasource is neither valid JSON nor YAML."
+            ) from yaml_exception
+        except FileNotFoundError as yaml_exception:
+            raise FileNotFoundError(
+                "deserialize: Could not deserialize datasource. FileNotFoundError"
+            ) from yaml_exception
 
     return _data
 
@@ -43,7 +138,7 @@ def deserialize(datasource: str) -> dict:
 class DictLike:
     """Makes objects `feel` like a dict.
 
-    Implements required dunder methods and common methods used to access dict data.
+    Implements required dunder and common methods used to access dict data.
     """
 
     _dict: dict = {}
