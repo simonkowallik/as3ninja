@@ -73,6 +73,8 @@ tests: test
 test-docker:
 	DOCKER_TESTING=true tests/run_tests.sh
 
+docker-test: test-docker
+
 coverage:
 	REPORT=true tests/run_tests.sh
 	coverage report -m

@@ -1,4 +1,4 @@
-FROM alpine:3.11 AS base
+FROM alpine:3.12 AS base
 
 LABEL org.label-schema.name="AS3 Ninja"
 LABEL org.label-schema.vendor="Simon Kowallik"
@@ -25,6 +25,7 @@ RUN apk update --no-cache; \
             openssl-dev \
             python3 \
             py3-cffi \
+            py3-pip \
             python3-dev \
             ;
 
