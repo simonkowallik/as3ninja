@@ -46,7 +46,7 @@ pytest==5.4.3
 pytest-cov==2.10.0
 pytest-mock==2.0.0
 pytz==2020.1
-pyyaml==5.3.1
+pyyaml==5.4
 regex==2020.7.14
 requests==2.24.0
 six==1.15.0
