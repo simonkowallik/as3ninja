@@ -37,7 +37,7 @@ packaging==20.4
 pathspec==0.8.0
 pluggy==0.13.1
 py==1.9.0
-pydantic==1.6.1
+pydantic==1.6.2
 pygments==2.6.1
 pylint==2.5.3
 pyparsing==2.4.7
