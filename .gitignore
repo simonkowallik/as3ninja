@@ -1,5 +1,6 @@
 .local
 .vscode
+.idea
 **/*.DS_Store
 f5-appsvcs-extension/
 
