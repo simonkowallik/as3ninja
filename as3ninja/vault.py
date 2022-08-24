@@ -14,7 +14,7 @@ from pathlib import Path
 from typing import Dict, Optional, Union
 
 import hvac
-from jinja2 import contextfunction
+from jinja2 import pass_context
 from jinja2.runtime import Context
 from pydantic import BaseModel, validator
 
@@ -192,7 +192,7 @@ class VaultClient:
 
 @J2Ninja.registerfilter
 @J2Ninja.registerfunction
-@contextfunction
+@pass_context
 def vault(
     ctx: Context,
     secret: Dict,

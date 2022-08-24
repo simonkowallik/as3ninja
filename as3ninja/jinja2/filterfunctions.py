@@ -13,7 +13,7 @@ import os
 from typing import Any, Optional, Union
 from uuid import uuid4
 
-from jinja2 import contextfilter, contextfunction
+from jinja2 import pass_context
 from jinja2.runtime import Context
 
 from .j2ninja import J2Ninja
@@ -54,8 +54,7 @@ def b64decode(data: Union[str, bytes], urlsafe: bool = False) -> Union[str, byte
 
 @J2Ninja.registerfilter
 @J2Ninja.registerfunction
-@contextfilter
-@contextfunction
+@pass_context
 def readfile(ctx: Context, filepath: str, missing_ok: bool = False) -> str:
     """Reads a file and returns its content as ASCII.
     Expects the file to be a ASCII (not utf8!) encoded file.
