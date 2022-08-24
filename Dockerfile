@@ -1,4 +1,4 @@
-FROM alpine:3.12 AS base
+FROM alpine:3.16 AS base
 
 LABEL org.label-schema.name="AS3 Ninja"
 LABEL org.label-schema.vendor="Simon Kowallik"
@@ -27,11 +27,9 @@ RUN apk update --no-cache; \
             py3-cffi \
             py3-pip \
             python3-dev \
-            ;
-
-RUN pip3 install --no-cache-dir \
             poetry \
             ;
+
 
 RUN mkdir /build
 
@@ -46,7 +44,7 @@ RUN echo "* create stubs: docs, tests, README.md for poetry build to succeed."; 
     poetry build -f wheel; \
     poetry export --without-hashes \
     -f requirements.txt -o requirements.txt; \
-    export PYTHONPATH=/build/lib/python3.8/site-packages; \
+    export PYTHONPATH=/build/lib/python3.10/site-packages; \
     export PATH="$PATH:/build/bin"; \
     pip3 install \
        --no-cache-dir \
