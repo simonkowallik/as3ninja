@@ -152,7 +152,7 @@ class Test_Schema:
 
     @staticmethod
     def test_schema_validate_fail():
-        invalid_declaration_v390__json: str = r'{"class": "AS3","declaration": {"class": "ADC","schemaVersion": "3.9.0"}}'
+        invalid_declaration_v390__json: str = r'{"class": "AS3","declaration": {"class": "ADC","schemaVersion": "4.9.0"}}'
         invalid_declaration_v390__dict: dict = json.loads(
             invalid_declaration_v390__json
         )
