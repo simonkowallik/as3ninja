@@ -64,7 +64,7 @@ tomli==2.0.1; python_full_version <= "3.11.0a6" and python_version >= "3.7" and 
 tomlkit==0.11.4; python_version >= "3.6" and python_version < "4.0" and python_full_version >= "3.7.2"
 typing-extensions==4.3.0; python_version >= "3.7" and python_full_version >= "3.7.2" and python_version < "3.10"
 urllib3==1.26.12; python_version >= "3.7" and python_full_version < "3.0.0" and python_version < "4" or python_full_version >= "3.6.0" and python_version < "4" and python_version >= "3.7"
-uvicorn==0.18.2; python_version >= "3.7"
+uvicorn==0.18.3; python_version >= "3.7"
 win32-setctime==1.1.0; sys_platform == "win32" and python_version >= "3.5"
 wrapt==1.14.1; python_full_version >= "3.7.2"
 zipp==3.8.1; python_version < "3.9" and python_version >= "3.7"
