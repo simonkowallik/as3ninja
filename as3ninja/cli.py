@@ -71,7 +71,7 @@ def cli() -> None:
     "-c",
     "--configuration-file",
     required=False,
-    nargs=0,
+    multiple=True,
     type=click.Path(),
     help="Template Configuration file(s) to parameterize the Declaration Template (multiple files allowed)",
 )
@@ -143,7 +143,7 @@ def transform(
     "-c",
     "--configuration-file",
     required=False,
-    nargs=0,
+    multiple=True,
     type=click.Path(),
     help="Template Configuration file(s) to parameterize the Declaration Template (multiple files allowed)",
 )
