@@ -75,7 +75,6 @@ def cli() -> None:
     type=click.Path(),
     help="Template Configuration file(s) to parameterize the Declaration Template (multiple files allowed)",
 )
-@click.argument("configuration-file", nargs=-1)
 @click.option(
     "-o",
     "--output-file",
