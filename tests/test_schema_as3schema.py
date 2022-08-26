@@ -305,6 +305,7 @@ class Test_validate_declaration:
             declaration=self.declaration_v390__dict, version="auto"
         )
 
+    @pytest.mark.skip(reason="3.71 schema not valid anymore")
     def test_validate_371_against_latest(self, fixture_as3schema):
         fixture_as3schema.validate(declaration=self.declaration_v371__dict)
 
@@ -334,6 +335,7 @@ class Test_validate_declaration:
     def test_validate_390_json_formatted(self, fixture_as3schema):
         fixture_as3schema.validate(declaration=self.declaration_v390__json)
 
+    @pytest.mark.skip(reason="3.71 schema not valid anymore")
     def test_validate_370_json_formatted(self, fixture_as3schema):
         fixture_as3schema.validate(declaration=self.declaration_v371__json)
 
