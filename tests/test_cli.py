@@ -306,7 +306,13 @@ class Test_schema_versions:
         """
         as3ninja schema versions text output (default)
         """
-        result = fixture_clicker.invoke(cli, ["schema", "versions",],)
+        result = fixture_clicker.invoke(
+            cli,
+            [
+                "schema",
+                "versions",
+            ],
+        )
 
         assert result.exit_code == 0
         assert result.output.count("\n") > 2  # more than two versions in output
@@ -316,7 +322,14 @@ class Test_schema_versions:
         """
         as3ninja schema versions JSON outout
         """
-        result = fixture_clicker.invoke(cli, ["schema", "versions", "--json",],)
+        result = fixture_clicker.invoke(
+            cli,
+            [
+                "schema",
+                "versions",
+                "--json",
+            ],
+        )
 
         assert result.exit_code == 0
         json_result = json.loads(result.output)
@@ -330,7 +343,14 @@ class Test_schema_versions:
         """
         as3ninja schema versions YAML outout
         """
-        result = fixture_clicker.invoke(cli, ["schema", "versions", "--yaml",],)
+        result = fixture_clicker.invoke(
+            cli,
+            [
+                "schema",
+                "versions",
+                "--yaml",
+            ],
+        )
 
         assert result.exit_code == 0
         yaml_result = yaml.safe_load(result.output)
@@ -354,7 +374,13 @@ class Test_schema_update:
 
         mocker.patch("as3ninja.cli.AS3Schema", mocked_as3schema)
 
-        result = fixture_clicker.invoke(cli, ["schema", "update",],)
+        result = fixture_clicker.invoke(
+            cli,
+            [
+                "schema",
+                "update",
+            ],
+        )
 
         assert result.exit_code == 0
         assert result.output.count("3.1.0") == 1
@@ -373,7 +399,13 @@ class Test_schema_update:
 
         mocker.patch("as3ninja.cli.AS3Schema", mocked_as3schema)
 
-        result = fixture_clicker.invoke(cli, ["schema", "update",],)
+        result = fixture_clicker.invoke(
+            cli,
+            [
+                "schema",
+                "update",
+            ],
+        )
 
         assert result.exit_code == 0
         assert result.output.count("3.1.0") == 1

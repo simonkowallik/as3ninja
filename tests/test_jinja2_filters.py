@@ -217,7 +217,9 @@ class Test_hashlib:
     def test_hashfunction_digest_format_hex():
         assert (
             hashfunction(
-                data="fun with hashes", hash_algo="sha3_256", digest_format="hex",
+                data="fun with hashes",
+                hash_algo="sha3_256",
+                digest_format="hex",
             )
             == "19dbf4cfe516e0bb9a983c45b8e9f300dd69c083ab776d835559750181026802"
         )
@@ -226,7 +228,9 @@ class Test_hashlib:
     def test_hashfunction_digest_format_binary():
         assert (
             hashfunction(
-                data="fun with hashes", hash_algo="sha3_256", digest_format="binary",
+                data="fun with hashes",
+                hash_algo="sha3_256",
+                digest_format="binary",
             )
             == b"\x19\xdb\xf4\xcf\xe5\x16\xe0\xbb\x9a\x98<E\xb8\xe9\xf3\x00\xddi\xc0\x83\xabwm\x83UYu\x01\x81\x02h\x02"
         )

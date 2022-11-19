@@ -252,7 +252,7 @@ class Test_AS3TemplateConfiguration_interface:
 
     @staticmethod
     def test_overlay():
-        """Test """
+        """Test"""
         data = [
             "tests/testdata/AS3TemplateConfiguration/include1.yaml",
             {"inline": True, "overlay": False},
