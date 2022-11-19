@@ -91,7 +91,7 @@ class Test_git_transform:
         result_dict = json.loads(result.output)
         assert result_dict["config"] == "yes!"
         assert result_dict["config2"] == "yes!"
-        assert result_dict["gitrepo.info"] == "value"
+        assert result_dict["gitrepo.info"] == "{'key': 'value'}"
 
     @staticmethod
     def test_simple_validate_failure(fixture_clicker, mocker):
