@@ -22,20 +22,20 @@ __all__ = ["Gitget"]
 
 class Gitget:
     """Gitget context manager clones a git repository. Raises GitgetException on failure.
-        Exports:
-        `info` dict property with information about the cloned repository
-        `repodir` str property with the filesystem path to the temporary directory
-        Gitget creates a shall clone of the specified repository using the specified and optional depth.
-        A branch can be selected, if not specified the git server default branch is used (usually master).
+    Exports:
+    `info` dict property with information about the cloned repository
+    `repodir` str property with the filesystem path to the temporary directory
+    Gitget creates a shall clone of the specified repository using the specified and optional depth.
+    A branch can be selected, if not specified the git server default branch is used (usually master).
 
-        A specific commit id in long format can be selected, depth can be used to reach back into the past in case the commit id isn't available through a shallow clone.
+    A specific commit id in long format can be selected, depth can be used to reach back into the past in case the commit id isn't available through a shallow clone.
 
-            :param repository: Git Repository URL.
-            :param depth: Optional. Depth to clone. Specify `depth=0` for a full clone without a depth limit. (Default value = 1)
-            :param branch: Optional. Branch or Tag to clone. If None, default remote branch will be cloned. (Default value = None)
-            :param commit: Optional. Commit ID or HEAD~ format. Commit ID must either be within the last 20 commits or within the specified `depth`. (Default value = None)
-            :param repodir: Optional. Target directory for repositroy. This directory will persist on disk, Gitget will not remove it for you. (Default value = None)
-            :param force: Optional. Forces removal of an existing repodir before cloning (use with care). (Default value = False)
+        :param repository: Git Repository URL.
+        :param depth: Optional. Depth to clone. Specify `depth=0` for a full clone without a depth limit. (Default value = 1)
+        :param branch: Optional. Branch or Tag to clone. If None, default remote branch will be cloned. (Default value = None)
+        :param commit: Optional. Commit ID or HEAD~ format. Commit ID must either be within the last 20 commits or within the specified `depth`. (Default value = None)
+        :param repodir: Optional. Target directory for repositroy. This directory will persist on disk, Gitget will not remove it for you. (Default value = None)
+        :param force: Optional. Forces removal of an existing repodir before cloning (use with care). (Default value = False)
     """
 
     _gitcmd = (
@@ -122,7 +122,7 @@ class Gitget:
     def _sh_quote(arg) -> str:
         """Private Method: returns a shell escaped version of arg, where arg can by any type convertible to str. uses shlex.quote
 
-            :param arg: Argument to pass to `shlex.quote`
+        :param arg: Argument to pass to `shlex.quote`
         """
         try:
             # prevent quoting HEAD~<integer>
@@ -191,7 +191,7 @@ class Gitget:
     def _run_command(self, cmd: tuple) -> str:
         """Private Method: runs a shell command and handles/raises exceptions based on the command return code
 
-            :param cmd: list of command + arguments
+        :param cmd: list of command + arguments
         """
         result = None
         try:
