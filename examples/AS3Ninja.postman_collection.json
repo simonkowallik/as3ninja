@@ -1,0 +1,728 @@
+{
+	"info": {
+		"_postman_id": "990df12e-6ca2-4040-acb9-7b8714e88b69",
+		"name": "AS3Ninja",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Get schema related information",
+			"item": [
+				{
+					"name": "Latest schema version",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://{{host}}/api/schema/latest_version",
+							"protocol": "http",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"schema",
+								"latest_version"
+							]
+						},
+						"description": "Latest schema version available to AS3 Ninja"
+					},
+					"response": []
+				},
+				{
+					"name": "Get schema: latest version",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://{{host}}/api/schema/schema",
+							"protocol": "http",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"schema",
+								"schema"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get schema: version 3.17.1",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://{{host}}/api/schema/schema?version=3.17.1",
+							"protocol": "http",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"schema",
+								"schema"
+							],
+							"query": [
+								{
+									"key": "version",
+									"value": "3.17.1"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get schema: all versions",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://{{host}}/api/schema/schemas",
+							"protocol": "http",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"schema",
+								"schemas"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get all available schema versions",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://{{host}}/api/schema/versions",
+							"protocol": "http",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"schema",
+								"versions"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"protocolProfileBehavior": {}
+		},
+		{
+			"name": "Validate declaration",
+			"item": [
+				{
+					"name": "Validate against a specific schema version",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "30357a48-7ca1-44d4-a910-ac3aafb4c31d",
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"pm.test(\"valid is true\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.valid).to.eql(true);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"class\": \"AS3\",\n  \"action\": \"deploy\",\n  \"persist\": true,\n  \"declaration\": {\n    \"class\": \"ADC\",\n    \"schemaVersion\": \"3.0.0\",\n    \"id\": \"fghijkl7890\",\n    \"label\": \"Sample 1\",\n    \"remark\": \"HTTP with custom persistence\",\n    \"Sample_http_01\": {\n      \"class\": \"Tenant\",\n      \"A1\": {\n        \"class\": \"Application\",\n        \"service\": {\n          \"class\": \"Service_HTTP\",\n          \"virtualAddresses\": [\n            \"10.0.6.10\"\n          ],\n          \"pool\": \"web_pool\",\n          \"persistenceMethods\": [{\n            \"use\": \"jsessionid\"\n          }]\n        },\n        \"web_pool\": {\n          \"class\": \"Pool\",\n          \"monitors\": [\n            \"http\"\n          ],\n          \"members\": [{\n            \"servicePort\": 80,\n            \"serverAddresses\": [\n              \"192.0.6.10\",\n              \"192.0.6.11\"\n            ]\n          }]\n        },\n        \"jsessionid\": {\n          \"class\": \"Persist\",\n          \"persistenceMethod\": \"cookie\",\n          \"cookieMethod\": \"hash\",\n          \"cookieName\": \"JSESSIONID\"\n        }\n      }\n    }\n  }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://{{host}}/api/schema/validate?version=3.22.1",
+							"protocol": "http",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"schema",
+								"validate"
+							],
+							"query": [
+								{
+									"key": "version",
+									"value": "3.22.1"
+								}
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "Validate against a specific schema version",
+							"originalRequest": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"class\": \"AS3\",\n  \"action\": \"deploy\",\n  \"persist\": true,\n  \"declaration\": {\n    \"class\": \"ADC\",\n    \"schemaVersion\": \"3.0.0\",\n    \"id\": \"fghijkl7890\",\n    \"label\": \"Sample 1\",\n    \"remark\": \"HTTP with custom persistence\",\n    \"Sample_http_01\": {\n      \"class\": \"Tenant\",\n      \"A1\": {\n        \"class\": \"Application\",\n        \"service\": {\n          \"class\": \"Service_HTTP\",\n          \"virtualAddresses\": [\n            \"10.0.6.10\"\n          ],\n          \"pool\": \"web_pool\",\n          \"persistenceMethods\": [{\n            \"use\": \"jsessionid\"\n          }]\n        },\n        \"web_pool\": {\n          \"class\": \"Pool\",\n          \"monitors\": [\n            \"http\"\n          ],\n          \"members\": [{\n            \"servicePort\": 80,\n            \"serverAddresses\": [\n              \"192.0.6.10\",\n              \"192.0.6.11\"\n            ]\n          }]\n        },\n        \"jsessionid\": {\n          \"class\": \"Persist\",\n          \"persistenceMethod\": \"cookie\",\n          \"cookieMethod\": \"hash\",\n          \"cookieName\": \"JSESSIONID\"\n        }\n      }\n    }\n  }\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://{{host}}/api/schema/validate?version=3.22.1",
+									"protocol": "http",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"api",
+										"schema",
+										"validate"
+									],
+									"query": [
+										{
+											"key": "version",
+											"value": "3.22.1"
+										}
+									]
+								}
+							},
+							"status": "Valid declaration",
+							"_postman_previewlanguage": "JSON",
+							"header": [
+								{
+									"key": "date",
+									"value": "Wed, 16 Sep 2020 10:27:50 GMT"
+								},
+								{
+									"key": "server",
+									"value": "uvicorn"
+								},
+								{
+									"key": "content-length",
+									"value": "27"
+								},
+								{
+									"key": "content-type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"body": "{\"valid\":true,\"error\":null}"
+						}
+					]
+				},
+				{
+					"name": "Validate against latest schema version",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "30357a48-7ca1-44d4-a910-ac3aafb4c31d",
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"pm.test(\"valid is true\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.valid).to.eql(true);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"class\": \"AS3\",\n  \"action\": \"deploy\",\n  \"persist\": true,\n  \"declaration\": {\n    \"class\": \"ADC\",\n    \"schemaVersion\": \"3.0.0\",\n    \"id\": \"fghijkl7890\",\n    \"label\": \"Sample 1\",\n    \"remark\": \"HTTP with custom persistence\",\n    \"Sample_http_01\": {\n      \"class\": \"Tenant\",\n      \"A1\": {\n        \"class\": \"Application\",\n        \"service\": {\n          \"class\": \"Service_HTTP\",\n          \"virtualAddresses\": [\n            \"10.0.6.10\"\n          ],\n          \"pool\": \"web_pool\",\n          \"persistenceMethods\": [{\n            \"use\": \"jsessionid\"\n          }]\n        },\n        \"web_pool\": {\n          \"class\": \"Pool\",\n          \"monitors\": [\n            \"http\"\n          ],\n          \"members\": [{\n            \"servicePort\": 80,\n            \"serverAddresses\": [\n              \"192.0.6.10\",\n              \"192.0.6.11\"\n            ]\n          }]\n        },\n        \"jsessionid\": {\n          \"class\": \"Persist\",\n          \"persistenceMethod\": \"cookie\",\n          \"cookieMethod\": \"hash\",\n          \"cookieName\": \"JSESSIONID\"\n        }\n      }\n    }\n  }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://{{host}}/api/schema/validate",
+							"protocol": "http",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"schema",
+								"validate"
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "Validate against latest schema version",
+							"originalRequest": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"class\": \"AS3\",\n  \"action\": \"deploy\",\n  \"persist\": true,\n  \"declaration\": {\n    \"class\": \"ADC\",\n    \"schemaVersion\": \"3.0.0\",\n    \"id\": \"fghijkl7890\",\n    \"label\": \"Sample 1\",\n    \"remark\": \"HTTP with custom persistence\",\n    \"Sample_http_01\": {\n      \"class\": \"Tenant\",\n      \"A1\": {\n        \"class\": \"Application\",\n        \"service\": {\n          \"class\": \"Service_HTTP\",\n          \"virtualAddresses\": [\n            \"10.0.6.10\"\n          ],\n          \"pool\": \"web_pool\",\n          \"persistenceMethods\": [{\n            \"use\": \"jsessionid\"\n          }]\n        },\n        \"web_pool\": {\n          \"class\": \"Pool\",\n          \"monitors\": [\n            \"http\"\n          ],\n          \"members\": [{\n            \"servicePort\": 80,\n            \"serverAddresses\": [\n              \"192.0.6.10\",\n              \"192.0.6.11\"\n            ]\n          }]\n        },\n        \"jsessionid\": {\n          \"class\": \"Persist\",\n          \"persistenceMethod\": \"cookie\",\n          \"cookieMethod\": \"hash\",\n          \"cookieName\": \"JSESSIONID\"\n        }\n      }\n    }\n  }\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://{{host}}/api/schema/validate",
+									"protocol": "http",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"api",
+										"schema",
+										"validate"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "JSON",
+							"header": [
+								{
+									"key": "date",
+									"value": "Wed, 16 Sep 2020 10:45:30 GMT"
+								},
+								{
+									"key": "server",
+									"value": "uvicorn"
+								},
+								{
+									"key": "content-length",
+									"value": "27"
+								},
+								{
+									"key": "content-type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"body": "{\"valid\":true,\"error\":null}"
+						}
+					]
+				}
+			],
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "aa8184cc-9e62-4369-a64f-5bda50fafc67",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"id": "20cf3fce-3458-4fea-9d3d-f1f951f4ee91",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				}
+			],
+			"protocolProfileBehavior": {}
+		},
+		{
+			"name": "Validation failure examples",
+			"item": [
+				{
+					"name": "Validation failure: serviceMain is required (pre 3.22.1)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "30357a48-7ca1-44d4-a910-ac3aafb4c31d",
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"pm.test(\"valid is true\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.valid).to.eql(true);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"class\": \"AS3\",\n  \"action\": \"deploy\",\n  \"persist\": true,\n  \"declaration\": {\n    \"class\": \"ADC\",\n    \"schemaVersion\": \"3.0.0\",\n    \"id\": \"fghijkl7890\",\n    \"label\": \"Sample 1\",\n    \"remark\": \"HTTP with custom persistence\",\n    \"Sample_http_01\": {\n      \"class\": \"Tenant\",\n      \"A1\": {\n        \"class\": \"Application\",\n        \"service\": {\n          \"class\": \"Service_HTTP\",\n          \"virtualAddresses\": [\n            \"10.0.6.10\"\n          ],\n          \"pool\": \"web_pool\",\n          \"persistenceMethods\": [{\n            \"use\": \"jsessionid\"\n          }]\n        },\n        \"web_pool\": {\n          \"class\": \"Pool\",\n          \"monitors\": [\n            \"http\"\n          ],\n          \"members\": [{\n            \"servicePort\": 80,\n            \"serverAddresses\": [\n              \"192.0.6.10\",\n              \"192.0.6.11\"\n            ]\n          }]\n        },\n        \"jsessionid\": {\n          \"class\": \"Persist\",\n          \"persistenceMethod\": \"cookie\",\n          \"cookieMethod\": \"hash\",\n          \"cookieName\": \"JSESSIONID\"\n        }\n      }\n    }\n  }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://{{host}}/api/schema/validate?version=3.17.0",
+							"protocol": "http",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"schema",
+								"validate"
+							],
+							"query": [
+								{
+									"key": "version",
+									"value": "3.17.0"
+								}
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "Validation failure: serviceMain is required (pre 3.22.1)",
+							"originalRequest": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"class\": \"AS3\",\n  \"action\": \"deploy\",\n  \"persist\": true,\n  \"declaration\": {\n    \"class\": \"ADC\",\n    \"schemaVersion\": \"3.0.0\",\n    \"id\": \"fghijkl7890\",\n    \"label\": \"Sample 1\",\n    \"remark\": \"HTTP with custom persistence\",\n    \"Sample_http_01\": {\n      \"class\": \"Tenant\",\n      \"A1\": {\n        \"class\": \"Application\",\n        \"service\": {\n          \"class\": \"Service_HTTP\",\n          \"virtualAddresses\": [\n            \"10.0.6.10\"\n          ],\n          \"pool\": \"web_pool\",\n          \"persistenceMethods\": [{\n            \"use\": \"jsessionid\"\n          }]\n        },\n        \"web_pool\": {\n          \"class\": \"Pool\",\n          \"monitors\": [\n            \"http\"\n          ],\n          \"members\": [{\n            \"servicePort\": 80,\n            \"serverAddresses\": [\n              \"192.0.6.10\",\n              \"192.0.6.11\"\n            ]\n          }]\n        },\n        \"jsessionid\": {\n          \"class\": \"Persist\",\n          \"persistenceMethod\": \"cookie\",\n          \"cookieMethod\": \"hash\",\n          \"cookieName\": \"JSESSIONID\"\n        }\n      }\n    }\n  }\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://{{host}}/api/schema/validate?version=3.17.0",
+									"protocol": "http",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"api",
+										"schema",
+										"validate"
+									],
+									"query": [
+										{
+											"key": "version",
+											"value": "3.17.0"
+										}
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "JSON",
+							"header": [
+								{
+									"key": "date",
+									"value": "Wed, 16 Sep 2020 10:46:26 GMT"
+								},
+								{
+									"key": "server",
+									"value": "uvicorn"
+								},
+								{
+									"key": "content-length",
+									"value": "1170"
+								},
+								{
+									"key": "content-type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"body": "{\"valid\":false,\"error\":\"AS3 Validation Error: 'serviceMain' is a required property\\n\\nFailed validating 'required' in schema['properties']['declaration']['additionalProperties']['additionalProperties']['allOf'][0]['if']['then']:\\n    {'description': 'Declares an HTTPS application',\\n     'properties': {'serviceMain': {'$ref': '#/definitions/Service_HTTPS'}},\\n     'required': ['serviceMain'],\\n     'title': 'HTTPS application'}\\n\\nOn instance['declaration']['Sample_http_01']['A1']:\\n    {'class': 'Application',\\n     'jsessionid': {'class': 'Persist',\\n                    'cookieMethod': 'hash',\\n                    'cookieName': 'JSESSIONID',\\n                    'persistenceMethod': 'cookie'},\\n     'service': {'class': 'Service_HTTP',\\n                 'persistenceMethods': [{'use': 'jsessionid'}],\\n                 'pool': 'web_pool',\\n                 'virtualAddresses': ['10.0.6.10']},\\n     'web_pool': {'class': 'Pool',\\n                  'members': [{'serverAddresses': ['192.0.6.10',\\n                                                   '192.0.6.11'],\\n                               'servicePort': 80}],\\n                  'monitors': ['http']}}\"}"
+						}
+					]
+				},
+				{
+					"name": "Validation failure: invalid label",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "30357a48-7ca1-44d4-a910-ac3aafb4c31d",
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"pm.test(\"valid is true\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.valid).to.eql(true);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"class\": \"AS3\",\n  \"action\": \"deploy\",\n  \"persist\": true,\n  \"declaration\": {\n    \"class\": \"ADC\",\n    \"schemaVersion\": \"3.0.0\",\n    \"id\": \"fghijkl7890\",\n    \"label\": \"This label is invalid: \\\\ backslashes not allowed.\",\n    \"remark\": \"HTTP with custom persistence\",\n    \"Sample_http_01\": {\n      \"class\": \"Tenant\",\n      \"A1\": {\n        \"class\": \"Application\",\n        \"service\": {\n          \"class\": \"Service_HTTP\",\n          \"virtualAddresses\": [\n            \"10.0.6.10\"\n          ],\n          \"pool\": \"web_pool\",\n          \"persistenceMethods\": [{\n            \"use\": \"jsessionid\"\n          }]\n        },\n        \"web_pool\": {\n          \"class\": \"Pool\",\n          \"monitors\": [\n            \"http\"\n          ],\n          \"members\": [{\n            \"servicePort\": 80,\n            \"serverAddresses\": [\n              \"192.0.6.10\",\n              \"192.0.6.11\"\n            ]\n          }]\n        },\n        \"jsessionid\": {\n          \"class\": \"Persist\",\n          \"persistenceMethod\": \"cookie\",\n          \"cookieMethod\": \"hash\",\n          \"cookieName\": \"JSESSIONID\"\n        }\n      }\n    }\n  }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://{{host}}/api/schema/validate",
+							"protocol": "http",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"schema",
+								"validate"
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "Validation failure: invalid label",
+							"originalRequest": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"class\": \"AS3\",\n  \"action\": \"deploy\",\n  \"persist\": true,\n  \"declaration\": {\n    \"class\": \"ADC\",\n    \"schemaVersion\": \"3.0.0\",\n    \"id\": \"fghijkl7890\",\n    \"label\": \"This label is invalid: \\\\ backslashes not allowed.\",\n    \"remark\": \"HTTP with custom persistence\",\n    \"Sample_http_01\": {\n      \"class\": \"Tenant\",\n      \"A1\": {\n        \"class\": \"Application\",\n        \"service\": {\n          \"class\": \"Service_HTTP\",\n          \"virtualAddresses\": [\n            \"10.0.6.10\"\n          ],\n          \"pool\": \"web_pool\",\n          \"persistenceMethods\": [{\n            \"use\": \"jsessionid\"\n          }]\n        },\n        \"web_pool\": {\n          \"class\": \"Pool\",\n          \"monitors\": [\n            \"http\"\n          ],\n          \"members\": [{\n            \"servicePort\": 80,\n            \"serverAddresses\": [\n              \"192.0.6.10\",\n              \"192.0.6.11\"\n            ]\n          }]\n        },\n        \"jsessionid\": {\n          \"class\": \"Persist\",\n          \"persistenceMethod\": \"cookie\",\n          \"cookieMethod\": \"hash\",\n          \"cookieName\": \"JSESSIONID\"\n        }\n      }\n    }\n  }\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://{{host}}/api/schema/validate",
+									"protocol": "http",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"api",
+										"schema",
+										"validate"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "JSON",
+							"header": [
+								{
+									"key": "date",
+									"value": "Wed, 16 Sep 2020 10:51:13 GMT"
+								},
+								{
+									"key": "server",
+									"value": "uvicorn"
+								},
+								{
+									"key": "content-length",
+									"value": "457"
+								},
+								{
+									"key": "content-type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"body": "{\"valid\":false,\"error\":\"AS3 Validation Error: 'This label is invalid: \\\\\\\\ backslashes not allowed.' is not a 'f5label'\\n\\nFailed validating 'format' in schema['properties']['declaration']['properties']['label']:\\n    {'description': 'Optional friendly name for this declaration',\\n     'format': 'f5label',\\n     'title': 'Label',\\n     'type': 'string'}\\n\\nOn instance['declaration']['label']:\\n    'This label is invalid: \\\\\\\\ backslashes not allowed.'\"}"
+						}
+					]
+				}
+			],
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "3633b03d-c272-4594-84b2-5e4a49ab4781",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"id": "09e1fbb2-98e3-4f2b-b223-40f972398c8c",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				}
+			],
+			"protocolProfileBehavior": {}
+		},
+		{
+			"name": "Transform declaration from Git Repo",
+			"item": [
+				{
+					"name": "Git transform: branch:edge, simple",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "30357a48-7ca1-44d4-a910-ac3aafb4c31d",
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"repository\": \"https://github.com/simonkowallik/as3ninja\",\n    \"branch\": \"edge\",\n    \"declaration_template\": \"/examples/simple/template.j2\",\n    \"template_configuration\": \"/examples/simple/ninja.yaml\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://{{host}}/api/declaration/transform/git",
+							"protocol": "http",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"declaration",
+								"transform",
+								"git"
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "Git transform: branch:edge, simple",
+							"originalRequest": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"repository\": \"https://github.com/simonkowallik/as3ninja\",\n    \"branch\": \"edge\",\n    \"declaration_template\": \"/examples/simple/template.j2\",\n    \"template_configuration\": \"/examples/simple/ninja.yaml\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://{{host}}/api/declaration/transform/git",
+									"protocol": "http",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"api",
+										"declaration",
+										"transform",
+										"git"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "JSON",
+							"header": [
+								{
+									"key": "date",
+									"value": "Wed, 16 Sep 2020 10:58:02 GMT"
+								},
+								{
+									"key": "server",
+									"value": "uvicorn"
+								},
+								{
+									"key": "content-length",
+									"value": "1306"
+								},
+								{
+									"key": "content-type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"body": "{\"class\":\"AS3\",\"action\":\"deploy\",\"persist\":true,\"declaration\":{\"class\":\"ADC\",\"schemaVersion\":\"3.11.0\",\"id\":\"a-unique-id\",\"label\":\"AS3 Ninja built AS3 Declaration\",\"remark\":\"This is my AS3 Ninja 101 lesson.\",\"TurtleCorp\":{\"class\":\"Tenant\",\"WebApp\":{\"class\":\"Application\",\"template\":\"http\",\"path_hdr\":{\"class\":\"iRule\",\"iRule\":\"when HTTP_REQUEST priority 500 {\\n    set path [string tolower [HTTP::path]]\\n    if { {} ne [set value [class match -value -- $path equals /TurtleCorp/WebApp/http_paths]] } {\\n        HTTP::header remove X-Path-Header\\n        HTTP::header insert X-Path-Header \\\"${path}:${value}\\\"\\n    }\\n}\\n\"},\"http_paths\":{\"class\":\"Data_Group\",\"keyDataType\":\"string\",\"records\":[{\"key\":\"/start/\"},{\"key\":\"/end/\"}]},\"sorry_page\":{\"class\":\"iRule\",\"iRule\":\"when LB_FAILED priority 500 {\\n    HTTP::respond 500 content { We are very sorry that we can't serve your request right now. :-( }\\n}\\n\"},\"pool_web\":{\"class\":\"Pool\",\"minimumMembersActive\":1,\"monitors\":[\"http\",\"tcp\"],\"members\":[{\"serverAddresses\":[\"192.0.2.10\",\"192.0.2.11\"],\"servicePort\":80,\"priorityGroup\":1},{\"serverAddresses\":[\"192.0.2.210\",\"192.0.2.211\"],\"servicePort\":10080,\"priorityGroup\":2}]},\"serviceMain\":{\"class\":\"Service_HTTP\",\"virtualAddresses\":[\"10.0.1.10\",\"10.0.1.11\"],\"iRules\":[\"path_hdr\",\"sorry_page\"],\"pool\":\"pool_web\"}}}}}"
+						}
+					]
+				}
+			],
+			"protocolProfileBehavior": {}
+		},
+		{
+			"name": "OpenAPI spec",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://{{host}}/api/openapi.json",
+					"protocol": "http",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"api",
+						"openapi.json"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"variable": [
+		{
+			"id": "a41bf227-adb9-4efe-bb08-fc67e2504cd9",
+			"key": "host",
+			"value": "localhost:8000"
+		}
+	],
+	"protocolProfileBehavior": {}
+}

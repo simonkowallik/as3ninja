@@ -167,6 +167,14 @@ Using the API via ``curl``:
         "valid": true
     }
 
+Postman collection
+------------------
+
+An `AS3 Ninja Postman collection`_ is available on Github.
+
+.. _`AS3 Ninja Postman collection`: https://raw.githubusercontent.com/simonkowallik/as3ninja/master/examples/AS3Ninja.postman_collection.json
+
+
 
 Python Package
 --------------
