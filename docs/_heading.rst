@@ -1,15 +1,15 @@
 .. image:: _static/logo.png
         :alt: AS3 Ninja
 
-.. image:: https://img.shields.io/travis/com/simonkowallik/as3ninja/master?style=flat-square
-        :target: https://travis-ci.com/simonkowallik/as3ninja
-        :alt: Travis CI Build Status
-.. image:: https://img.shields.io/readthedocs/as3ninja/latest?style=flat-square
-        :target: https://as3ninja.readthedocs.io/en/latest/?badge=latest
-        :alt: Documentation Status
-.. image:: https://img.shields.io/codeclimate/maintainability/simonkowallik/as3ninja?style=flat-square
-        :target: https://codeclimate.com/github/simonkowallik/as3ninja
-        :alt: Code Climate maintainability
-.. image:: https://img.shields.io/codecov/c/github/simonkowallik/as3ninja?style=flat-square
-        :target: https://codecov.io/gh/simonkowallik/as3ninja
-        :alt: Test Coverage
+.. image:: https://github.com/simonkowallik/as3ninja/actions/workflows/ci-pipeline.yaml/badge.svg)](https://github.com/simonkowallik/as3ninja/actions/workflows/ci-pipeline.yaml
+        :target: https://github.com/simonkowallik/as3ninja/actions
+        :alt: CI Build Status
+.. image:: https://readthedocs.org/projects/as3ninja/badge/?version=latest&style=flat
+    :target: https://as3ninja.readthedocs.io/en/latest/?badge=latest
+    :alt: Documentation Status
+.. image:: https://api.codeclimate.com/v1/badges/9f516ff8bde00c7c082d/maintainability
+   :target: https://codeclimate.com/github/simonkowallik/as3ninja/maintainability
+   :alt: Maintainability
+.. image:: https://api.codeclimate.com/v1/badges/9f516ff8bde00c7c082d/test_coverage
+   :target: https://codeclimate.com/github/simonkowallik/as3ninja/test_coverage
+   :alt: Test Coverage
