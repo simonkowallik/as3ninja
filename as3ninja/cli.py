@@ -39,7 +39,9 @@ logger.add(
 
 
 def _output_declaration(
-    as3declaration: AS3Declaration, output_file: Any, pretty: bool,
+    as3declaration: AS3Declaration,
+    output_file: Any,
+    pretty: bool,
 ):
     """
     Function to output the transformed declaration
@@ -146,7 +148,6 @@ def transform(
     type=click.Path(),
     help="Template Configuration file(s) to parameterize the Declaration Template (multiple files allowed)",
 )
-@click.argument("configuration-file", nargs=-1)
 @click.option(
     "-o",
     "--output-file",
@@ -168,12 +169,12 @@ def transform(
     is_flag=True,
     help="Pretty print JSON (when printed to STDOUT)",
 )
-@click.option("--repository", required=True, default=False, help="Git repository")
-@click.option("--branch", required=False, default=False, help="Git branch to use")
+@click.option("--repository", required=True, help="Git repository")
+@click.option("--branch", required=False, default=None, help="Git branch to use")
 @click.option(
-    "--commit", required=False, default=False, help="Git commit id or HEAD~<int>"
+    "--commit", required=False, default=None, help="Git commit id or HEAD~<int>"
 )
-@click.option("--depth", required=False, default=False, help="Git clone depth")
+@click.option("--depth", required=False, default=None, help="Git clone depth")
 @failOnException
 @LOG_STDERR.catch(reraise=True)
 def git_transform(  # pylint: disable=R0913 # Too many arguments
@@ -239,7 +240,8 @@ def git_transform(  # pylint: disable=R0913 # Too many arguments
 @failOnException
 @LOG_STDERR.catch(reraise=True)
 def validate(
-    declaration: str, version: Optional[str],
+    declaration: str,
+    version: Optional[str],
 ):
     """Validate an AS3 Declaration against the AS3 JSON Schema.
 
@@ -274,7 +276,9 @@ def update():
             f"Updated AS3 JSON Schemas from version:{as3s.version} to:{as3s_new.version}",
         )
     else:
-        click.echo(f"AS3 JSON Schemas are up-to-date, current version:{as3s.version}",)
+        click.echo(
+            f"AS3 JSON Schemas are up-to-date, current version:{as3s.version}",
+        )
 
 
 @schema.command()
@@ -286,10 +290,16 @@ def update():
     default=True,
 )
 @click.option(
-    "--json", "output_format", flag_value="json", help="Format output as JSON.",
+    "--json",
+    "output_format",
+    flag_value="json",
+    help="Format output as JSON.",
 )
 @click.option(
-    "--yaml", "output_format", flag_value="yaml", help="Format output as YAML.",
+    "--yaml",
+    "output_format",
+    flag_value="yaml",
+    help="Format output as YAML.",
 )
 @failOnException
 @LOG_STDERR.catch(reraise=True)
