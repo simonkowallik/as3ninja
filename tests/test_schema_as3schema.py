@@ -350,11 +350,9 @@ class Test_validate_declaration:
 
     def test_validate_does_not_mutate_AS3Schema(self, fixture_as3schema):
         """Make sure the .schema attribute is not mutated due to updating the # references, which are supposed to be stored in a separate dict"""
-        fixture_as3schema.validate(declaration=self.declaration_v390__json)
+        fixture_as3schema.validate(declaration=self.declaration_v390__json)        
         assert (
-            fixture_as3schema.schema["definitions"]["ADC"]["properties"][
-                "label"]["$ref"].startswith("#")
-            is True
+            fixture_as3schema.schema["definitions"]["ADC_Array"]["items"]["$ref"].startswith("#") is True
         )
 
     @pytest.mark.parametrize(
