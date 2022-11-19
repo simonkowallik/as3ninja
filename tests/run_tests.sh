@@ -5,7 +5,7 @@ set -v -e
 COVERAGE=""
 if [[ "$REPORT" == "true" ]]
 then
-    COVERAGE="--cov=as3ninja --cov-report=xml"
+    COVERAGE="--cov=as3ninja"
 fi
 
 function docker_pytest() {
