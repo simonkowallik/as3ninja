@@ -1,0 +1,37 @@
+name: Release  
+  
+on:
+  workflow_dispatch:
+  release:
+    types: [released]
+
+jobs:
+  release-pypi:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install poetry
+        run: pipx install poetry
+
+      - name: Configure poetry
+        run: poetry config virtualenvs.in-project true
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+          cache: poetry
+
+      - name: Install dependencies
+        run: poetry install --with dev
+
+      - name: Build package
+        run: poetry build
+
+      - name: Publish package
+        env:
+          POETRY_PYPI_TOKEN_PYPI: ${{ secrets.PYPI_TOKEN }}
+        run: poetry publish
+
