@@ -1,0 +1,15 @@
+game_config:
+  hash_algorithm: sha384
+  game_js_file: ./lessons/lesson4.js
+# comment the above line and uncomment the below, to update the game
+#  game_js_file: ./lessons/lesson10.js
+
+game_service:
+  name: Gamedev_Canvas_Workshop
+  irule: ./game.irule
+  port: 80
+  # addresses can be a single IP address or a list of addresses
+  #addresses:
+  #- 10.1.10.5
+  #- 10.1.10.105
+  addresses: 10.1.10.5

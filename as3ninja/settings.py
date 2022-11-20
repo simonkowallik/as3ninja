@@ -66,7 +66,7 @@ class NinjaSettingsLoader:
 
     RUNTIME_CONFIG = ["SCHEMA_BASE_PATH"]
 
-    _settings: NinjaSettings = None
+    _settings: NinjaSettings = NinjaSettings()
 
     def __init__(self):
         config_file = self._detect_config_file()

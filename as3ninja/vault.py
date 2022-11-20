@@ -11,10 +11,10 @@ HashiCorp Vault integration
 from enum import Enum
 from os import getenv
 from pathlib import Path
-from typing import Optional, Union
+from typing import Dict, Optional, Union
 
 import hvac
-from jinja2 import contextfunction
+from jinja2 import pass_context
 from jinja2.runtime import Context
 from pydantic import BaseModel, validator
 
@@ -192,14 +192,14 @@ class VaultClient:
 
 @J2Ninja.registerfilter
 @J2Ninja.registerfunction
-@contextfunction
+@pass_context
 def vault(
     ctx: Context,
-    secret: dict,
+    secret: Dict,
     client: Optional[VaultClient] = None,
     filter: Optional[str] = None,
     version: Optional[int] = None,
-) -> dict:
+) -> Dict:
     """Vault filter to retrieve a secret. The secret is returned as a dict.
 
     :param ctx: Context: Jinja2 Context (automatically provided by jinja2)
@@ -209,10 +209,10 @@ def vault(
     :param version: Optional secret version (overrides version provided by secret configuration statement)
 
     """
-    secret = VaultSecret(**secret)
+    _secret: VaultSecret = VaultSecret(**secret)
 
     if version:
-        secret.version = version
+        _secret.version = version
 
     if client:
         vault_client = client.Client()
@@ -220,22 +220,24 @@ def vault(
         vault_client = VaultClient.defaultClient(ctx=ctx)
 
     if filter is None:
-        filter = secret.filter
+        filter = _secret.filter
 
-    if secret.engine == VaultSecretsEngines.kv2:
+    if _secret.engine == VaultSecretsEngines.kv2:
         if filter:
             # prepend "data." for kv2 to replicate behaviour of kv1
             filter = "data." + filter
         return dict_filter(
             vault_client.secrets.kv.v2.read_secret_version(
-                path=secret.path, mount_point=secret.mount_point, version=secret.version
+                path=_secret.path,
+                mount_point=_secret.mount_point,
+                version=_secret.version,
             ),
             filter=filter,
         )
-    elif secret.engine == VaultSecretsEngines.kv1:
+    elif _secret.engine == VaultSecretsEngines.kv1:
         return dict_filter(
             vault_client.secrets.kv.v1.read_secret(
-                path=secret.path, mount_point=secret.mount_point
+                path=_secret.path, mount_point=_secret.mount_point
             ),
             filter=filter,
         )

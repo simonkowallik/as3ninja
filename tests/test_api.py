@@ -3,8 +3,8 @@ from functools import partial
 from os import getenv
 from pathlib import Path
 
+import httpx
 import pytest
-import requests
 from starlette.testclient import TestClient
 
 from as3ninja.api import app, startup
@@ -23,7 +23,7 @@ class RequestsApiTestClient:
     """
 
     def __init__(self, base_url):
-        self._session = requests.Session()
+        self._session = httpx.Session()
         if base_url.endswith("/"):
             base_url = base_url[0:-1]
         self._base_url = base_url
@@ -64,14 +64,14 @@ class Test_OpenAPI_UI:
     @staticmethod
     def test_ReDoc():
         response = api_client.get("/redoc")
-        assert response.url.endswith("/api/redoc") is True
+        assert str(response.url).endswith("/api/redoc") is True
         assert response.status_code == 200
         assert "text/html" in response.headers["content-type"]
 
     @staticmethod
     def test_Swagger():
         response = api_client.get("/docs")
-        assert response.url.endswith("/api/docs") is True
+        assert str(response.url).endswith("/api/docs") is True
         assert response.status_code == 200
         assert "text/html" in response.headers["content-type"]
 
@@ -90,7 +90,7 @@ class Test_OpenAPI_UI:
     @staticmethod
     def test_default_redirect():
         response = api_client.get("/")
-        assert response.url.endswith("/api/docs") is True
+        assert str(response.url).endswith("/api/docs") is True
         assert "text/html" in response.headers["content-type"]
 
 
@@ -152,7 +152,9 @@ class Test_Schema:
 
     @staticmethod
     def test_schema_validate_fail():
-        invalid_declaration_v390__json: str = r'{"class": "AS3","declaration": {"class": "ADC","schemaVersion": "3.9.0"}}'
+        invalid_declaration_v390__json: str = (
+            r'{"class": "AS3","declaration": {"class": "ADC","schemaVersion": "4.9.0"}}'
+        )
         invalid_declaration_v390__dict: dict = json.loads(
             invalid_declaration_v390__json
         )
@@ -188,7 +190,10 @@ class Test_declaration_transform_git:
 
     def test_failure(self):
         response = api_client.post(
-            "/api/declaration/transform/git", json={"repository": "none",},
+            "/api/declaration/transform/git",
+            json={
+                "repository": "none",
+            },
         )
         assert response.status_code == 400
         assert "repository 'none' does not exist" in response.json()["detail"]

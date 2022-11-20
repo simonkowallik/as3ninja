@@ -1,0 +1,50 @@
+name: CI Pipeline  
+  
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - edge
+  pull_request:
+  schedule:
+    - cron: '5 5 */14 * *'
+
+jobs:
+  tests:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+        python-version:
+          - '3.8'
+          - '3.10'
+          - '3.x' # latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install poetry
+        run: pipx install poetry
+
+      - name: Configure poetry
+        run: poetry config virtualenvs.in-project true
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: poetry
+
+      - name: Install dependencies
+        run: poetry install --with dev --with test --with docs
+
+      - name: Run tests
+        run: poetry run make coverage
+
+      - name: Publish code coverage
+        uses: paambaati/codeclimate-action@v3.2.0
+        env:
+          CC_TEST_REPORTER_ID: ${{ secrets.CC_TEST_REPORTER_ID }}
+        with:
+          coverageLocations: |
+            ${{github.workspace}}/coverage.xml:coverage.py

@@ -93,7 +93,6 @@ as3ninja.vault module
    :undoc-members:
    :show-inheritance:
 
-
 Module contents
 ---------------
 

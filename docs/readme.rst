@@ -9,7 +9,7 @@ AS3 Ninja
 
 * Documentation: https://as3ninja.readthedocs.io
 
-* Works with Python 3.6 and up
+* Works with Python 3.8 and up
 
 
 What is AS3 Ninja and what can it do for you?

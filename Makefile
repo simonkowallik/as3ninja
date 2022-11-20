@@ -47,12 +47,13 @@ clean-pyc: ## remove Python file artifacts
 clean-test: ## remove test and coverage artifacts
 	rm -f .coverage
 	rm -f coverage.xml
+	rm -f coverage.lcov
 	rm -fr htmlcov/
 	rm -fr .pytest_cache
 	find . -name '.mypy_cache' -exec rm -fr {} +
 
 lint:
-	pylint as3ninja tests
+	pylint as3ninja
 	mypy as3ninja
 
 black:
@@ -73,10 +74,14 @@ tests: test
 test-docker:
 	DOCKER_TESTING=true tests/run_tests.sh
 
+docker-test: test-docker
+
 coverage:
 	REPORT=true tests/run_tests.sh
-	coverage report -m
 	coverage html
+	coverage xml
+	coverage lcov
+	coverage report -m
 	$(BROWSER) htmlcov/index.html
 
 ## generate Sphinx HTML documentation, including API docs
@@ -94,7 +99,7 @@ dependencies-update:
 dependencies-lock:  # lock dependencies and generate requirements.txt
 	# requirements.txt, used by: readthedocs, snyk, Dockerfile
 	poetry lock
-	poetry export --dev --without-hashes \
+	poetry export --with docs --without-hashes \
 				-f requirements.txt \
 				-o docs/requirements.txt
 

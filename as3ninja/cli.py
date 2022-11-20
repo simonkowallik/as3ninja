@@ -8,9 +8,10 @@ AS3 Ninja CLI module
 
 import json
 import sys
-from typing import Optional, Union
+from typing import Any, List, Optional, Union
 
 import click
+import yaml
 from loguru import logger
 
 from . import __version__
@@ -38,7 +39,9 @@ logger.add(
 
 
 def _output_declaration(
-    as3declaration: AS3Declaration, output_file: Union[str, None], pretty: bool,
+    as3declaration: AS3Declaration,
+    output_file: Any,
+    pretty: bool,
 ):
     """
     Function to output the transformed declaration
@@ -55,7 +58,7 @@ def _output_declaration(
 @click.group(context_settings=dict(help_option_names=["-h", "--help"]))
 @click.version_option(version=__version__)
 def cli() -> None:
-    """main cli command group"""
+    """AS3 Ninja CLI commands and command groups."""
 
 
 @cli.command()
@@ -70,11 +73,10 @@ def cli() -> None:
     "-c",
     "--configuration-file",
     required=False,
-    nargs=0,
+    multiple=True,
     type=click.Path(),
     help="Template Configuration file(s) to parameterize the Declaration Template (multiple files allowed)",
 )
-@click.argument("configuration-file", nargs=-1)
 @click.option(
     "-o",
     "--output-file",
@@ -99,8 +101,8 @@ def cli() -> None:
 @failOnException
 @LOG_STDERR.catch(reraise=True)
 def transform(
-    declaration_template: str,
-    configuration_file: Optional[tuple],
+    declaration_template: Any,
+    configuration_file: Optional[Any],
     output_file: Union[str, None],
     validate: bool,  # pylint: disable=W0621 # Redefining name 'validate' from outer scope
     pretty: bool,
@@ -114,7 +116,7 @@ def transform(
     If no Declaration Template is specified, it is read from the Template Configuration (as3ninja.declaration_template).
     If no Template Configuration is specified, the first default configuration file (ninja.json, ninja.yaml, ninja.yml). The file is expected to be in the CWD.
     """
-    template = None
+    template = ""
     if declaration_template:
         template = declaration_template.read()
 
@@ -142,11 +144,10 @@ def transform(
     "-c",
     "--configuration-file",
     required=False,
-    nargs=0,
+    multiple=True,
     type=click.Path(),
     help="Template Configuration file(s) to parameterize the Declaration Template (multiple files allowed)",
 )
-@click.argument("configuration-file", nargs=-1)
 @click.option(
     "-o",
     "--output-file",
@@ -168,24 +169,24 @@ def transform(
     is_flag=True,
     help="Pretty print JSON (when printed to STDOUT)",
 )
-@click.option("--repository", required=True, default=False, help="Git repository")
-@click.option("--branch", required=False, default=False, help="Git branch to use")
+@click.option("--repository", required=True, help="Git repository")
+@click.option("--branch", required=False, default=None, help="Git branch to use")
 @click.option(
-    "--commit", required=False, default=False, help="Git commit id or HEAD~<int>"
+    "--commit", required=False, default=None, help="Git commit id or HEAD~<int>"
 )
-@click.option("--depth", required=False, default=False, help="Git clone depth")
+@click.option("--depth", required=False, default=None, help="Git clone depth")
 @failOnException
 @LOG_STDERR.catch(reraise=True)
 def git_transform(  # pylint: disable=R0913 # Too many arguments
     declaration_template: Optional[str],
-    configuration_file: Optional[tuple],
+    configuration_file: Optional[List],
     output_file: Union[str, None],
     validate: bool,  # pylint: disable=W0621 # Redefining name 'validate' from outer scope
     pretty: bool,
     repository: str,
     branch: Union[str, None],
     commit: Union[str, None],
-    depth: Union[int, None],
+    depth: Optional[int],
 ):
     """Render AS3 Declaration from Git Repository.
 
@@ -239,7 +240,8 @@ def git_transform(  # pylint: disable=R0913 # Too many arguments
 @failOnException
 @LOG_STDERR.catch(reraise=True)
 def validate(
-    declaration: str, version: Optional[str],
+    declaration: str,
+    version: Optional[str],
 ):
     """Validate an AS3 Declaration against the AS3 JSON Schema.
 
@@ -252,3 +254,62 @@ def validate(
         as3s.version,
         feature="f-strings",
     )
+
+
+@cli.group(context_settings=dict(help_option_names=["-h", "--help"]))
+def schema() -> None:
+    """Group of AS3 Schema related commands."""
+    pass
+
+
+@schema.command()
+@failOnException
+@LOG_STDERR.catch(reraise=True)
+def update():
+    """Update AS3 JSON Schemas from Github."""
+    as3s = AS3Schema()
+    as3s.updateschemas()
+    as3s_new = AS3Schema()
+
+    if as3s.version != as3s_new.version:
+        click.echo(
+            f"Updated AS3 JSON Schemas from version:{as3s.version} to:{as3s_new.version}",
+        )
+    else:
+        click.echo(
+            f"AS3 JSON Schemas are up-to-date, current version:{as3s.version}",
+        )
+
+
+@schema.command()
+@click.option(
+    "--text",
+    "output_format",
+    flag_value="text",
+    help="Format output as text.",
+    default=True,
+)
+@click.option(
+    "--json",
+    "output_format",
+    flag_value="json",
+    help="Format output as JSON.",
+)
+@click.option(
+    "--yaml",
+    "output_format",
+    flag_value="yaml",
+    help="Format output as YAML.",
+)
+@failOnException
+@LOG_STDERR.catch(reraise=True)
+def versions(output_format):
+    """Prints all available AS3 JSON Schema versions."""
+    as3s = AS3Schema()
+
+    if output_format == "text":
+        click.echo("\n".join(as3s.versions))
+    elif output_format == "json":
+        click.echo(json.dumps({"as3_schema_versions": as3s.versions}))
+    elif output_format == "yaml":
+        click.echo(yaml.safe_dump({"as3_schema_versions": as3s.versions}))

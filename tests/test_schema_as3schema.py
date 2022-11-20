@@ -305,6 +305,7 @@ class Test_validate_declaration:
             declaration=self.declaration_v390__dict, version="auto"
         )
 
+    @pytest.mark.skip(reason="3.71 schema not valid anymore")
     def test_validate_371_against_latest(self, fixture_as3schema):
         fixture_as3schema.validate(declaration=self.declaration_v371__dict)
 
@@ -334,6 +335,7 @@ class Test_validate_declaration:
     def test_validate_390_json_formatted(self, fixture_as3schema):
         fixture_as3schema.validate(declaration=self.declaration_v390__json)
 
+    @pytest.mark.skip(reason="3.71 schema not valid anymore")
     def test_validate_370_json_formatted(self, fixture_as3schema):
         fixture_as3schema.validate(declaration=self.declaration_v371__json)
 
@@ -348,11 +350,11 @@ class Test_validate_declaration:
 
     def test_validate_does_not_mutate_AS3Schema(self, fixture_as3schema):
         """Make sure the .schema attribute is not mutated due to updating the # references, which are supposed to be stored in a separate dict"""
-        fixture_as3schema.validate(declaration=self.declaration_v371__json)
+        fixture_as3schema.validate(declaration=self.declaration_v390__json)
         assert (
-            fixture_as3schema.schema["properties"]["declaration"]["properties"][
-                "Common"
-            ]["properties"]["label"]["$ref"].startswith("#")
+            fixture_as3schema.schema["definitions"]["ADC_Array"]["items"][
+                "$ref"
+            ].startswith("#")
             is True
         )
 

@@ -6,13 +6,13 @@ This module holds Jinja2 filters for AS3 Ninja.
 # pylint: disable=C0330 # Wrong hanging indentation before block
 # pylint: disable=C0301 # Line too long
 
-from jinja2 import contextfilter
+from jinja2 import pass_context
 from jinja2.runtime import Context
 
 from .j2ninja import J2Ninja
 
 @J2Ninja.registerfilter
-@contextfilter
+@pass_context
 def ninjutsu(ctx: Context, value: str, **kwargs: dict) -> str:
     """ninjutsu passes its input to jinja2 rendereing using the existing jinja2 environment and context.
     You can specify arbitary keyword arguments to pass additional variables to the renderer.

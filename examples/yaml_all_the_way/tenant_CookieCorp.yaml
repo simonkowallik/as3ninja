@@ -1,0 +1,2 @@
+# include a specific tenant only, make sure tenants will be a list
+tenants: !include [./tenants/CookieCorp/tenant.yaml]

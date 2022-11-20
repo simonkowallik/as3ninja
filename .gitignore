@@ -1,5 +1,6 @@
 .local
 .vscode
+.idea
 **/*.DS_Store
 f5-appsvcs-extension/
 
@@ -48,6 +49,7 @@ htmlcov/
 .cache
 nosetests.xml
 coverage.xml
+coverage.lcov
 *.cover
 .hypothesis/
 .pytest_cache/

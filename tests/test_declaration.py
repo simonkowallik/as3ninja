@@ -26,7 +26,10 @@ mock_declaration: str = """{
 }"""
 
 mock_template_configuration2 = AS3TemplateConfiguration(
-    [{"a": "aaa", "b": "bbb"}, {"a": "AAA", "c": "CCC"},]
+    [
+        {"a": "aaa", "b": "bbb"},
+        {"a": "AAA", "c": "CCC"},
+    ]
 )
 mock_template_configuration2_merged = AS3TemplateConfiguration(
     {"a": "AAA", "b": "bbb", "c": "CCC"}
@@ -261,7 +264,10 @@ class Test_transform_DOLLARschema:
     def test_remove_schema(self, template):
         expected_result = {"foo": "bar"}
 
-        as3d = AS3Declaration(declaration_template=template, template_configuration={},)
+        as3d = AS3Declaration(
+            declaration_template=template,
+            template_configuration={},
+        )
         assert as3d.dict() == expected_result
 
 

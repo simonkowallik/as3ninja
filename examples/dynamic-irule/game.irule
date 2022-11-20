@@ -1,0 +1,32 @@
+when RULE_INIT priority 500 {
+    {# generate unique static variable name -#}
+    {% set game_js_uuid = uuid() -%}
+    # store the javascript in a unique static variable
+    # game_js is base64 encoded to avoid hash digest issues due to whitespaces
+    set static::game_js_{{ game_js_uuid }} [b64decode "{{ game_js | b64encode }}"]
+}
+
+when HTTP_REQUEST priority 500 {
+    if { [HTTP::path] ne {/game.js} } {
+        # respond with HTML
+        HTTP::respond 200 content {
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<title>Gamedev Canvas Workshop</title>
+<style>* { padding: 0; margin: 0; } canvas { background: #eee; display: block; margin: 0 auto; }</style>
+</head>
+<body>
+<canvas id="myCanvas" width="480" height="320"></canvas>
+<script src="/game.js"
+        integrity="{{ game_js_integrity }}"
+        crossorigin="anonymous"></script>
+</body>
+</html>
+        } {Content-Type} {text/html} {Cache-Control} {no-store}
+    } else {
+        # respond with game javascript
+        HTTP::respond 200 content ${static::game_js_{{ game_js_uuid }}} {Content-Type} {application/javascript} {Cache-Control} {no-store} {Access-Control-Allow-Origin} {*}
+    }
+}

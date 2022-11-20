@@ -121,6 +121,61 @@ Navigate to `http://localhost:8000/api/docs`_ and `http://localhost:8000/api/red
 .. todo:: Postman collection for API calls
 
 
+Validating a declaration
+------------------------
+
+Using an ephemeral container with ``docker run``:
+
+.. code-block:: shell
+
+    $ docker run -it --rm -v $PWD/declaration.json:/declaration.json \
+        simonkowallik/as3ninja:latest \
+        as3ninja validate -d /declaration.json
+    INFO: Validation passed for AS3 Schema version: 3.22.1
+
+    $ docker run -it --rm -v $PWD/declaration.json:/declaration.json \
+        simonkowallik/as3ninja:latest \
+        as3ninja validate -d /declaration.json --version 3.17.0
+    INFO: Validation passed for AS3 Schema version: 3.17.0
+
+Using the API via ``curl``:
+
+.. code-block:: shell
+
+    # start the docker container on port 8000
+    docker run -d --rm -p 8000:8000 simonkowallik/as3ninja:latest
+    6dd7a4a9cc65f84974a122e0605dd74fe087a7e61e67298e529bcd96fa133c7
+
+    # POST declaration to /api/schema/validate endpoint (curl)
+    curl -s http://localhost:8000/api/schema/validate -d @declaration.json | jq .
+    {
+      "valid": true,
+      "error": null
+    }
+
+    # POST declaration to /api/schema/validate endpoint (httpie)
+    cat $PWD/examples/dynamic-irule/declaration.json | \
+        http POST 'localhost:8000/api/schema/validate?version=3.20.0'
+    HTTP/1.1 200 OK
+    content-length: 27
+    content-type: application/json
+    date: Sun, 13 Sep 2020 12:14:03 GMT
+    server: uvicorn
+
+    {
+        "error": null,
+        "valid": true
+    }
+
+Postman collection
+------------------
+
+An `AS3 Ninja Postman collection`_ is available on Github.
+
+.. _`AS3 Ninja Postman collection`: https://raw.githubusercontent.com/simonkowallik/as3ninja/master/examples/AS3Ninja.postman_collection.json
+
+
+
 Python Package
 --------------
 

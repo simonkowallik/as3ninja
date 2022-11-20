@@ -1,0 +1,4 @@
+some_namespace: !include tests/testdata/utils/deserialize/include.d/**/2.yaml
+note: |
+  see: https://docs.python.org/3/library/pathlib.html#pathlib.Path.glob
+  although ** can produce multiple results which end up in a list, a single result would not create a list by default

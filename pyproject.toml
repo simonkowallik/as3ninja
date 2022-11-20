@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "as3ninja"
 
-version = "0.5.1"  # as3ninja/__init__.py -> __version__
+version = "0.6.0"  # as3ninja/__init__.py -> __version__
 license = "ISC"
 description = "AS3 Ninja is a templating and validation engine for your AS3 declarations providing a CLI and Swagger REST API"
 readme = "README.md"
@@ -56,32 +56,39 @@ include = [
 as3ninja = "as3ninja.cli:cli"
 
 [tool.poetry.dependencies]
-python = "^3.6"
-hvac = "^0.9.6"
-jinja2 = "^2.10.3"
-jsonschema = "^3.2.0"
-loguru = ">=0.3.2, <1"
-pydantic = "^1.2"
-pyyaml = "^5.3.1"
-six = "^1.14.0"
-click = "^7.0"
-fastapi = ">=0.60.1, <1"
-uvicorn = "^0.11.7"  # required by Dockerfile
+python = "^3.8"
+hvac = "^0.11.2"
+jinja2 = "^3.1.2"
+jsonschema = "^4.14.0"
+loguru = ">=0.6.0, <1"
+pydantic = "^1.9.2"
+pyyaml = "^6.0"
+six = "^1.16.0"
+click = "^8.1.3"
+fastapi = ">=0.79.1, <1"
+uvicorn = "^0.18.2"  # required by Dockerfile
 
-[tool.poetry.dev-dependencies]
-pytest = "^5.3"
-requests = "^2.20.0"
-mock = "^4.0.0"
-coverage = "^5.0.0"
-pytest-cov = "^2.8.0"
-pytest-mock = "^2.0.0"
-Sphinx = "^3.0.4"
-sphinx-autodoc-typehints = "^1.10.0"
-sphinx_rtd_theme = "^0.4.0"
-black = "^19.3b0"
-isort = "^4.3"
-mypy = "^0.761"
-pylint = "^2.5.0"
+[tool.poetry.group.dev.dependencies]
+black = "^22"
+isort = "^5"
+mypy = "^0.971"
+pylint = "^2"
+
+[tool.poetry.group.test.dependencies]
+pytest = "^7"
+httpx = "^0.23.1"
+mock = "^4"
+coverage = "^6"
+pytest-cov = "^4"
+pytest-mock = "^3"
+
+[tool.poetry.group.docs]
+optional = true
+
+[tool.poetry.group.docs.dependencies]
+Sphinx = "^5"
+sphinx-autodoc-typehints = "^1"
+sphinx_rtd_theme = "^1"
 
 [tool.poetry.urls]
 issues = "https://github.com/simonkowallik/as3ninja/issues"

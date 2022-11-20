@@ -1,6 +1,4 @@
 # -*- coding: utf-8 -*-
-from copy import deepcopy
-
 import pytest
 
 from as3ninja.utils import (
@@ -26,9 +24,11 @@ array:
     - 2
     - "three"
 """
+from as3ninja.utils import deserialize
+from tests.utils import fixture_recursion_depth_100
 
 
-class Test_deserialize:
+class Test_deserialize_yaml_include:
     @staticmethod
     def test_json_from_file():
         result = deserialize(
@@ -71,153 +71,109 @@ class Test_deserialize:
 
         with pytest.raises(ValueError):
             deserialize(datasource=not_yaml_file)
+    def test_include_explicit():
+        """
+        Explicitly include two yaml files returns a list of both
+        """
+        d = deserialize("tests/testdata/utils/deserialize/explicit.yaml")
+        assert isinstance(d["some_namespace"], list)
+        assert {"file": "1.yaml"} in d["some_namespace"]
+        assert {"file": "2.yaml"} in d["some_namespace"]
 
-
-class Test_DictLike:
-    class DLTest(DictLike):
-        def __init__(self, configuration: dict):
-            self._dict = deepcopy(configuration)
-
-    dltest_data = {"key1": {"dict": True, "numbers": [1, 2, 3]}, "key2": "string"}
-    dltest_instance = DLTest(dltest_data)
-
-    def test_dict_items(self):
-        assert self.dltest_instance.items() == self.dltest_data.items()
-
-    def test_dict_values(self):
-        assert str(self.dltest_instance.values()) == str(self.dltest_data.values())
-
-    def test_dict_keys(self):
-        assert self.dltest_instance.keys() == self.dltest_data.keys()
-
-    def test_dict_get(self):
-        assert self.dltest_instance.get("key1") == self.dltest_data.get("key1")
-
-    def test_dict_get_missing(self):
-        assert self.dltest_instance.get("MissingKey") == self.dltest_data.get(
-            "MissingKey"
-        )
-
-    def test_dunder_str(self):
-        assert str(self.dltest_instance) == str(self.dltest_data)
-
-    def test_dunder_repr(self):
-        DLTest = self.DLTest
-        assert eval(repr(self.dltest_instance)) == DLTest(self.dltest_data)
-
-    def test_dunder_getitem(self):
-        assert self.dltest_instance.__getitem__("key1") == self.dltest_data.__getitem__(
-            "key1"
-        )
-
-    def test_dunder_eq(self):
-        assert dict(self.dltest_instance) == self.dltest_data
-
-    def test_dunder_contains(self):
-        assert "key1" in self.dltest_instance
-        assert "key2" in self.dltest_instance
-        assert not "MissingKey" in self.dltest_instance
-
-    def test_dunder_len(self):
-        assert len(self.dltest_instance) == 2
-
-    def test_dunder_iter(self):
-
-        keylist = list(self.dltest_instance.keys())
-
-        for key in self.dltest_instance:
-            assert key == keylist.pop(keylist.index(key))
-        assert len(keylist) == 0
-
-
-class Test_failOnException:
     @staticmethod
-    def test_fail():
-        @failOnException
-        def throw_exception():
-            raise ValueError("raises ValueError")
+    def test_include_single_asterisk():
+        """
+        Test use of single asterisk matching a single file
+        """
+        d = deserialize("tests/testdata/utils/deserialize/single_2.yaml")
+        assert isinstance(d["some_namespace"], dict)
+        assert {"file": "2.yaml"} == d["some_namespace"]
 
-        with pytest.raises(SystemExit) as exc_info:
-            throw_exception()
-        assert exc_info.type == SystemExit
-        assert exc_info.value.code == 1
-
-
-class Test_escape_split:
     @staticmethod
-    def test_simple():
-        test_string = "foo.bar.baz"
-        result = escape_split(test_string)
-        assert isinstance(result, tuple)
-        assert result == ("foo", "bar", "baz")
+    def test_include_single_asterisk():
+        """
+        Test use of single asterisk matching multiple files
+        """
+        d = deserialize("tests/testdata/utils/deserialize/single_all.yaml")
+        assert isinstance(d["some_namespace"], list)
+        assert {"file": "2.yaml"} in d["some_namespace"]
+        assert {"file": "3.yaml"} in d["some_namespace"]
 
-    @pytest.mark.parametrize(
-        "test_string,expected_result",
-        [
-            (r"foo\.bar.baz", ("foo.bar", "baz")),
-            (r"foo\\.bar.baz", ("foo\\", "bar", "baz")),
-            (r"foo\\\.bar.baz", ("foo\\.bar", "baz")),
-        ],
-    )
-    def test_escaped(self, test_string, expected_result):
-        result = escape_split(test_string)
-        assert isinstance(result, tuple)
-
-
-class Test_dict_filter:
-
-    test_dict = {
-        "data": {
-            "key": "value",
-            "k.e.y": "v.a.l.u.e",
-            "data": {"key1": "value1", "list": [1, 2, 3, "one", "two", "three"],},
-        }
-    }
-
-    @pytest.mark.parametrize(
-        "test_filter,expected_result",
-        [
-            ("data.key", "value"),
-            (r"data.k\.e\.y", "v.a.l.u.e"),
-            ("data.data.key1", "value1"),
-            ("data.data.list", [1, 2, 3, "one", "two", "three"]),
-        ],
-    )
-    def test_str_tuple(self, test_filter, expected_result):
-        assert dict_filter(self.test_dict, filter=test_filter) == expected_result
-        # test with a tuple as filter
-        assert (
-            dict_filter(self.test_dict, filter=escape_split(test_filter))
-            == expected_result
-        )
-
-    def test_empty_filter(self):
-        assert dict_filter(self.test_dict, filter="") == self.test_dict
-
-    def test_none_filter(self):
-        assert dict_filter(self.test_dict, filter=None) == self.test_dict
-
-    def test_list_position(self):
-        assert dict_filter({"data": [0, "one"]}, filter="data.1") == "one"
-
-    def test_fail_incorrect_filter(self):
-        with pytest.raises(PathAccessError):
-            dict_filter(self.test_dict, filter="data.DOESNOTEXIST")
-
-    def test_fail_incorrect_type(self):
-        with pytest.raises(PathAccessError):
-            dict_filter({"data": 1}, filter="data.key")
-
-
-class Test_PathAccessError:
     @staticmethod
-    def test_raise_PathAccessError():
-        with pytest.raises(PathAccessError):
-            exc = PathAccessError(TypeError("type error"), "segment", "filter")
-            assert repr(exc) == "PathAccessError(type error, segment, filter)"
-            assert isinstance(str(exc), str)
-            assert (
-                str(exc)
-                == "could not access segment from path filter, got error: type error"
+    def test_include_double_asterisk():
+        """
+        Test Path().glob() functionality using double asterisks returning multiple files (generates a list of deserialized data)
+        """
+        d = deserialize("tests/testdata/utils/deserialize/double.yaml")
+        assert isinstance(d["some_namespace"], list)
+        assert {"file": "1.yaml"} in d["some_namespace"]
+        assert {"file": "2.yaml"} in d["some_namespace"]
+        assert {"file": "3.yaml"} in d["some_namespace"]
+
+    @staticmethod
+    def test_include_double_single_result():
+        """
+        Test double asterisks returning a single result, which doesn't generate a list
+        """
+        d = deserialize("tests/testdata/utils/deserialize/double_single_result.yaml")
+        print(d)
+        assert isinstance(d["some_namespace"], dict)
+        assert {"file": "2.yaml"} == d["some_namespace"]
+
+    @staticmethod
+    def test_include_force_list():
+        """
+        Force generation of a list
+        """
+        d = deserialize("tests/testdata/utils/deserialize/force_list.yaml")
+        print(d)
+        assert isinstance(d["some_namespace"], list)
+        assert {"file": "2.yaml"} == d["some_namespace"][0]
+
+    @staticmethod
+    def test_include_nested_includes():
+        """
+        Test nested includes (a includes b includes c)
+        """
+        d = deserialize("tests/testdata/utils/deserialize/nested/a.yaml")
+        print(d)
+        assert isinstance(d, dict)
+        assert {"a": {"b": {"c": "this is c"}}} == d
+
+    @staticmethod
+    def test_include_non_existend_glob():
+        """
+        When non existing files are included a FileNotFoundError exception should be raised
+        """
+        with pytest.raises(FileNotFoundError):
+            _ = deserialize(
+                "tests/testdata/utils/deserialize/non_existend_include.yaml"
             )
-            raise exc
+
+    @staticmethod
+    def test_include_double_asterisk_incorrect_usage():
+        """
+        Test Path().glob() functionality using double asterisks incorrectly (incorrect Path.glob pattern syntax)
+        """
+        with pytest.raises(ValueError):
+            _ = deserialize(
+                "tests/testdata/utils/deserialize/double_incorrect_usage.yaml"
+            )
+
+    @staticmethod
+    def test_include_circular(fixture_recursion_depth_100):
+        """
+        Circular includes end in a RecursionError
+        """
+        with pytest.raises(RecursionError):
+            _ = deserialize(
+                "tests/testdata/utils/deserialize/circular_RecursionError.yaml"
+            )
+
+    @staticmethod
+    def test_include_unsupported_node_type():
+        """
+        Test for ValueError when yaml node type is unsupported
+        """
+        with pytest.raises(ValueError):
+            _ = deserialize("tests/testdata/utils/deserialize/type_error.yaml")

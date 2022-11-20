@@ -2,14 +2,14 @@
 
 _AS3 Ninja is a templating and validation engine for your AS3 declarations. No matter if you prefer a CLI or Swagger REST API, AS3 Ninja has you covered!_
 
-[![Travis CI Build
-Status](https://img.shields.io/travis/com/simonkowallik/as3ninja/master?style=flat-square)](https://travis-ci.com/simonkowallik/as3ninja)[![Documentation
-Status](https://img.shields.io/readthedocs/as3ninja/latest?style=flat-square)](https://as3ninja.readthedocs.io/en/latest/?badge=latest)[![Code Climate maintainability](https://img.shields.io/codeclimate/maintainability/simonkowallik/as3ninja?style=flat-square)](https://codeclimate.com/github/simonkowallik/as3ninja)[![Test
-Coverage](https://img.shields.io/codecov/c/github/simonkowallik/as3ninja?style=flat-square)](https://codecov.io/gh/simonkowallik/as3ninja)
+[![CI Pipeline](https://github.com/simonkowallik/as3ninja/actions/workflows/ci-pipeline.yaml/badge.svg)](https://github.com/simonkowallik/as3ninja/actions/workflows/ci-pipeline.yaml)
+[![Documentation Status](https://readthedocs.org/projects/as3ninja/badge/?version=latest&style=flat)](https://as3ninja.readthedocs.io/en/latest/?badge=latest)
+[![Maintainability](https://api.codeclimate.com/v1/badges/9f516ff8bde00c7c082d/maintainability)](https://codeclimate.com/github/simonkowallik/as3ninja/maintainability)
+[![Test Coverage](https://api.codeclimate.com/v1/badges/9f516ff8bde00c7c082d/test_coverage)](https://codeclimate.com/github/simonkowallik/as3ninja/test_coverage)
 
 - Free software: ISC license
 - Documentation: <https://as3ninja.readthedocs.io>
-- Works with Python 3.6 and up
+- Works with Python 3.8 and up
 
 ## What is AS3 Ninja and what can it do for you?
 
