@@ -71,6 +71,8 @@ class Test_deserialize_yaml_include:
 
         with pytest.raises(ValueError):
             deserialize(datasource=not_yaml_file)
+
+    @staticmethod
     def test_include_explicit():
         """
         Explicitly include two yaml files returns a list of both
