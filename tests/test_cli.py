@@ -57,6 +57,23 @@ class Test_validate:
 
         assert result.exit_code == 1
 
+    @staticmethod
+    def test_validation_failure_details(fixture_clicker, capsys):
+        """
+        Non AS3 Schema JSON test with simple test data
+
+        as3ninja validate -d tests/testdata/cli/validate/errors.json
+        """
+        result = fixture_clicker.invoke(
+            cli,
+            [
+                "validate",
+                "-d",
+                "tests/testdata/cli/validate/errors.json",
+            ],
+        )
+        assert result.exit_code != 0
+
 
 @pytest.mark.usefixtures("fixture_clicker")
 class Test_git_transform:

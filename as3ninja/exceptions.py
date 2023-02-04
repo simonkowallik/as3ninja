@@ -141,7 +141,19 @@ class AS3SchemaError(SchemaError):
     """Raised when AS3 Schema is erroneous, eg. does not adhere to jsonschema standards."""
 
     def __init__(self, message: str = "", original_exception=None):
-        super(AS3SchemaError, self).__init__(f"{message}: {str(original_exception)}")
+        # super(AS3SchemaError, self).__init__(f"{message}: {str(original_exception)}")
+        super().__init__(
+            message=message + original_exception.message,
+            validator=original_exception.validator,
+            path=original_exception.path,
+            cause=original_exception.cause,
+            context=original_exception.context,
+            validator_value=original_exception.validator_value,
+            instance=original_exception.instance,
+            schema=original_exception.schema,
+            schema_path=original_exception.schema_path,
+            parent=original_exception.parent,
+        )
 
 
 class AS3SchemaVersionError(ValueError):
@@ -152,6 +164,18 @@ class AS3ValidationError(ValidationError):
     """Validation of AS3 declaration against AS3 Schema produced an error."""
 
     def __init__(self, message: str = "", original_exception=None):
-        super(AS3ValidationError, self).__init__(
-            f"{message}: {str(original_exception)}"
-        )
+        if original_exception:
+            super().__init__(
+                message=message + original_exception.message,
+                validator=original_exception.validator,
+                path=original_exception.path,
+                cause=original_exception.cause,
+                context=original_exception.context,
+                validator_value=original_exception.validator_value,
+                instance=original_exception.instance,
+                schema=original_exception.schema,
+                schema_path=original_exception.schema_path,
+                parent=original_exception.parent,
+            )
+        else:
+            super().__init__(message=message)

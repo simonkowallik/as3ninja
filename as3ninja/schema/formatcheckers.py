@@ -104,6 +104,8 @@ class AS3FormatChecker(FormatChecker):
         :param regex: The regular expression, for example: ``r'^[ -~]+$'``
         :param value: Value to apply the regular expression to
         """
+        if not isinstance(value, str):
+            return False
         reg_ex = re.compile(regex)
         if reg_ex.match(value) is None:
             return False
