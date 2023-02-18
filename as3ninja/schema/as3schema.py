@@ -265,7 +265,7 @@ class AS3Schema:
             raise ValueError(
                 f"Expected to find a single AS3 Schema file, found: {len(url)}, urls:{url}"
             )
-        return "file://" + str(url[0])
+        return url[0].as_uri()
 
     def _schema_ref_update(self, version: str) -> dict:
         """Private Method: _schema_ref_update returns the AS3 Schema for specified version with updated references.
@@ -322,6 +322,6 @@ class AS3Schema:
             validator = self._validator(version)
             validator.validate(declaration)
         except ValidationError as exc:
-            raise AS3ValidationError("AS3 Validation Error", exc)
-        except (SchemaError, RefResolutionError) as exc:
+            raise AS3ValidationError("AS3 Validation Error: ", exc) from exc
+        except (SchemaError) as exc:
             raise AS3SchemaError("JSON Schema Error", exc)

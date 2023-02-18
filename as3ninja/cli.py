@@ -16,6 +16,7 @@ from loguru import logger
 
 from . import __version__
 from .declaration import AS3Declaration
+from .exceptions import AS3ValidationError
 from .gitget import Gitget
 from .schema import AS3Schema
 from .templateconfiguration import AS3TemplateConfiguration
@@ -217,7 +218,22 @@ def git_transform(  # pylint: disable=R0913 # Too many arguments
         )
         if validate:
             as3s = AS3Schema()
-            as3s.validate(declaration=as3declaration.dict())
+            try:
+                as3s.validate(declaration=as3declaration.dict())
+            except AS3ValidationError as exc:
+                LOG_STDERR.error(
+                    "Validation failed for AS3 Schema version: {}",
+                    as3s.version,
+                    feature="f-strings",
+                )
+                if exc.context:
+                    for subexc in exc.context:
+                        LOG_STDERR.info(
+                            "\n{}\n",
+                            subexc,
+                            feature="f-strings",
+                        )
+                raise exc
 
         _output_declaration(as3declaration, output_file=output_file, pretty=pretty)
 
@@ -248,12 +264,27 @@ def validate(
     If no version is specified, the latest available version is used."""
     as3s = AS3Schema(version=version)
     _declaration = deserialize(declaration.name)
-    as3s.validate(declaration=_declaration)
-    LOG_STDOUT.info(
-        "Validation passed for AS3 Schema version: {}",
-        as3s.version,
-        feature="f-strings",
-    )
+    try:
+        as3s.validate(declaration=_declaration)
+        LOG_STDOUT.info(
+            "Validation passed for AS3 Schema version: {}",
+            as3s.version,
+            feature="f-strings",
+        )
+    except AS3ValidationError as exc:
+        LOG_STDERR.error(
+            "Validation failed for AS3 Schema version: {}",
+            as3s.version,
+            feature="f-strings",
+        )
+        if exc.context:
+            for subexc in exc.context:
+                LOG_STDERR.info(
+                    "\n{}\n",
+                    subexc,
+                    feature="f-strings",
+                )
+        raise exc
 
 
 @cli.group(context_settings=dict(help_option_names=["-h", "--help"]))

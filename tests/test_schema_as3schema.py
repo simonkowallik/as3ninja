@@ -6,6 +6,7 @@ from tempfile import mkdtemp
 
 import pytest
 from jsonschema import FormatChecker
+from jsonschema.exceptions import RefResolutionError
 
 from as3ninja.exceptions import (
     AS3SchemaError,
@@ -401,7 +402,7 @@ class Test_AS3SchemaError:
             "$ref"
         ] = "#/definitions/InvalidReference"
 
-        with pytest.raises(AS3SchemaError) as excinfo:
+        with pytest.raises(RefResolutionError) as excinfo:
             s.validate(declaration=self.declaration_v390__dict, version=version)
         assert "definitions/InvalidReference" in str(excinfo.value)
 

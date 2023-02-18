@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "as3ninja"
 
-version = "0.6.0"  # as3ninja/__init__.py -> __version__
+version = "0.6.1"  # as3ninja/__init__.py -> __version__
 license = "ISC"
 description = "AS3 Ninja is a templating and validation engine for your AS3 declarations providing a CLI and Swagger REST API"
 readme = "README.md"
@@ -59,7 +59,7 @@ as3ninja = "as3ninja.cli:cli"
 python = "^3.8"
 hvac = "^0.11.2"
 jinja2 = "^3.1.2"
-jsonschema = "^4.14.0"
+jsonschema = "^4.17.0"
 loguru = ">=0.6.0, <1"
 pydantic = "^1.9.2"
 pyyaml = "^6.0"
@@ -73,6 +73,7 @@ black = "^22"
 isort = "^5"
 mypy = "^0.971"
 pylint = "^2"
+ipykernel = "^6.21.1"
 
 [tool.poetry.group.test.dependencies]
 pytest = "^7"

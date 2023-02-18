@@ -77,6 +77,8 @@ def test_uuid():
     myuuid = uuid("")
     assert isinstance(myuuid, str)
     assert isinstance(UUID(myuuid), UUID)
+
+
 class Test_env:
     @staticmethod
     def test_exists(monkeypatch):

@@ -1,0 +1,36 @@
+{
+    "class": "AS3",
+    "action": "deploy",
+    "declaration": {
+      "class": "ADC",
+      "schemaVersion": "3.40.0",
+      "id": "a-unique-id",
+      "SchemaValidationTenant": {
+        "class": "Tenant",
+        "ServiceName_Invalid": {
+          "class": "Application",
+          "abc.test.com:80": {
+            "class": "Service_HTTP",
+            "virtualAddresses": ["10.0.1.10"]
+          }
+        },
+        "SNAT_Invalid": {
+          "class": "Application",
+          "servicename": {
+            "class": "Service_HTTP",
+            "virtualAddresses": ["10.0.1.10"],
+            "snat": "INVALID_SNAT_POOL_REFERENCE"
+          }
+        },
+        "SNAT_Invalid2": {
+          "class": "Application",
+          "servicename": {
+            "class": "Service_HTTP",
+            "virtualAddresses": ["10.0.1.10"],
+            "snat": { "bigip": { "snat_pool": "/Common/snat_pool" } }
+          }
+        }
+      }
+    }
+  }
+  
